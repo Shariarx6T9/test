@@ -5,6 +5,7 @@ interface SectionHeaderProps {
   subtitle?: string;
   bengaliSubtitle?: string;
   align?: "left" | "center";
+  centered?: boolean;
 }
 
 export default function SectionHeader({
@@ -12,8 +13,9 @@ export default function SectionHeader({
   subtitle,
   bengaliSubtitle,
   align = "center",
+  centered,
 }: SectionHeaderProps) {
-  const isCentered = align === "center";
+  const isCentered = centered || align === "center";
 
   return (
     <div className={`space-y-4 mb-12 ${isCentered ? "text-center" : "text-left"}`}>

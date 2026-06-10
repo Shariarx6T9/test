@@ -6,12 +6,14 @@ interface DownloadButtonProps {
   platform: "google-play" | "app-store" | "apk";
   status?: "available" | "coming-soon";
   href?: string;
+  className?: string;
 }
 
 export default function DownloadButton({
   platform,
   status = "available",
   href = "#",
+  className = "",
 }: DownloadButtonProps) {
   const isComingSoon = status === "coming-soon";
 
@@ -47,7 +49,7 @@ export default function DownloadButton({
   const Icon = p.icon;
 
   return (
-    <div className="relative group">
+    <div className={`relative group ${className}`}>
       <a
         href={isComingSoon ? undefined : href}
         className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all ${

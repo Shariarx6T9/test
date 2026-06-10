@@ -103,7 +103,7 @@ export default function FAQAccordion() {
               question={item.question}
               answer={item.answer}
               isOpen={openIndex === index}
-              onClick={() => setOpenIndex(openIndex === index ? null : index)}
+              onClick={() => { setOpenIndex(openIndex === index ? null : index); }}
             />
           ))}
         </div>
