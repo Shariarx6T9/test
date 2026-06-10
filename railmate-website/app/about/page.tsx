@@ -39,7 +39,7 @@ export default function AboutPage() {
 
         <div className="space-y-16">
           {/* Vision Block */}
-          <div className="p-8 lg:p-12 bg-primary/10 border border-primary/20 rounded-radius-xl">
+          <div className="p-8 lg:p-12 bg-primary/10 border border-primary/20 rounded-xl">
              <h2 className="text-2xl lg:text-3xl font-jakarta font-extrabold text-primary leading-tight">
                "RailMate Bangladesh is the most trusted railway companion app for Bangladeshi travelers — the app they open before, during, and after every train journey."
              </h2>
@@ -70,7 +70,7 @@ export default function AboutPage() {
           </div>
 
           {/* Brand Positioning */}
-          <div className="p-8 bg-bg-elevated border border-border rounded-radius-xl space-y-4">
+          <div className="p-8 bg-bg-elevated border border-border rounded-xl space-y-4">
              <h4 className="text-sm uppercase tracking-widest font-bold text-text-tertiary">Our Positioning</h4>
              <p className="text-text-primary text-xl font-medium leading-relaxed italic">
                "FOR students, commuters, and business travelers WHO are frustrated by fragmented railway information, RAILMATE is a unified companion THAT provides schedules, fares, community alerts, and journey intelligence — UNLIKE anything currently available in Bangladesh."
@@ -103,7 +103,7 @@ export default function AboutPage() {
 
           {/* Independence Disclaimer */}
           <div className="pt-8 border-t border-border">
-            <div className="p-6 bg-bg-card border border-border rounded-radius-lg">
+            <div className="p-6 bg-bg-card border border-border rounded-lg">
               <p className="text-text-tertiary text-sm leading-relaxed">
                 <strong>Independence Disclaimer:</strong> RailMate is an independent platform developed by Bangladeshi developers. It is not affiliated with, endorsed by, or officially connected to Bangladesh Railway unless explicitly stated. All trademarked names and logos are the property of their respective owners.
               </p>

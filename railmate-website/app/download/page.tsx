@@ -78,7 +78,7 @@ export default function DownloadPage() {
         {/* Download Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
           {/* Google Play */}
-          <div className="p-8 bg-bg-elevated border border-border rounded-radius-xl flex flex-col items-center text-center">
+          <div className="p-8 bg-bg-elevated border border-border rounded-xl flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-bg-card border border-border rounded-full flex items-center justify-center mb-6 text-primary">
               <GooglePlayLogo size={32} weight="bold" />
             </div>
@@ -90,13 +90,13 @@ export default function DownloadPage() {
           </div>
 
           {/* APK */}
-          <div className="p-8 bg-bg-elevated border border-border rounded-radius-xl flex flex-col items-center text-center">
+          <div className="p-8 bg-bg-elevated border border-border rounded-xl flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-bg-card border border-border rounded-full flex items-center justify-center mb-6 text-text-primary">
               <AndroidLogo size={32} weight="bold" />
             </div>
             <h3 className="text-xl font-bold text-text-primary mb-2">Direct APK</h3>
             <p className="text-text-tertiary text-sm mb-4">Manual installation. Version: v1.0.0 (Coming Soon)</p>
-            <div className="p-3 bg-bg-card border border-border rounded-radius-md w-full mb-8">
+            <div className="p-3 bg-bg-card border border-border rounded-md w-full mb-8">
                <p className="text-[10px] text-text-tertiary font-mono break-all">SHA256: 7f83b...placeholder</p>
             </div>
             <div className="mt-auto w-full">
@@ -105,7 +105,7 @@ export default function DownloadPage() {
           </div>
 
           {/* App Store */}
-          <div className="p-8 bg-bg-elevated border border-border rounded-radius-xl flex flex-col items-center text-center opacity-75">
+          <div className="p-8 bg-bg-elevated border border-border rounded-xl flex flex-col items-center text-center opacity-75">
             <div className="w-16 h-16 bg-bg-card border border-border rounded-full flex items-center justify-center mb-6 text-text-secondary">
               <AppleLogo size={32} weight="bold" />
             </div>
@@ -125,7 +125,7 @@ export default function DownloadPage() {
                <h3 className="text-2xl font-jakarta font-extrabold text-text-primary">{section.title} Instructions</h3>
                <div className="space-y-4">
                   {section.steps.map((step, si) => (
-                    <div key={si} className="flex gap-4 p-4 bg-bg-card border border-border rounded-radius-lg">
+                    <div key={si} className="flex gap-4 p-4 bg-bg-card border border-border rounded-lg">
                        <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary flex-shrink-0">
                           {step.icon}
                        </div>
@@ -164,7 +164,7 @@ export default function DownloadPage() {
         </div>
 
         {/* System Requirements */}
-        <div className="p-8 bg-bg-elevated border border-border rounded-radius-xl">
+        <div className="p-8 bg-bg-elevated border border-border rounded-xl">
            <h3 className="text-xl font-jakarta font-extrabold text-text-primary mb-6">System Requirements</h3>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
