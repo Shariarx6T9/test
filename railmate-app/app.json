@@ -27,6 +27,11 @@
       "expo-router",
       "expo-font"
     ],
+    "extra": {
+      "eas": {
+        "projectId": "ed4a7cf7-be6f-4ba7-868a-1103135a4b50"
+      }
+    },
     "experiments": {
       "typedRoutes": true
     }
