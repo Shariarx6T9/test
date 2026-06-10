@@ -40,7 +40,7 @@ export default function DownloadPage() {
   ];
 
   return (
-    <main className="pt-32 pb-24 bg-base min-h-screen">
+    <main className="pt-32 pb-24 bg-bg-base min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

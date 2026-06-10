@@ -16,7 +16,7 @@ export default function ScreenshotsCarousel() {
   const duplicatedScreenshots = [...screenshots, ...screenshots];
 
   return (
-    <section className="py-24 bg-base overflow-hidden">
+    <section className="py-24 bg-bg-base overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 mb-16">
         <SectionHeader 
           title="Everything You Need, In One App"

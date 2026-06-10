@@ -85,7 +85,7 @@ const features = [
 
 export default function FeaturesPage() {
   return (
-    <main className="pt-32 pb-24 bg-base min-h-screen">
+    <main className="pt-32 pb-24 bg-bg-base min-h-screen">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="mb-20">
           <SectionHeader 

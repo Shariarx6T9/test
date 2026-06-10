@@ -14,7 +14,7 @@ export const metadata = buildMetadata({
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-base">
+    <main className="min-h-screen bg-bg-base">
       <HeroSection />
       
       {/* Section Divider with subtle glow */}

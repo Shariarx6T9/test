@@ -41,7 +41,7 @@ export default function CommunitySection() {
   ];
 
   return (
-    <section className="py-24 bg-base relative overflow-hidden">
+    <section className="py-24 bg-bg-base relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="bg-bg-elevated rounded-radius-xl border border-border p-8 lg:p-16 relative overflow-hidden">
           {/* Subtle Glow */}

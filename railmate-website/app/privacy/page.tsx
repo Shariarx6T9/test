@@ -9,7 +9,7 @@ export const metadata = buildMetadata({
 
 export default function PrivacyPage() {
   return (
-    <main className="pt-32 pb-24 bg-base min-h-screen">
+    <main className="pt-32 pb-24 bg-bg-base min-h-screen">
       <div className="max-w-4xl mx-auto px-6 lg:px-12">
         <div className="mb-12">
           <SectionHeader title="Privacy Policy" align="left" />
