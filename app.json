@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "RailMate Bangladesh",
+    "slug": "railmate-bd",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "railmatebd",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080D17"
+    },
+    "ios": {
+      "bundleIdentifier": "com.railmate.bd",
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#080D17"
+      },
+      "package": "com.railmate.bd"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
