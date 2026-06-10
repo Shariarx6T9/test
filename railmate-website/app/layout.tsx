@@ -1,71 +1,65 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, Noto_Sans_Bengali, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 
 const jakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700', '800'],
-  variable: '--font-jakarta',
-  display: 'swap',
+  subsets: ["latin"],
+  weight: ["400", "700", "800"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
 
 const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
-  display: 'swap',
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 const notoSansBengali = Noto_Sans_Bengali({
-  subsets: ['bengali'],
-  weight: ['400', '600'],
-  variable: '--font-bengali',
-  display: 'swap',
-});
-
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
+  subsets: ["bengali"],
+  weight: ["400", "600"],
+  variable: "--font-bengali",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "RailMate Bangladesh — Your Railway, Simplified.",
-  description: "RailMate is Bangladesh's most trusted railway companion app. Real-time schedules, fares, community reports, and smart journey tools. Download free on Android.",
+  title: "Your Railway, Simplified. | RailMate Bangladesh",
+  description:
+    "RailMate is Bangladesh's most trusted railway companion app. Real-time schedules, fares, community reports, and smart journey tools. Download free on Android.",
+  keywords: [
+    "Bangladesh railway",
+    "train schedule Bangladesh",
+    "বাংলাদেশ রেলওয়ে সময়সূচি",
+    "BR Explorer alternative",
+    "train delay Bangladesh",
+    "RailMate",
+  ],
+  metadataBase: new URL("https://railmatebd.com"),
   openGraph: {
-    title: "RailMate Bangladesh — Your Railway, Simplified.",
-    description: "RailMate is Bangladesh's most trusted railway companion app. Real-time schedules, fares, community reports, and smart journey tools. Download free on Android.",
-    siteName: "RailMate Bangladesh",
+    title: "Your Railway, Simplified. | RailMate Bangladesh",
+    description:
+      "Real-time schedules, fares, and community delay reports for Bangladesh Railway.",
     type: "website",
     locale: "en_BD",
-    url: "https://bhairail.vercel.app/",
+    siteName: "RailMate Bangladesh",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "RailMate Bangladesh — Your Railway, Simplified.",
-    description: "RailMate is Bangladesh's most trusted railway companion app.",
-  },
-  icons: {
-    icon: "/favicon.png",
-    apple: "/icon.png",
-  },
+  themeColor: "#00A859",
+  robots: "index, follow",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <body
-        className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} ${mono.variable}`}
+        className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable}`}
+        style={{ backgroundColor: "#080D17", color: "#F0F4FF" }}
       >
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

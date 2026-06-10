@@ -1,6 +1,7 @@
+import 'react-native-get-random-values';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { nanoid } from 'nanoid/non-secure';
+import { nanoid } from 'nanoid';
 
 const STORAGE_KEY = 'railmate_saved_routes';
 
