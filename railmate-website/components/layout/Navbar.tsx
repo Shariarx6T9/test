@@ -3,6 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+const navLinks = [
+  { label: "Home", href: "/" },
+  { label: "Features", href: "#features" },
+  { label: "Community", href: "#community" },
+  { label: "Download", href: "#download" },
+  { label: "FAQ", href: "#faq" },
+];
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -13,193 +21,102 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Features", href: "#features" },
-    { label: "Community", href: "#community" },
-    { label: "Download", href: "#download" },
-    { label: "FAQ", href: "#faq" },
-  ];
-
   return (
     <nav
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        transition: "background 0.3s ease, border-color 0.3s ease",
-        backgroundColor: scrolled ? "rgba(15,25,41,0.96)" : "transparent",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "1px solid #1E2E42" : "1px solid transparent",
-      }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-bg-elevated/95 backdrop-blur-md border-b border-border shadow-lg py-3"
+          : "bg-transparent py-5"
+      }`}
     >
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "0 24px",
-          height: "64px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              backgroundColor: "#00A859",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
+            <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
               <rect x="2" y="7" width="16" height="2" rx="1" fill="white" opacity="0.9" />
               <rect x="2" y="11" width="16" height="2" rx="1" fill="white" opacity="0.9" />
               <path d="M14 5 L18 10 L14 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-jakarta)", fontWeight: 700, fontSize: "16px", color: "#F0F4FF", lineHeight: 1.1 }}>
+            <div className="font-display font-bold text-lg text-text-primary leading-none tracking-tight">
               RailMate
             </div>
-            <div style={{ fontFamily: "var(--font-inter)", fontWeight: 400, fontSize: "10px", color: "#8FA3C0", letterSpacing: "0.1em" }}>
-              BANGLADESH
+            <div className="font-body font-medium text-[10px] text-text-secondary tracking-[0.15em] leading-none mt-1 uppercase">
+              Bangladesh
             </div>
           </div>
         </Link>
 
         {/* Desktop links */}
-        <div style={{ display: "flex", alignItems: "center", gap: "32px" }} className="hidden md:flex">
+        <div className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
-              style={{
-                color: "#8FA3C0",
-                textDecoration: "none",
-                fontSize: "14px",
-                fontFamily: "var(--font-inter)",
-                fontWeight: 500,
-                transition: "color 0.15s ease",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#F0F4FF")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#8FA3C0")}
+              className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors relative group"
             >
               {link.label}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
             </Link>
           ))}
         </div>
 
         {/* Desktop CTA */}
-        <a
-          href="#download"
-          className="hidden md:inline-flex"
-          style={{
-            backgroundColor: "#00A859",
-            color: "#080D17",
-            padding: "10px 20px",
-            borderRadius: "10px",
-            fontFamily: "var(--font-inter)",
-            fontWeight: 600,
-            fontSize: "14px",
-            textDecoration: "none",
-            transition: "background 0.15s ease",
-            alignItems: "center",
-            gap: "6px",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#007A40")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#00A859")}
-        >
-          Download App →
-        </a>
+        <div className="hidden md:flex items-center">
+          <Link
+            href="#download"
+            className="bg-primary hover:bg-primary-dim text-bg-base px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/10 active:scale-95"
+          >
+            Download App →
+          </Link>
+        </div>
 
-        {/* Hamburger — mobile only */}
+        {/* Mobile Toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden"
-          style={{
-            background: "none",
-            border: "1px solid #1E2E42",
-            borderRadius: "8px",
-            padding: "8px",
-            cursor: "pointer",
-            color: "#F0F4FF",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className="md:hidden p-2 text-text-primary focus:outline-none"
           aria-label="Toggle menu"
         >
           {menuOpen ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
             </svg>
           )}
         </button>
       </div>
 
-      {/* Mobile menu — single, conditional render */}
-      {menuOpen && (
-        <div
-          style={{
-            backgroundColor: "#0F1929",
-            borderTop: "1px solid #1E2E42",
-            padding: "16px 24px 24px",
-          }}
-          className="md:hidden"
-        >
+      {/* Mobile menu */}
+      <div
+        className={`md:hidden absolute top-full left-0 right-0 bg-bg-elevated border-b border-border transition-all duration-300 overflow-hidden ${
+          menuOpen ? "max-h-[400px] opacity-100 py-6 px-6" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="flex flex-col gap-4">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              style={{
-                display: "block",
-                padding: "14px 0",
-                color: "#8FA3C0",
-                textDecoration: "none",
-                fontFamily: "var(--font-inter)",
-                fontSize: "16px",
-                fontWeight: 500,
-                borderBottom: "1px solid #1E2E42",
-              }}
+              className="text-text-secondary hover:text-text-primary text-base font-medium py-2 border-b border-border/50"
             >
               {link.label}
             </Link>
           ))}
-          <a
+          <Link
             href="#download"
             onClick={() => setMenuOpen(false)}
-            style={{
-              display: "block",
-              marginTop: "16px",
-              backgroundColor: "#00A859",
-              color: "#080D17",
-              padding: "14px 20px",
-              borderRadius: "10px",
-              fontFamily: "var(--font-inter)",
-              fontWeight: 600,
-              fontSize: "15px",
-              textDecoration: "none",
-              textAlign: "center",
-            }}
+            className="bg-primary text-bg-base py-4 rounded-xl font-bold text-center mt-4 shadow-lg shadow-primary/10"
           >
             Download App →
-          </a>
+          </Link>
         </div>
-      )}
+      </div>
     </nav>
   );
 }
