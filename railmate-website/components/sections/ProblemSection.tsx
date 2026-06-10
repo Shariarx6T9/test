@@ -1,8 +1,27 @@
 "use client";
 
-import { Warning, AppWindow, CurrencyBdt } from "@phosphor-icons/react";
+import type { ComponentType, ElementType } from "react";
 
-const painPoints = [
+import { Warning, AppWindow, type IconProps } from "@phosphor-icons/react";
+
+type SectionIcon = ElementType<IconProps>;
+
+const TakaIcon: ComponentType<IconProps> = ({ size = 32, className }) => (
+  <span
+    aria-hidden="true"
+    className={className}
+    style={{ fontSize: size, lineHeight: 1 }}
+  >
+    ৳
+  </span>
+);
+
+const painPoints: Array<{
+  icon: SectionIcon;
+  title: string;
+  body: string;
+  color: "danger" | "accent" | "info";
+}> = [
   {
     icon: Warning,
     title: "Is my train even on time?",
@@ -16,7 +35,7 @@ const painPoints = [
     color: "accent",
   },
   {
-    icon: CurrencyBdt,
+    icon: TakaIcon,
     title: "What does this ticket actually cost?",
     body: "Fare tables are buried in PDFs. Prices differ by class, season, and nobody tells you that Snigdha isn't available on this route.",
     color: "info",

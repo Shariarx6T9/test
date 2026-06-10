@@ -1,21 +1,35 @@
 "use client";
 
+import type { ComponentType, ElementType } from "react";
+
 import {
   Train,
-  CurrencyBdt,
   UsersThree,
   BellSimple,
   WifiSlash,
   Translate,
-  Icon,
+  type IconProps,
 } from "@phosphor-icons/react";
 
 interface Feature {
-  icon: Icon;
+  icon: ElementType<IconProps>;
   title: string;
   body: string;
   tag: "FREE" | "PRO";
 }
+
+const TakaIcon: ComponentType<IconProps> = ({
+  size = 24,
+  className,
+}) => (
+  <span
+    aria-hidden="true"
+    className={className}
+    style={{ fontSize: size, lineHeight: 1 }}
+  >
+    ৳
+  </span>
+);
 
 const features: Feature[] = [
   {
@@ -25,7 +39,7 @@ const features: Feature[] = [
     tag: "FREE",
   },
   {
-    icon: CurrencyBdt,
+    icon: TakaIcon,
     title: "Fare Calculator",
     body: "Exact fares for all 8 coach classes — Shovon to AC Berth. Pick your route, pick your class. No more PDF digging.",
     tag: "FREE",
