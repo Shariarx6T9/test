@@ -45,6 +45,10 @@ export const metadata: Metadata = {
     title: "RailMate Bangladesh — Your Railway, Simplified.",
     description: "RailMate is Bangladesh's most trusted railway companion app.",
   },
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icon.png",
+  },
   manifest: "/manifest.json",
 };
 
