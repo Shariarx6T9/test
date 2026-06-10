@@ -28,9 +28,9 @@ export default function WhyRailMate() {
           subtitle="Built by Bangladeshis, for Bangladeshis. We understand the unique challenges of our railway system."
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-0 mt-16 md:divide-x md:divide-border-strong">
           {benefits.map((benefit, index) => (
-            <div key={index} className="flex flex-col items-center text-center space-y-6">
+            <div key={index} className="flex flex-col items-center text-center space-y-6 px-6">
               <div className="w-16 h-16 bg-bg-elevated border border-border rounded-2xl flex items-center justify-center text-primary">
                 <benefit.icon size={32} weight="duotone" />
               </div>
@@ -42,9 +42,6 @@ export default function WhyRailMate() {
                   {benefit.description}
                 </p>
               </div>
-              {index < benefits.length - 1 && (
-                <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-border-strong" />
-              )}
             </div>
           ))}
         </div>

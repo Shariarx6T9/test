@@ -65,8 +65,8 @@ export default function ScreenshotsCarousel() {
         </motion.div>
 
         {/* Masking Gradients */}
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-base to-transparent z-10" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-base to-transparent z-10" />
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-bg-base to-transparent z-10" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-bg-base to-transparent z-10" />
       </div>
 
       <div className="flex justify-center gap-2 mt-12">
