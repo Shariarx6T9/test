@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Users, Bell, Bank } from "@phosphor-icons/react";
+import { Calendar, Users, Bell, Bank } from "@phosphor-icons/react/dist/ssr";
 
 const features = [
   {

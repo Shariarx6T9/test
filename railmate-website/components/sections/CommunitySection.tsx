@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Warning, Clock, CheckCircle } from "@phosphor-icons/react";
+import { Users, Warning, Clock, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import Button from "../ui/Button";
 
 export default function CommunitySection() {

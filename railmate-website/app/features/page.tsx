@@ -12,7 +12,7 @@ import {
   Toilet, 
   Buildings, 
   Crown 
-} from "@phosphor-icons/react";
+} from "@phosphor-icons/react/dist/ssr";
 
 export const metadata = buildMetadata({
   title: "Features",

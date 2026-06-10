@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, Globe, WifiSlash, ShieldCheck, ArrowsCounterClockwise, Users } from "@phosphor-icons/react";
+import { CheckCircle, Globe, WifiSlash, ShieldCheck, ArrowsCounterClockwise, Users } from "@phosphor-icons/react/dist/ssr";
 
 export default function UserBenefits() {
   const benefits = [
