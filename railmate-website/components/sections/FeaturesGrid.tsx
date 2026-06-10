@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Users, Bell, CurrencyBdt } from "@phosphor-icons/react";
+import { Calendar, Users, Bell, Bank } from "@phosphor-icons/react";
 
 const features = [
   {
@@ -19,7 +19,7 @@ const features = [
     description: "Get notified immediately about delays on your routes.",
   },
   {
-    icon: CurrencyBdt,
+    icon: Bank,
     name: "Fare Lookup",
     description: "Instantly find fares for all classes across any route.",
   },

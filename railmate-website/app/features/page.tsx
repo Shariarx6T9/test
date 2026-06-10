@@ -9,10 +9,10 @@ import {
   Users, 
   UserList, 
   BellRinging, 
-  HandWashing, 
+  Toilet, 
   Buildings, 
   Crown 
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 
 export const metadata = buildMetadata({
   title: "Features",
@@ -64,7 +64,7 @@ const features = [
     phase: 2,
   },
   {
-    icon: <HandWashing size={32} />,
+    icon: <Toilet size={32} />,
     name: "Train Condition Reports",
     desc: "Cleanliness, AC status, toilet status — community reported. Choose the best trains based on recent passenger experiences.",
     phase: 2,
