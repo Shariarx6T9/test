@@ -56,8 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable}`}
-        style={{ backgroundColor: "#080D17", color: "#F0F4FF" }}
+        className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} bg-bg-base text-text-primary antialiased`}
       >
         {children}
       </body>
