@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "next": "15.0.0",
-    "react": "19.0.0-rc-696b1320-20241021",
-    "react-dom": "19.0.0-rc-696b1320-20241021",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tailwindcss": "4.0.0-alpha.25",
     "@tailwindcss/postcss": "4.0.0-alpha.25",
     "lucide-react": "^0.454.0",
