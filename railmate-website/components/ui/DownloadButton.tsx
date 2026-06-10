@@ -17,7 +17,15 @@ export default function DownloadButton({
 }: DownloadButtonProps) {
   const isComingSoon = status === "coming-soon";
 
-  const platforms = {
+  const platforms: Record<DownloadButtonProps["platform"], {
+    icon: any;
+    label: string;
+    brand: string;
+    bg: string;
+    text: string;
+    hover: string;
+    border?: string;
+  }> = {
     "google-play": {
       icon: GooglePlayLogo,
       label: "Download on",

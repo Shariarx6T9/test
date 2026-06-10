@@ -52,7 +52,7 @@ const faqData = [
   }
 ];
 
-function FAQItem({ question, answer, isOpen, onClick }: { question: string, answer: string, isOpen: boolean, onClick: () => void }) {
+function FAQItem({ question, answer, isOpen, onClick }: { key?: any, question: string, answer: string, isOpen: boolean, onClick: () => void }) {
   return (
     <div className="border-b border-border last:border-0">
       <button
