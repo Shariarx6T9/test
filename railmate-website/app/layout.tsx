@@ -45,8 +45,11 @@ export const metadata: Metadata = {
     title: "RailMate Bangladesh — Your Railway, Simplified.",
     description: "RailMate is Bangladesh's most trusted railway companion app.",
   },
-  themeColor: "#00A859",
   manifest: "/manifest.json",
+};
+
+export const viewport = {
+  themeColor: "#00A859",
 };
 
 export default function RootLayout({
