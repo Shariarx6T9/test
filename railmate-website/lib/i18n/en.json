@@ -266,5 +266,9 @@
       "title": "Bengali & English",
       "body": "Station names, train names, all UI in both languages. Switch any time. Noto Sans Bengali for proper rendering."
     }
+  },
+  "metadata": {
+    "title": "RailMate Bangladesh — Travel Smarter. Travel RailMate.",
+    "description": "Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline."
   }
 }

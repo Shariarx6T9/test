@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { I18nProvider } from '@/lib/i18n'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import { getTranslations } from 'next-intl/server'
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -27,35 +28,42 @@ const notoSansBengali = Noto_Sans_Bengali({
   display: 'swap',
 })
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://railmatebd.com'),
-  title: 'RailMate Bangladesh — Travel Smarter. Travel RailMate.',
-  description:
-    'Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline.',
-  keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
-  manifest: '/manifest.json',
-  openGraph: {
-    title: 'RailMate Bangladesh',
-    description: 'Travel Smarter. Travel RailMate.',
-    url: 'https://railmatebd.com',
-    siteName: 'RailMate Bangladesh',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'RailMate Bangladesh',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'RailMate Bangladesh',
-    description: 'Travel Smarter. Travel RailMate.',
-    images: ['/og-image.png'],
-  },
+export async function generateMetadata({
+  params: { locale }
+}: {
+  params: { locale: string }
+}) {
+  const t = await getTranslations({ locale, namespace: 'metadata' });
+
+  return {
+    metadataBase: new URL('https://railmatebd.com'),
+    title: t('title'),
+    description: t('description'),
+    keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
+    manifest: '/manifest.json',
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      url: 'https://railmatebd.com',
+      siteName: 'RailMate Bangladesh',
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'RailMate Bangladesh',
+        },
+      ],
+      locale: locale === 'bn' ? 'bn_BD' : 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+      images: ['/og-image.png'],
+    },
+  }
 }
 
 export function generateStaticParams() {
