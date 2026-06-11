@@ -13,7 +13,7 @@ export function buildMetadata({
   path?: string;
   noIndex?: boolean;
 }): Metadata {
-  const imageUrl = `${BASE_URL}/logo.png`; // Fallback to logo.png since og-image.png is missing
+  const imageUrl = `${BASE_URL}/og-image.png`;
 
   return {
     title: `${title} | RailMate Bangladesh`,
@@ -27,11 +27,18 @@ export function buildMetadata({
       url: `${BASE_URL}${path}`,
       siteName: "RailMate Bangladesh",
       type: "website",
-      locale: "en_BD",
-      images: [{ url: imageUrl, width: 512, height: 512 }],
+      locale: "en_US",
+      images: [
+        { 
+          url: imageUrl, 
+          width: 1200, 
+          height: 630,
+          alt: "RailMate Bangladesh"
+        }
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: `${title} | RailMate Bangladesh`,
       description,
       images: [imageUrl],
