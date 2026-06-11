@@ -5,6 +5,7 @@ interface SectionHeaderProps {
   subheadline?: string
   subtitle?: string     // alias for subheadline
   align?: 'left' | 'center'
+  centered?: boolean    // shorthand for align="center"
   maxWidth?: string
 }
 
@@ -14,13 +15,15 @@ export default function SectionHeader({
   title,
   subheadline,
   subtitle,
-  align = 'center',
+  align,
+  centered,
   maxWidth = '680px',
 }: SectionHeaderProps) {
+  const finalAlign = centered ? 'center' : (align ?? 'center')
   const headingText = headline ?? title ?? ''
   const subText     = subheadline ?? subtitle
-  const textAlign = align === 'center' ? 'text-center' : 'text-left'
-  const margin    = align === 'center' ? 'mx-auto' : ''
+  const textAlign = finalAlign === 'center' ? 'text-center' : 'text-left'
+  const margin    = finalAlign === 'center' ? 'mx-auto' : ''
 
   return (
     <div className={`${textAlign} ${margin}`} style={{ maxWidth }}>
