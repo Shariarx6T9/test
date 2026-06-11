@@ -14,7 +14,7 @@ export default function CopyrightPage() {
         <SectionHeader
           title="Copyright & Intellectual Property"
           subtitle="Information about our assets, trademarks, and third-party data."
-          centered
+          align="center"
         />
         
         <div className="mt-12 space-y-8">
