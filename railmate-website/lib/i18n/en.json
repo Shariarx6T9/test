@@ -83,8 +83,9 @@
       "subtitle": "Travelers are tired of fragmented information, inaccurate schedules, and zero live updates."
     },
     "features": {
-      "title": "Built for the Real World",
-      "subtitle": "Everything you need to navigate Bangladesh Railway with confidence."
+      "title": "Everything for your journey",
+      "subtitle": "Nothing you don't need.",
+      "overline": "WHAT RAILMATE DOES"
     },
     "community": {
       "title": "Community Powered Intelligence",
@@ -239,5 +240,31 @@
     "ios_version": "15.0+ (Coming Soon)",
     "storage": "Storage",
     "storage_size": "~25 MB"
+  },
+  "features_list": {
+    "train_schedules": {
+      "title": "Train Schedules",
+      "body": "Full timetables for all Bangladesh Railway intercity routes. Updated when BR updates. Always with last-verified date shown."
+    },
+    "fare_calculator": {
+      "title": "Fare Calculator",
+      "body": "Exact fares for all 8 coach classes — Shovon to AC Berth. Pick your route, pick your class. No more PDF digging."
+    },
+    "live_reports": {
+      "title": "Live Delay Reports",
+      "body": "Fellow travelers report delays, crowding, and coach conditions in real time. Know what's happening before you leave home."
+    },
+    "alerts": {
+      "title": "Departure Alerts",
+      "body": "Get a push notification before your train departs. Never miss your Dhaka–Chittagong express again."
+    },
+    "offline": {
+      "title": "Offline Access",
+      "body": "Full schedule data cached on your device. Works in stations with no signal. Works on overnight journeys with no data."
+    },
+    "localization": {
+      "title": "Bengali & English",
+      "body": "Station names, train names, all UI in both languages. Switch any time. Noto Sans Bengali for proper rendering."
+    }
   }
 }
