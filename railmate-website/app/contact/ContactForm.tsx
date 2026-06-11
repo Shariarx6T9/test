@@ -86,7 +86,7 @@ export default function ContactForm() {
         <SectionHeader
           title="Get in Touch"
           subtitle="We'd love to hear from you. Our team typically responds within 48 hours."
-          centered
+          align="center"
         />
 
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
