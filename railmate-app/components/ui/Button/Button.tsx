@@ -7,6 +7,7 @@ import { Colors } from '../../../constants/colors';
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
+  size = 'md',
   label,
   icon: Icon,
   iconPosition = 'left',
@@ -20,7 +21,13 @@ export const Button: React.FC<ButtonProps> = ({
   const theme = colorScheme === 'light' ? 'light' : 'dark';
   const currentColors = Colors[theme];
 
-  const baseClasses = "h-[48px] flex-row items-center justify-center rounded-md px-4 active:scale-[0.97]";
+  const sizeClasses = {
+    sm: "h-[36px] px-3",
+    md: "h-[48px] px-6",
+    lg: "h-[56px] px-8",
+  };
+
+  const baseClasses = "flex-row items-center justify-center rounded-sm active:scale-[0.97]";
   
   const variantClasses = {
     primary: "bg-primary active:bg-primary-dim",
@@ -44,7 +51,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <Pressable
-      className={`${baseClasses} ${variantClasses[variant]} ${isDisabled ? "opacity-40" : ""} ${className}`}
+      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${isDisabled ? "opacity-40" : ""} ${className}`}
       disabled={isDisabled}
       {...props}
     >

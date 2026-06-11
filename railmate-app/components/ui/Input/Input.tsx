@@ -43,7 +43,7 @@ export const Input: React.FC<InputProps> = ({
         </Typography>
       )}
       <View
-        className={`h-[48px] px-4 bg-bg-card border-[1.5px] rounded-md flex-row items-center ${
+        className={`h-[48px] px-4 bg-bg-card border-[1.5px] rounded-sm flex-row items-center ${
           error ? 'border-danger' : isFocused ? 'border-border-focus' : 'border-border'
         }`}
       >

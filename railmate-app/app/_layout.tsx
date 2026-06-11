@@ -29,7 +29,7 @@ import '../global.css';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { theme } = usePrefsStore();
+  const { theme, hasFinishedOnboarding } = usePrefsStore();
   
   const [loaded, error] = useFonts({
     PlusJakartaSans_700Bold,
@@ -62,8 +62,10 @@ export default function RootLayout() {
             backgroundColor: theme === 'dark' ? '#080D17' : '#F5F7FA',
           },
         }}
+        initialRouteName={hasFinishedOnboarding ? "(tabs)" : "onboarding"}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
       </Stack>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </QueryClientProvider>

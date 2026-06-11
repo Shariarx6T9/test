@@ -45,6 +45,7 @@ export const Colors = {
     'accent-subtle': '#D4860A12',
     'danger': '#D42B3A',
     'success': '#00975A',
+    'info': '#4EA8E0',
     'text-primary': '#0A1628',
     'text-secondary': '#4A5C72',
     'text-tertiary': '#8FA3C0',

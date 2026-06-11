@@ -39,9 +39,10 @@ module.exports = {
         'mono-medium': ['JetBrainsMono_500Medium'],
       },
       borderRadius: {
-        sm:   '6px',
-        md:   '10px',
-        lg:   '16px',
+        xs:   '8px',
+        sm:   '12px',
+        md:   '16px',
+        lg:   '20px',
         xl:   '24px',
       },
     },

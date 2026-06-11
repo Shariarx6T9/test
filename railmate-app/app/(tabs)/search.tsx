@@ -160,7 +160,9 @@ export default function SearchScreen() {
               onPress={() => setShowDatePicker(true)}
               className="flex-row items-center flex-1"
             >
-              <CalendarBlank size={20} color="#00A859" className="mr-2" />
+              <View className="mr-2">
+                <CalendarBlank size={20} color="#00A859" />
+              </View>
               <Typography variant="body" className="text-text-primary ml-2" isBengali={isBengali}>
                 {formattedDate}
               </Typography>

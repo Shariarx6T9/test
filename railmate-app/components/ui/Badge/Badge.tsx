@@ -34,7 +34,7 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   return (
-    <View className={`px-2 py-0.5 rounded-sm border-[0.5px] items-center justify-center ${variantClasses[variant]} ${className}`}>
+    <View className={`px-2 py-0.5 rounded-xs border-[0.5px] items-center justify-center ${variantClasses[variant]} ${className}`}>
       <Typography variant="label" className={`${textClasses[variant]} text-[10px] uppercase`} isBengali={isBengali}>
         {label}
       </Typography>

@@ -5,8 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface PrefsStore {
   language: 'bn' | 'en';
   theme: 'dark' | 'light' | 'system';
+  hasFinishedOnboarding: boolean;
   setLanguage: (lang: 'bn' | 'en') => void;
   setTheme: (theme: 'dark' | 'light' | 'system') => void;
+  finishOnboarding: () => void;
 }
 
 export const usePrefsStore = create<PrefsStore>()(
@@ -14,8 +16,10 @@ export const usePrefsStore = create<PrefsStore>()(
     (set) => ({
       language: 'bn',
       theme: 'dark',
+      hasFinishedOnboarding: false,
       setLanguage: (language) => set({ language }),
       setTheme: (theme) => set({ theme }),
+      finishOnboarding: () => set({ hasFinishedOnboarding: true }),
     }),
     {
       name: 'railmate-prefs',

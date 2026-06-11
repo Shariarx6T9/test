@@ -1,10 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 import { FacebookLogo, TwitterLogo, InstagramLogo } from '@phosphor-icons/react'
 import DownloadButton from '../ui/DownloadButton'
+import { Link } from '@/lib/i18n/navigation'
 
 export default function Footer() {
   const { t } = useI18n()
@@ -137,4 +137,3 @@ export default function Footer() {
     </footer>
   )
 }
-

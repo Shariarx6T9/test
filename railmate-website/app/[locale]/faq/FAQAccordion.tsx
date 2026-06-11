@@ -5,8 +5,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import { CaretDown } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
-
-import Link from "next/link";
+import { Link } from "@/lib/i18n/navigation";
 
 type FAQItemProps = {
   question: string;
@@ -97,4 +96,3 @@ export function FAQAccordion({ homepage = false }: { homepage?: boolean }) {
     </div>
   );
 }
-

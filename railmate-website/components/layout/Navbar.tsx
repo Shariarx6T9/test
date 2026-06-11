@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { useI18n } from '@/lib/i18n'
 import { Sun, Moon, Translate, List, X } from '@phosphor-icons/react'
+import { Link, usePathname, useRouter } from '@/lib/i18n/navigation'
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme()
-  const { locale, setLocale, t } = useI18n()
+  const { locale, t } = useI18n()
+  const router = useRouter()
+  const pathname = usePathname()
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -28,6 +31,11 @@ export default function Navbar() {
     { label: t.nav.download, href: '/download' },
     { label: t.nav.faq,      href: '/faq' },
   ]
+
+  const toggleLanguage = () => {
+    const newLocale = locale === 'en' ? 'bn' : 'en'
+    router.replace(pathname, { locale: newLocale })
+  }
 
   if (!mounted) return null
 
@@ -83,7 +91,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
               {/* Language Switcher */}
               <button
-                onClick={() => setLocale(locale === 'en' ? 'bn' : 'en')}
+                onClick={toggleLanguage}
                 className="p-2 text-text-secondary hover:text-primary transition-colors"
                 aria-label="Toggle language"
               >
@@ -150,7 +158,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             <button
               onClick={() => {
-                setLocale(locale === 'en' ? 'bn' : 'en');
+                toggleLanguage();
                 setMenuOpen(false);
               }}
               className="flex items-center gap-2 text-text-secondary font-bold"
