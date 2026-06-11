@@ -96,7 +96,7 @@ export default function FAQAccordion() {
           centered
         />
         
-        <div className="mt-12 bg-elevated rounded-xl border border-border px-6 md:px-8">
+        <div className="mt-12 bg-bg-elevated rounded-xl border border-border px-6 md:px-8">
           {faqData.map((item, index) => (
             <FAQItem
               key={index}

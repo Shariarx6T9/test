@@ -1,121 +1,62 @@
-import SectionHeader from '@/components/ui/SectionHeader'
+"use client";
 
-const COPY = {
-  overline:    'WHO IT\'S FOR',
-  headline:    'Every kind of Bangladesh train traveler.',
-  subheadline: "Whether you commute daily or travel once a year, RailMate gives you exactly what you need.",
-}
-
-const PERSONAS = [
-  {
-    emoji: '🧑‍💼',
-    role:  'The Daily Commuter',
-    route: 'Narayanganj ↔ Dhaka',
-    needs: [
-      'Instant delay alerts before leaving home',
-      'One-tap saved route to their platform',
-      'Crowding reports for their regular train',
-    ],
-    quote: '"I used to leave 30 minutes early just in case. Now I check RailMate and leave at the right time."',
-    tag:   'Most uses: Alerts + Saved Routes',
-  },
-  {
-    emoji: '🧳',
-    role:  'The Long-Distance Traveler',
-    route: 'Dhaka → Cox\'s Bazar',
-    needs: [
-      'Full timetable with all stoppage times',
-      'Fare comparison across coach classes',
-      'Community reports for overnight journeys',
-    ],
-    quote: '"Knowing the AC Berth vs Snigdha price difference before I book saves me from overpaying every time."',
-    tag:   'Most uses: Schedules + Fare Calc',
-  },
-  {
-    emoji: '🏡',
-    role:  'Traveling Home for Eid',
-    route: 'Dhaka → Sylhet / Chittagong / Rajshahi',
-    needs: [
-      'Seat availability intel from other travelers',
-      'Alternate route suggestions when trains are full',
-      'Works without data at crowded stations',
-    ],
-    quote: '"During Eid the stations are chaos. Offline mode is the only thing that works in that crowd."',
-    tag:   'Most uses: Offline + Community',
-  },
-]
+import { CheckCircle, Globe, WifiSlash, ShieldCheck, ArrowsCounterClockwise, Users } from "@phosphor-icons/react/dist/ssr";
 
 export default function UserBenefits() {
+  const benefits = [
+    { icon: <Globe size={24} />, title: "Bengali & English", desc: "Native support for both languages across the entire app." },
+    { icon: <WifiSlash size={24} />, title: "Works Offline", desc: "Access full train schedules even without an internet connection." },
+    { icon: <CheckCircle size={24} />, title: "Free to Use", desc: "Core features like schedules and fares are free forever." },
+    { icon: <Users size={24} />, title: "Community Verified", desc: "Reports are validated by other travelers in real-time." },
+    { icon: <ArrowsCounterClockwise size={24} />, title: "Regular Updates", desc: "Timetables and features updated frequently." },
+    { icon: <ShieldCheck size={24} />, title: "Privacy First", desc: "We collect minimal data and never sell your personal info." },
+  ];
+
+  const stats = [
+    { label: "Train Routes", value: "10+" },
+    { label: "Stations", value: "100+" },
+    { label: "Powered By", value: "Community" },
+    { label: "Core App", value: "Free Forever" },
+  ];
+
   return (
-    <section className="bg-[#0F1929] py-20" id="benefits">
-      <div className="max-w-[1200px] mx-auto px-6">
-
-        <SectionHeader overline={COPY.overline} headline={COPY.headline} subheadline={COPY.subheadline} />
-
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-5">
-          {PERSONAS.map((p) => (
-            <div
-              key={p.role}
-              className="feature-card bg-[#162035] border border-[#1E2E42] rounded-2xl p-6 flex flex-col"
-            >
-              {/* Avatar + role */}
-              <div className="flex items-center gap-3 mb-4">
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: '#1A2840', fontSize: '22px' }}
-                >
-                  {p.emoji}
+    <section className="py-24 bg-bg-base">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          {/* Left Column: Benefits */}
+          <div className="space-y-12">
+            <h2 className="text-4xl lg:text-5xl font-jakarta font-extrabold text-text-primary">
+              Built for the <br />
+              <span className="text-primary">Bangladeshi Traveler</span>
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {benefits.map((benefit, i) => (
+                <div key={i} className="space-y-3">
+                  <div className="text-primary">{benefit.icon}</div>
+                  <h4 className="text-text-primary font-bold text-lg">{benefit.title}</h4>
+                  <p className="text-text-tertiary text-sm leading-relaxed">{benefit.desc}</p>
                 </div>
-                <div>
-                  <p
-                    className="text-[#F0F4FF] font-bold"
-                    style={{ fontSize: '15px', fontFamily: 'var(--font-jakarta)' }}
-                  >
-                    {p.role}
-                  </p>
-                  <p
-                    className="text-[#00A859]"
-                    style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 500 }}
-                  >
-                    {p.route}
-                  </p>
-                </div>
-              </div>
-
-              {/* Needs */}
-              <ul className="flex flex-col gap-2 mb-5">
-                {p.needs.map((n) => (
-                  <li
-                    key={n}
-                    className="flex items-start gap-2 text-[#8FA3C0]"
-                    style={{ fontSize: '13px', fontFamily: 'var(--font-inter)', lineHeight: '1.5' }}
-                  >
-                    <span className="text-[#00A859] mt-0.5 flex-shrink-0">✓</span>
-                    {n}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Quote */}
-              <blockquote
-                className="text-[#8FA3C0] italic border-l-2 border-[#2A3F57] pl-3 mb-4 mt-auto"
-                style={{ fontSize: '13px', fontFamily: 'var(--font-inter)', lineHeight: '1.6' }}
-              >
-                {p.quote}
-              </blockquote>
-
-              {/* Tag */}
-              <div
-                className="inline-flex items-center px-2.5 py-1 rounded-md self-start"
-                style={{ background: 'rgba(0,168,89,0.10)', color: '#00A859', fontSize: '11px', fontFamily: 'var(--font-inter)', fontWeight: 600 }}
-              >
-                {p.tag}
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
 
+          {/* Right Column: Stats */}
+          <div className="grid grid-cols-2 gap-4">
+             {stats.map((stat, i) => (
+               <div key={i} className="p-8 bg-bg-elevated border border-border rounded-xl flex flex-col items-center justify-center text-center space-y-2">
+                  <p className="text-text-tertiary text-xs uppercase tracking-widest font-bold">{stat.label}</p>
+                  <p className="text-text-primary font-jakarta font-extrabold text-3xl">{stat.value}</p>
+               </div>
+             ))}
+             
+             {/* Large Callout */}
+             <div className="col-span-2 mt-4 p-8 bg-primary/10 border border-primary/20 rounded-xl text-center">
+                <p className="text-primary font-bold">Trusted by thousands of passengers every day.</p>
+             </div>
+          </div>
+        </div>
       </div>
     </section>
-  )
+  );
 }

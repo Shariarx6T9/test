@@ -98,10 +98,10 @@ export default function FeaturesPage() {
           {features.map((feature, i) => (
             <div 
               key={i} 
-              className="p-8 bg-bg-elevated border border-border rounded-radius-xl hover:border-border-strong transition-all group"
+              className="p-8 bg-bg-elevated border border-border rounded-xl hover:border-border-strong transition-all group"
             >
               <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-bg-card border border-border rounded-radius-lg text-primary group-hover:scale-110 transition-transform">
+                <div className="p-3 bg-bg-card border border-border rounded-lg text-primary group-hover:scale-110 transition-transform">
                   {feature.icon}
                 </div>
                 {feature.phase === 1 ? (

@@ -91,7 +91,7 @@ export default function ContactForm() {
 
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Form */}
-          <div className="lg:col-span-2 bg-elevated p-8 rounded-xl border border-border">
+          <div className="lg:col-span-2 bg-bg-elevated p-8 rounded-xl border border-border">
             {status === "success" ? (
               <div className="text-center py-12">
                 <CheckCircle size={64} weight="fill" className="text-primary mx-auto mb-4" />
@@ -199,7 +199,7 @@ export default function ContactForm() {
 
           {/* Sidebar */}
           <div className="space-y-8">
-            <div className="bg-elevated p-8 rounded-xl border border-border">
+            <div className="bg-bg-elevated p-8 rounded-xl border border-border">
               <h3 className="text-xl font-bold text-text-primary mb-6">Contact Details</h3>
               <div className="space-y-6">
                 {contactDetails.map((detail, index) => (
@@ -219,7 +219,7 @@ export default function ContactForm() {
               </div>
             </div>
 
-            <div className="bg-elevated p-8 rounded-xl border border-border">
+            <div className="bg-bg-elevated p-8 rounded-xl border border-border">
               <h3 className="text-xl font-bold text-text-primary mb-4">Follow Us</h3>
               <div className="flex gap-4">
                 <a href="#" className="p-3 bg-bg-card rounded-lg text-text-secondary hover:text-primary border border-border transition-all">

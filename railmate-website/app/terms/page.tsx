@@ -78,14 +78,14 @@ export default function TermsPage() {
         
         <div className="mt-12 space-y-8">
           {sections.map((section, index) => (
-            <section key={index} className="bg-elevated p-6 rounded-lg border border-border">
+            <section key={index} className="bg-bg-elevated p-6 rounded-lg border border-border">
               <h2 className="text-xl font-bold text-primary mb-4">{section.title}</h2>
-              <p className="text-secondary leading-relaxed">{section.content}</p>
+              <p className="text-text-secondary leading-relaxed">{section.content}</p>
             </section>
           ))}
         </div>
 
-        <div className="mt-12 text-center text-tertiary text-sm">
+        <div className="mt-12 text-center text-text-tertiary text-sm">
           Last Updated: June 2026
         </div>
       </div>
