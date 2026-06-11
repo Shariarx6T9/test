@@ -1,12 +1,13 @@
-const TRANSLATIONS = {
-  tagline:    'আপনার রেলযাত্রা, সহজ করা হলো।',
-  dataNotice: 'Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.',
-  copyright:  '© 2025 RailMate Bangladesh · Built with ❤️ in Bangladesh',
-  dataLink:   'Data: railway.gov.bd',
+const COPY = {
+  brand:     'RailMate',
+  bengali:   'আপনার রেলযাত্রা, সহজ করা হলো।',
+  notice:    'Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.',
+  copyright: '© 2025 RailMate Bangladesh · Built with ❤️ in Bangladesh',
+  dataLink:  'Data: railway.gov.bd',
 }
 
 const PRODUCT_LINKS = [
-  { label: 'Home',      href: '#' },
+  { label: 'Home',      href: '#hero' },
   { label: 'Features',  href: '#features' },
   { label: 'Download',  href: '#download' },
   { label: 'FAQ',       href: '#faq' },
@@ -18,160 +19,119 @@ const LEGAL_LINKS = [
   { label: 'Copyright Notice',   href: '#' },
 ]
 
-function FacebookIcon() {
+function LogoMark() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="2" y="2" width="16" height="16" rx="4" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M13 7h-2a1 1 0 00-1 1v2h3l-.5 3H10v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    <div className="w-8 h-8 rounded-full bg-[#00A859] flex items-center justify-center flex-shrink-0">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+        <rect x="3" y="2" width="12" height="10" rx="2.5" stroke="white" strokeWidth="1.4"/>
+        <path d="M3 8h12" stroke="white" strokeWidth="1.4"/>
+        <path d="M6 12l-1.5 3M12 12l1.5 3" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
+        <circle cx="6.5" cy="10" r=".9" fill="white"/>
+        <circle cx="11.5" cy="10" r=".9" fill="white"/>
+      </svg>
+    </div>
   )
 }
 
-function TwitterIcon() {
+function SocialIcon({ path, label }: { path: string; label: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M3 3l5.5 7.5L3 17h2l4.5-5.5L14 17h3l-6-8 5.5-6h-2l-4 4.5L6 3H3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-    </svg>
+    <a href="#" aria-label={label} className="text-[#4E6480] hover:text-[#00A859] transition-colors">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <path d={path} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </a>
   )
 }
 
-function InstagramIcon() {
+const SOCIAL_ICONS = [
+  { label: 'Facebook',  path: 'M13 7h-2a1 1 0 00-1 1v2h3l-.5 3H10v5M3.5 3.5h13a1 1 0 011 1v13a1 1 0 01-1 1h-13a1 1 0 01-1-1v-13a1 1 0 011-1z' },
+  { label: 'Twitter',   path: 'M3 3l5.5 7.5L3 17h2l4.5-5.5L14 17h3l-5.8-8 5.3-6h-2l-3.8 4.5L6 3H3z' },
+  { label: 'Instagram', path: 'M14 2H6a4 4 0 00-4 4v8a4 4 0 004 4h8a4 4 0 004-4V6a4 4 0 00-4-4zM10 13a3 3 0 110-6 3 3 0 010 6zm4.5-8a.75.75 0 110 1.5.75.75 0 010-1.5z' },
+]
+
+function FooterHeading({ children }: { children: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="2" y="2" width="16" height="16" rx="4" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="14.5" cy="5.5" r="0.75" fill="currentColor"/>
-    </svg>
+    <h4
+      className="text-[#4E6480] uppercase mb-4"
+      style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
+    >
+      {children}
+    </h4>
   )
 }
 
-function TrainIcon() {
+function FooterLink({ label, href }: { label: string; href: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <rect x="4" y="3" width="12" height="11" rx="3" stroke="#00A859" strokeWidth="1.5"/>
-      <path d="M4 9h12" stroke="#00A859" strokeWidth="1.5"/>
-      <path d="M7 14l-1.5 3M13 14l1.5 3" stroke="#00A859" strokeWidth="1.5" strokeLinecap="round"/>
-      <circle cx="7" cy="11.5" r="1" fill="#00A859"/>
-      <circle cx="13" cy="11.5" r="1" fill="#00A859"/>
-    </svg>
+    <li>
+      <a
+        href={href}
+        className="text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors"
+        style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
+      >
+        {label}
+      </a>
+    </li>
   )
 }
 
 export default function Footer() {
   return (
     <footer className="bg-[#0F1929] border-t border-[#1E2E42]">
-      <div className="container-inner">
+      <div className="max-w-[1200px] mx-auto px-6">
 
-        {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pt-12 pb-8">
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pt-12 pb-10">
 
-          {/* COL 1 — Brand */}
+          {/* Brand */}
           <div>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-full bg-[#00A859] flex items-center justify-center">
-                <TrainIcon />
-              </div>
-              <span
-                className="text-[#F0F4FF] font-bold"
-                style={{ fontSize: '17px', fontFamily: 'var(--font-jakarta)' }}
-              >
-                RailMate
+              <LogoMark />
+              <span className="text-[#F0F4FF] font-bold text-[17px]" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                {COPY.brand}
               </span>
             </div>
             <p
-              className="text-[#8FA3C0] mb-5"
-              style={{ fontSize: '14px', fontFamily: 'var(--font-bengali)', lineHeight: '1.6' }}
+              className="text-[#8FA3C0] mb-5 leading-relaxed"
+              style={{ fontSize: '14px', fontFamily: 'var(--font-bengali)' }}
             >
-              {TRANSLATIONS.tagline}
+              {COPY.bengali}
             </p>
-            <div className="flex gap-3">
-              {[
-                { Icon: FacebookIcon, label: 'Facebook' },
-                { Icon: TwitterIcon,  label: 'Twitter' },
-                { Icon: InstagramIcon,label: 'Instagram' },
-              ].map(({ Icon, label }) => (
-                <a
-                  key={label}
-                  href="#"
-                  aria-label={label}
-                  className="text-[#4E6480] hover:text-[#00A859] transition-colors"
-                >
-                  <Icon />
-                </a>
+            <div className="flex gap-4">
+              {SOCIAL_ICONS.map((s) => (
+                <SocialIcon key={s.label} path={s.path} label={s.label} />
               ))}
             </div>
           </div>
 
-          {/* COL 2 — Product */}
+          {/* Product */}
           <div>
-            <h4
-              className="text-[#4E6480] uppercase mb-4"
-              style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
-            >
-              Product
-            </h4>
-            <ul className="flex flex-col gap-2.5">
-              {PRODUCT_LINKS.map((l) => (
-                <li key={l.label}>
-                  <a
-                    href={l.href}
-                    className="text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors"
-                    style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
-                  >
-                    {l.label}
-                  </a>
-                </li>
-              ))}
+            <FooterHeading>Product</FooterHeading>
+            <ul className="flex flex-col gap-3">
+              {PRODUCT_LINKS.map((l) => <FooterLink key={l.label} {...l} />)}
             </ul>
           </div>
 
-          {/* COL 3 — Legal */}
+          {/* Legal */}
           <div>
-            <h4
-              className="text-[#4E6480] uppercase mb-4"
-              style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
-            >
-              Legal
-            </h4>
-            <ul className="flex flex-col gap-2.5">
-              {LEGAL_LINKS.map((l) => (
-                <li key={l.label}>
-                  <a
-                    href={l.href}
-                    className="text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors"
-                    style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
-                  >
-                    {l.label}
-                  </a>
-                </li>
-              ))}
+            <FooterHeading>Legal</FooterHeading>
+            <ul className="flex flex-col gap-3">
+              {LEGAL_LINKS.map((l) => <FooterLink key={l.label} {...l} />)}
             </ul>
           </div>
 
-          {/* COL 4 — Data Sources */}
+          {/* Data Sources */}
           <div>
-            <h4
-              className="text-[#4E6480] uppercase mb-4"
-              style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
-            >
-              Data Sources
-            </h4>
-            <p
-              className="text-[#4E6480]"
-              style={{ fontSize: '13px', fontFamily: 'var(--font-inter)', lineHeight: '1.6' }}
-            >
-              {TRANSLATIONS.dataNotice}
+            <FooterHeading>Data Sources</FooterHeading>
+            <p className="text-[#4E6480] leading-relaxed" style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}>
+              {COPY.notice}
             </p>
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom bar */}
         <div className="border-t border-[#1E2E42] py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p
-            className="text-[#4E6480]"
-            style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}
-          >
-            {TRANSLATIONS.copyright}
+          <p className="text-[#4E6480]" style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}>
+            {COPY.copyright}
           </p>
           <a
             href="https://www.railway.gov.bd"
@@ -180,7 +140,7 @@ export default function Footer() {
             className="text-[#4E6480] hover:text-[#8FA3C0] transition-colors"
             style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}
           >
-            {TRANSLATIONS.dataLink}
+            {COPY.dataLink}
           </a>
         </div>
 

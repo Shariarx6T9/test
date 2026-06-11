@@ -1,80 +1,71 @@
-import { ReactNode } from "react";
-import { GooglePlayLogo, AppleLogo, AndroidLogo } from "@phosphor-icons/react/dist/ssr";
-import Badge from "./Badge";
-
-interface DownloadButtonProps {
-  platform: "google-play" | "app-store" | "apk";
-  status?: "available" | "coming-soon";
-  href?: string;
-  className?: string;
+function PlayIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+      <path d="M7.5 5.46l7 4.56-7 4.56V5.46z" />
+    </svg>
+  )
 }
 
-export default function DownloadButton({
-  platform,
-  status = "available",
-  href = "#",
-  className = "",
-}: DownloadButtonProps) {
-  const isComingSoon = status === "coming-soon";
+function AndroidIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M3.5 6.5h11v8a1 1 0 01-1 1h-9a1 1 0 01-1-1v-8z" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M6 6.5V5a3 3 0 016 0v1.5" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="6.5" cy="10" r=".75" fill="currentColor"/>
+      <circle cx="11.5" cy="10" r=".75" fill="currentColor"/>
+      <path d="M6 2.5L5 1M12 2.5L13 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+}
 
-  const platforms: Record<DownloadButtonProps["platform"], {
-    icon: any;
-    label: string;
-    brand: string;
-    bg: string;
-    text: string;
-    hover: string;
-    border?: string;
-  }> = {
-    "google-play": {
-      icon: GooglePlayLogo,
-      label: "Download on",
-      brand: "Google Play",
-      bg: "bg-primary",
-      text: "text-bg-base",
-      hover: "hover:bg-primary-dim",
-    },
-    "app-store": {
-      icon: AppleLogo,
-      label: "Download on",
-      brand: "App Store",
-      bg: "bg-bg-elevated",
-      text: "text-text-primary",
-      hover: "hover:bg-bg-card",
-    },
-    apk: {
-      icon: AndroidLogo,
-      label: "Download",
-      brand: "Direct APK",
-      bg: "bg-transparent",
-      text: "text-text-primary",
-      hover: "hover:bg-bg-elevated",
-      border: "border border-border",
-    },
-  };
+const LABELS = {
+  play: 'Download on Google Play',
+  apk:  'Download APK',
+  note: 'App Store version coming soon · Free · Android 7.0+',
+}
 
-  const p = platforms[platform];
-  const Icon = p.icon;
+interface DownloadButtonProps {
+  showNote?: boolean
+  align?: 'left' | 'center'
+}
+
+export default function DownloadButton({ showNote = true, align = 'left' }: DownloadButtonProps) {
+  const justify = align === 'center' ? 'justify-center' : 'justify-start'
 
   return (
-    <div className={`relative group ${className}`}>
-      <a
-        href={isComingSoon ? undefined : href}
-        className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all ${
-          isComingSoon ? "opacity-50 grayscale cursor-not-allowed" : `${p.bg} ${p.text} ${p.hover} active:scale-95`
-        } ${p.border || ""}`}
-      >
-        <Icon size={32} weight="fill" />
-        <div className="flex flex-col items-start leading-none">
-          <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">{p.label}</span>
-          <span className="text-lg font-jakarta font-extrabold">{p.brand}</span>
-        </div>
-      </a>
-      {isComingSoon && (
-        <div className="absolute -top-3 -right-3 rotate-12">
-          <Badge variant="warning" className="shadow-lg">Coming Soon</Badge>
-        </div>
+    <div className="flex flex-col gap-3">
+      <div className={`flex flex-wrap gap-3 ${justify}`}>
+        {/* Google Play — primary */}
+        <a
+          href="#"
+          className="inline-flex items-center gap-2 bg-[#00A859] hover:bg-[#007A40] text-[#080D17] font-semibold rounded-md px-7 transition-colors duration-150"
+          style={{ height: '52px', fontSize: '15px', fontFamily: 'var(--font-inter)' }}
+          aria-label="Download RailMate on Google Play"
+        >
+          <PlayIcon />
+          {LABELS.play}
+        </a>
+
+        {/* APK — secondary */}
+        <a
+          href="#"
+          className="inline-flex items-center gap-2 text-[#8FA3C0] hover:text-[#F0F4FF] rounded-md px-7 border border-[#2A3F57] hover:border-[#4E6480] transition-colors duration-150"
+          style={{ height: '52px', fontSize: '15px', fontFamily: 'var(--font-inter)' }}
+          aria-label="Download RailMate APK directly"
+        >
+          <AndroidIcon />
+          {LABELS.apk}
+        </a>
+      </div>
+
+      {showNote && (
+        <p
+          className={`text-[#4E6480] ${align === 'center' ? 'text-center' : ''}`}
+          style={{ fontSize: '12px', fontFamily: 'var(--font-inter)' }}
+        >
+          {LABELS.note}
+        </p>
       )}
     </div>
-  );
+  )
 }

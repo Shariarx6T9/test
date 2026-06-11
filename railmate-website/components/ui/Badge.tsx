@@ -1,35 +1,31 @@
-import { ReactNode } from "react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { ReactNode } from 'react'
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+type BadgeVariant = 'free' | 'pro' | 'success' | 'danger' | 'warning' | 'info' | 'neutral'
 
 interface BadgeProps {
-  variant?: "success" | "warning" | "danger" | "info" | "neutral";
-  children: ReactNode;
-  className?: string;
+  children: ReactNode
+  variant?: BadgeVariant
+  className?: string
 }
 
-export default function Badge({ variant = "neutral", children, className }: BadgeProps) {
-  const variants = {
-    success: "bg-success/10 text-success border-success/20",
-    warning: "bg-accent/10 text-accent border-accent/20",
-    danger: "bg-danger/10 text-danger border-danger/20",
-    info: "bg-info/10 text-info border-info/20",
-    neutral: "bg-bg-elevated text-text-secondary border-border",
-  };
+const styles: Record<BadgeVariant, { bg: string; color: string }> = {
+  free:    { bg: 'rgba(0,168,89,0.10)',   color: '#00A859' },
+  pro:     { bg: 'rgba(245,166,35,0.12)', color: '#F5A623' },
+  success: { bg: 'rgba(0,201,119,0.10)',  color: '#00C977' },
+  danger:  { bg: 'rgba(232,57,75,0.10)',  color: '#E8394B' },
+  warning: { bg: 'rgba(245,166,35,0.10)', color: '#F5A623' },
+  info:    { bg: 'rgba(78,168,224,0.10)', color: '#4EA8E0' },
+  neutral: { bg: 'rgba(143,163,192,0.10)',color: '#8FA3C0' },
+}
 
+export default function Badge({ children, variant = 'neutral', className = '' }: BadgeProps) {
+  const { bg, color } = styles[variant]
   return (
     <span
-      className={cn(
-        "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
-        variants[variant],
-        className
-      )}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide ${className}`}
+      style={{ background: bg, color, fontFamily: 'var(--font-inter)' }}
     >
       {children}
     </span>
-  );
+  )
 }

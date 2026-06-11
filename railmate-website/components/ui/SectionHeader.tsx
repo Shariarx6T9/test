@@ -1,39 +1,58 @@
-import { ReactNode } from "react";
-
 interface SectionHeaderProps {
-  title: string;
-  subtitle?: string;
-  bengaliSubtitle?: string;
-  align?: "left" | "center";
-  centered?: boolean;
+  overline?: string
+  headline: string
+  subheadline?: string
+  align?: 'left' | 'center'
+  maxWidth?: string
 }
 
 export default function SectionHeader({
-  title,
-  subtitle,
-  bengaliSubtitle,
-  align = "center",
-  centered,
+  overline,
+  headline,
+  subheadline,
+  align = 'center',
+  maxWidth = '680px',
 }: SectionHeaderProps) {
-  const isCentered = centered || align === "center";
+  const textAlign = align === 'center' ? 'text-center' : 'text-left'
+  const margin    = align === 'center' ? 'mx-auto' : ''
 
   return (
-    <div className={`space-y-4 mb-12 ${isCentered ? "text-center" : "text-left"}`}>
-      <h2 className="text-3xl md:text-4xl lg:text-5xl font-jakarta font-extrabold text-text-primary tracking-tight">
-        {title}
+    <div className={`${textAlign} ${margin}`} style={{ maxWidth }}>
+      {overline && (
+        <p
+          className="text-[#00A859] uppercase mb-3"
+          style={{
+            fontSize: '11px',
+            fontFamily: 'var(--font-inter)',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+          }}
+        >
+          {overline}
+        </p>
+      )}
+      <h2
+        className="text-[#F0F4FF] font-extrabold"
+        style={{
+          fontSize: 'clamp(26px, 4vw, 36px)',
+          fontFamily: 'var(--font-jakarta)',
+          lineHeight: '1.2',
+        }}
+      >
+        {headline}
       </h2>
-      <div className="space-y-1">
-        {bengaliSubtitle && (
-          <p className="text-xl md:text-2xl font-bengali text-text-secondary leading-relaxed">
-            {bengaliSubtitle}
-          </p>
-        )}
-        {subtitle && (
-          <p className="text-text-tertiary max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-            {subtitle}
-          </p>
-        )}
-      </div>
+      {subheadline && (
+        <p
+          className="mt-3 text-[#8FA3C0]"
+          style={{
+            fontSize: '17px',
+            fontFamily: 'var(--font-inter)',
+            lineHeight: '1.6',
+          }}
+        >
+          {subheadline}
+        </p>
+      )}
     </div>
-  );
+  )
 }
