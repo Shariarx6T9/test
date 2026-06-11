@@ -1,122 +1,157 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect } from 'react'
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Features", href: "#features" },
-  { label: "Community", href: "#community" },
-  { label: "Download", href: "#download" },
-  { label: "FAQ", href: "#faq" },
-];
+const TRANSLATIONS = {
+  tagline: 'Bangladesh',
+  download: 'Download App →',
+}
+
+const NAV_LINKS = [
+  { label: 'Home',     href: '#' },
+  { label: 'Features', href: '#features' },
+  { label: 'About',    href: '#community' },
+  { label: 'Download', href: '#download' },
+  { label: 'FAQ',      href: '#faq' },
+]
+
+function TrainIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="3" width="12" height="11" rx="3" stroke="#00A859" strokeWidth="1.5"/>
+      <path d="M4 9h12" stroke="#00A859" strokeWidth="1.5"/>
+      <path d="M7 14l-1.5 3M13 14l1.5 3" stroke="#00A859" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="7" cy="11.5" r="1" fill="#00A859"/>
+      <circle cx="13" cy="11.5" r="1" fill="#00A859"/>
+      <path d="M8 3V2M12 3V2" stroke="#00A859" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function HamburgerIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
 
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false)
+  const [scrolled, setScrolled]   = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
         scrolled
-          ? "bg-bg-elevated/95 backdrop-blur-md border-b border-border shadow-lg py-3"
-          : "bg-transparent py-5"
+          ? 'nav-scrolled border-[#1E2E42]'
+          : 'bg-transparent border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
-            <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
-              <rect x="2" y="7" width="16" height="2" rx="1" fill="white" opacity="0.9" />
-              <rect x="2" y="11" width="16" height="2" rx="1" fill="white" opacity="0.9" />
-              <path d="M14 5 L18 10 L14 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            </svg>
-          </div>
-          <div>
-            <div className="font-display font-bold text-lg text-text-primary leading-none tracking-tight">
-              RailMate
-            </div>
-            <div className="font-body font-medium text-[10px] text-text-secondary tracking-[0.15em] leading-none mt-1 uppercase">
-              Bangladesh
-            </div>
-          </div>
-        </Link>
+      <div className="container-inner">
+        <div className="flex items-center justify-between h-16">
 
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="text-text-secondary hover:text-text-primary text-sm font-medium transition-colors relative group"
-            >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-            </Link>
-          ))}
-        </div>
+          {/* ── Logo ── */}
+          <a href="#" className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[#00A859] flex items-center justify-center">
+              <TrainIcon />
+            </div>
+            <div className="flex flex-col leading-none">
+              <span
+                className="text-[#F0F4FF] font-display font-bold text-[17px] leading-tight"
+                style={{ fontFamily: 'var(--font-jakarta)' }}
+              >
+                RailMate
+              </span>
+              <span
+                className="text-[#8FA3C0] uppercase tracking-[0.12em]"
+                style={{ fontSize: '10px', fontFamily: 'var(--font-inter)' }}
+              >
+                {TRANSLATIONS.tagline}
+              </span>
+            </div>
+          </a>
 
-        {/* Desktop CTA */}
-        <div className="hidden md:flex items-center">
-          <Link
+          {/* ── Desktop Nav Links ── */}
+          <ul className="hidden md:flex items-center gap-6">
+            {NAV_LINKS.map((link) => (
+              <li key={link.label}>
+                <a
+                  href={link.href}
+                  className="text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors duration-150 text-sm font-medium"
+                  style={{ fontFamily: 'var(--font-inter)' }}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          {/* ── Desktop CTA ── */}
+          <a
             href="#download"
-            className="bg-primary hover:bg-primary-dim text-bg-base px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/10 active:scale-95"
+            className="hidden md:inline-flex items-center bg-[#00A859] hover:bg-[#007A40] text-[#080D17] font-medium text-sm px-5 py-2.5 rounded-md transition-colors duration-150"
+            style={{ fontFamily: 'var(--font-inter)' }}
           >
-            Download App →
-          </Link>
-        </div>
+            {TRANSLATIONS.download}
+          </a>
 
-        {/* Mobile Toggle */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 text-text-primary focus:outline-none"
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
-            </svg>
-          )}
-        </button>
+          {/* ── Mobile Hamburger ── */}
+          <button
+            className="md:hidden text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors p-1"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {menuOpen ? <CloseIcon /> : <HamburgerIcon />}
+          </button>
+        </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* ── Mobile Menu Drawer ── */}
       <div
-        className={`md:hidden absolute top-full left-0 right-0 bg-bg-elevated border-b border-border transition-all duration-300 overflow-hidden ${
-          menuOpen ? "max-h-[400px] opacity-100 py-6 px-6" : "max-h-0 opacity-0"
+        className={`md:hidden bg-[#0F1929] border-t border-[#1E2E42] transition-all duration-200 overflow-hidden ${
+          menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="flex flex-col gap-4">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="text-text-secondary hover:text-text-primary text-base font-medium py-2 border-b border-border/50"
-            >
-              {link.label}
-            </Link>
+        <ul className="flex flex-col divide-y divide-[#1E2E42]">
+          {NAV_LINKS.map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                className="flex items-center h-12 px-6 text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors text-sm font-medium"
+                style={{ fontFamily: 'var(--font-inter)' }}
+                onClick={() => setMenuOpen(false)}
+              >
+                {link.label}
+              </a>
+            </li>
           ))}
-          <Link
-            href="#download"
-            onClick={() => setMenuOpen(false)}
-            className="bg-primary text-bg-base py-4 rounded-xl font-bold text-center mt-4 shadow-lg shadow-primary/10"
-          >
-            Download App →
-          </Link>
-        </div>
+          <li>
+            <a
+              href="#download"
+              className="flex items-center h-12 px-6 text-[#00A859] font-semibold text-sm"
+              style={{ fontFamily: 'var(--font-inter)' }}
+              onClick={() => setMenuOpen(false)}
+            >
+              {TRANSLATIONS.download}
+            </a>
+          </li>
+        </ul>
       </div>
     </nav>
-  );
+  )
 }

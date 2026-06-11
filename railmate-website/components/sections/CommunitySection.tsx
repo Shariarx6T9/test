@@ -1,101 +1,157 @@
-"use client";
+const TRANSLATIONS = {
+  overline:  'COMMUNITY INTELLIGENCE',
+  headline:  'Real Reports. Real Travelers.',
+  body1:     'No government API. No paid data feed. Just thousands of Bangladeshi train passengers telling each other what\'s actually happening right now.',
+  body2:     'When Subarna Express leaves Comilla 20 minutes late, someone on that train reports it. Within seconds, everyone waiting at Chittagong knows.',
+  stat1Num:  '8 travelers',
+  stat1Lab:  'confirmed a delay this morning',
+  stat2Num:  '< 3 min',
+  stat2Lab:  'average time from event to report',
+  stat3Num:  'Free forever',
+  stat3Lab:  'community features cost nothing',
+}
 
-import { CheckCircle } from "@phosphor-icons/react";
-
-const reports = [
+const REPORTS = [
   {
-    type: "DELAY",
-    train: "Subarna Express #721",
-    details: "Delayed 20 min at Comilla · Reported 3 min ago",
-    confirmations: "12 travelers confirmed this",
-    color: "danger",
-    icon: "⚠️",
+    type:      'DELAY',
+    typeColor: '#E8394B',
+    typeBg:    'rgba(232,57,75,0.10)',
+    leftBorder:'#E8394B',
+    emoji:     '⚠️',
+    train:     'Subarna Express #721',
+    detail:    'Delayed 20 min at Comilla · Reported 3 min ago',
+    confirm:   '✓ 12 travelers confirmed this',
+    confirmColor:'#00C977',
+    fadeClass: 'report-fade-1',
   },
   {
-    type: "CROWDING",
-    train: "Turna Express · Dhaka-bound",
-    details: "Very High · Coach 3–5 overcrowded",
-    confirmations: "8 confirmed",
-    color: "accent",
-    icon: "🟡",
+    type:      'CROWDING',
+    typeColor: '#F5A623',
+    typeBg:    'rgba(245,166,35,0.10)',
+    leftBorder:'#F5A623',
+    emoji:     '🟡',
+    train:     'Turna Express · Dhaka-bound',
+    detail:    'Very High · Coach 3–5 overcrowded',
+    confirm:   '✓ 8 confirmed',
+    confirmColor:'#00C977',
+    fadeClass: 'report-fade-2',
   },
   {
-    type: "ON TIME",
-    train: "Sonar Bangla Express #787",
-    details: "Running on schedule · 25 confirmations",
-    confirmations: null,
-    color: "success",
-    icon: "✅",
+    type:      'ON TIME',
+    typeColor: '#00C977',
+    typeBg:    'rgba(0,201,119,0.10)',
+    leftBorder:'#00C977',
+    emoji:     '✅',
+    train:     'Sonar Bangla Express #787',
+    detail:    'Running on schedule · 25 confirmations',
+    confirm:   '✓ 25 confirmed',
+    confirmColor:'#00C977',
+    fadeClass: 'report-fade-3',
   },
-];
-
-const ReportCard = ({ report, delay }: { report: (typeof reports)[0], delay: string }) => (
-  <div
-    className={`bg-bg-card p-4 rounded-lg border-l-4 ${'border-' + report.color} opacity-0 animate-fade-in-up`}
-    style={{ animationDelay: delay }}
-  >
-    <div className={`inline-flex items-center gap-2 text-sm font-bold text-${report.color}`}>
-      {report.icon} {report.type}
-    </div>
-    <h4 className="font-semibold text-text-primary mt-2">{report.train}</h4>
-    <p className="text-sm text-text-secondary mt-1">{report.details}</p>
-    {report.confirmations && (
-        <div className="flex items-center gap-1.5 mt-2 text-xs text-success">
-            <CheckCircle size={16} weight="bold" />
-            <span>{report.confirmations}</span>
-        </div>
-    )}
-  </div>
-);
-
+]
 
 export default function CommunitySection() {
   return (
-    <section className="bg-bg-elevated py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Left Column */}
-          <div className="space-y-8">
-            <div>
-              <p className="text-primary font-semibold text-sm uppercase tracking-wider">
-                Community Intelligence
-              </p>
-              <h2 className="mt-2 text-3xl md:text-4xl font-extrabold text-text-primary">
-                Real Reports. Real Travelers.
-              </h2>
-            </div>
-            <div className="space-y-4 text-text-secondary text-base leading-relaxed">
-              <p>
-                No government API. No paid data feed. Just thousands of Bangladeshi train passengers telling each other what's actually happening right now.
-              </p>
-              <p>
-                When Subarna Express leaves Comilla 20 minutes late, someone on that train reports it. Within seconds, everyone waiting at Chittagong knows.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-8 pt-4">
-              <div>
-                <p className="text-4xl font-extrabold text-primary">8 travelers</p>
-                <p className="text-sm text-text-secondary mt-1">confirmed a delay this morning</p>
-              </div>
-              <div>
-                <p className="text-4xl font-extrabold text-primary">&lt; 3 min</p>
-                <p className="text-sm text-text-secondary mt-1">average time from event to report</p>
-              </div>
-              <div>
-                <p className="text-4xl font-extrabold text-primary">Free</p>
-                <p className="text-sm text-text-secondary mt-1">community features cost nothing</p>
-              </div>
+    <section className="bg-[#0F1929] py-20" id="community">
+      <div className="container-inner">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+
+          {/* ── LEFT ── */}
+          <div className="flex-1 max-w-[540px]">
+            <p
+              className="text-[#00A859] uppercase mb-3"
+              style={{ fontSize: '11px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.08em' }}
+            >
+              {TRANSLATIONS.overline}
+            </p>
+            <h2
+              className="text-[#F0F4FF] font-extrabold mb-5"
+              style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontFamily: 'var(--font-jakarta)', lineHeight: '1.2' }}
+            >
+              {TRANSLATIONS.headline}
+            </h2>
+            <p
+              className="text-[#8FA3C0] mb-4"
+              style={{ fontSize: '16px', fontFamily: 'var(--font-inter)', lineHeight: '1.65' }}
+            >
+              {TRANSLATIONS.body1}
+            </p>
+            <p
+              className="text-[#8FA3C0]"
+              style={{ fontSize: '16px', fontFamily: 'var(--font-inter)', lineHeight: '1.65' }}
+            >
+              {TRANSLATIONS.body2}
+            </p>
+
+            {/* Stats */}
+            <div className="mt-8 flex flex-col gap-5">
+              {[
+                { num: TRANSLATIONS.stat1Num, lab: TRANSLATIONS.stat1Lab },
+                { num: TRANSLATIONS.stat2Num, lab: TRANSLATIONS.stat2Lab },
+                { num: TRANSLATIONS.stat3Num, lab: TRANSLATIONS.stat3Lab },
+              ].map((s) => (
+                <div key={s.num} className="flex flex-col">
+                  <span
+                    className="text-[#00A859] font-extrabold"
+                    style={{ fontSize: '32px', fontFamily: 'var(--font-jakarta)', lineHeight: '1.1' }}
+                  >
+                    {s.num}
+                  </span>
+                  <span
+                    className="text-[#8FA3C0] mt-1"
+                    style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
+                  >
+                    {s.lab}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-          
-          {/* Right Column */}
-          <div className="max-w-sm mx-auto space-y-4">
-            {reports.map((report, i) => (
-              <ReportCard key={i} report={report} delay={`${i * 200}ms`} />
-            ))}
+
+          {/* ── RIGHT — COMMUNITY FEED ── */}
+          <div className="w-full lg:w-auto lg:flex-shrink-0" style={{ maxWidth: '340px' }}>
+            <div className="flex flex-col gap-3">
+              {REPORTS.map((r) => (
+                <div
+                  key={r.train}
+                  className={`bg-[#162035] border border-[#1E2E42] rounded-2xl overflow-hidden ${r.fadeClass}`}
+                  style={{ borderLeft: `3px solid ${r.leftBorder}` }}
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold"
+                        style={{ background: r.typeBg, color: r.typeColor, fontFamily: 'var(--font-inter)' }}
+                      >
+                        {r.emoji} {r.type}
+                      </span>
+                    </div>
+                    <p
+                      className="text-[#F0F4FF] font-semibold"
+                      style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
+                    >
+                      {r.train}
+                    </p>
+                    <p
+                      className="text-[#8FA3C0] mt-1"
+                      style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}
+                    >
+                      {r.detail}
+                    </p>
+                    <p
+                      className="mt-1.5"
+                      style={{ fontSize: '12px', color: r.confirmColor, fontFamily: 'var(--font-inter)' }}
+                    >
+                      {r.confirm}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
         </div>
       </div>
     </section>
-  );
+  )
 }

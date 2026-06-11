@@ -1,101 +1,190 @@
-"use client";
+const TRANSLATIONS = {
+  tagline:    'আপনার রেলযাত্রা, সহজ করা হলো।',
+  dataNotice: 'Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.',
+  copyright:  '© 2025 RailMate Bangladesh · Built with ❤️ in Bangladesh',
+  dataLink:   'Data: railway.gov.bd',
+}
 
-import Link from 'next/link';
-import { FacebookLogo, TwitterLogo, InstagramLogo } from '@phosphor-icons/react';
+const PRODUCT_LINKS = [
+  { label: 'Home',      href: '#' },
+  { label: 'Features',  href: '#features' },
+  { label: 'Download',  href: '#download' },
+  { label: 'FAQ',       href: '#faq' },
+]
 
-const Logo = () => (
-  <Link href="/" className="flex items-center gap-2">
-    <div className="w-8 h-8 rounded-full bg-primary flex justify-center items-center flex-shrink-0">
-       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 2V14" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M11 2V14" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M2 5H14" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M2 11H14" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-    </div>
-    <div className="flex flex-col">
-      <span className="font-display font-bold text-lg text-text-primary leading-none">RailMate</span>
-    </div>
-  </Link>
-);
+const LEGAL_LINKS = [
+  { label: 'Privacy Policy',     href: '#' },
+  { label: 'Terms & Conditions', href: '#' },
+  { label: 'Copyright Notice',   href: '#' },
+]
 
-const socialLinks = [
-    { icon: FacebookLogo, href: "#" },
-    { icon: TwitterLogo, href: "#" },
-    { icon: InstagramLogo, href: "#" },
-];
+function FacebookIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="2" width="16" height="16" rx="4" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M13 7h-2a1 1 0 00-1 1v2h3l-.5 3H10v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
 
-const productLinks = [
-    { name: "Home", href: "/" },
-    { name: "Features", href: "#features" },
-    { name: "Download", href: "#download" },
-    { name: "FAQ", href: "/faq" },
-];
+function TwitterIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M3 3l5.5 7.5L3 17h2l4.5-5.5L14 17h3l-6-8 5.5-6h-2l-4 4.5L6 3H3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+    </svg>
+  )
+}
 
-const legalLinks = [
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Terms & Conditions", href: "/terms" },
-    { name: "Copyright Notice", href: "/copyright" },
-];
+function InstagramIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="2" width="16" height="16" rx="4" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="14.5" cy="5.5" r="0.75" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function TrainIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="4" y="3" width="12" height="11" rx="3" stroke="#00A859" strokeWidth="1.5"/>
+      <path d="M4 9h12" stroke="#00A859" strokeWidth="1.5"/>
+      <path d="M7 14l-1.5 3M13 14l1.5 3" stroke="#00A859" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="7" cy="11.5" r="1" fill="#00A859"/>
+      <circle cx="13" cy="11.5" r="1" fill="#00A859"/>
+    </svg>
+  )
+}
 
 export default function Footer() {
   return (
-    <footer className="bg-bg-elevated border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          {/* Column 1: Brand */}
-          <div className="space-y-4">
-            <Logo />
-            <p className="font-bengali text-sm text-text-secondary">
-              আপনার রেলযাত্রা, সহজ করা হলো।
+    <footer className="bg-[#0F1929] border-t border-[#1E2E42]">
+      <div className="container-inner">
+
+        {/* Main Footer Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pt-12 pb-8">
+
+          {/* COL 1 — Brand */}
+          <div>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-8 h-8 rounded-full bg-[#00A859] flex items-center justify-center">
+                <TrainIcon />
+              </div>
+              <span
+                className="text-[#F0F4FF] font-bold"
+                style={{ fontSize: '17px', fontFamily: 'var(--font-jakarta)' }}
+              >
+                RailMate
+              </span>
+            </div>
+            <p
+              className="text-[#8FA3C0] mb-5"
+              style={{ fontSize: '14px', fontFamily: 'var(--font-bengali)', lineHeight: '1.6' }}
+            >
+              {TRANSLATIONS.tagline}
             </p>
-            <div className="flex space-x-4">
-              {socialLinks.map((link, i) => (
-                <a key={i} href={link.href} className="text-text-tertiary hover:text-primary transition-colors">
-                  <link.icon size={20} />
+            <div className="flex gap-3">
+              {[
+                { Icon: FacebookIcon, label: 'Facebook' },
+                { Icon: TwitterIcon,  label: 'Twitter' },
+                { Icon: InstagramIcon,label: 'Instagram' },
+              ].map(({ Icon, label }) => (
+                <a
+                  key={label}
+                  href="#"
+                  aria-label={label}
+                  className="text-[#4E6480] hover:text-[#00A859] transition-colors"
+                >
+                  <Icon />
                 </a>
               ))}
             </div>
           </div>
-          {/* Column 2: Product */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Product</h3>
-            <ul className="space-y-2">
-              {productLinks.map(link => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-text-secondary hover:text-text-primary transition-colors">{link.name}</Link>
+
+          {/* COL 2 — Product */}
+          <div>
+            <h4
+              className="text-[#4E6480] uppercase mb-4"
+              style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
+            >
+              Product
+            </h4>
+            <ul className="flex flex-col gap-2.5">
+              {PRODUCT_LINKS.map((l) => (
+                <li key={l.label}>
+                  <a
+                    href={l.href}
+                    className="text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors"
+                    style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
+                  >
+                    {l.label}
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
-          {/* Column 3: Legal */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Legal</h3>
-            <ul className="space-y-2">
-              {legalLinks.map(link => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-text-secondary hover:text-text-primary transition-colors">{link.name}</Link>
+
+          {/* COL 3 — Legal */}
+          <div>
+            <h4
+              className="text-[#4E6480] uppercase mb-4"
+              style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
+            >
+              Legal
+            </h4>
+            <ul className="flex flex-col gap-2.5">
+              {LEGAL_LINKS.map((l) => (
+                <li key={l.label}>
+                  <a
+                    href={l.href}
+                    className="text-[#8FA3C0] hover:text-[#F0F4FF] transition-colors"
+                    style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
+                  >
+                    {l.label}
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
-          {/* Column 4: Data Notice */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">Data Sources</h3>
-            <p className="text-xs text-text-tertiary leading-relaxed">
-              Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.
+
+          {/* COL 4 — Data Sources */}
+          <div>
+            <h4
+              className="text-[#4E6480] uppercase mb-4"
+              style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.06em' }}
+            >
+              Data Sources
+            </h4>
+            <p
+              className="text-[#4E6480]"
+              style={{ fontSize: '13px', fontFamily: 'var(--font-inter)', lineHeight: '1.6' }}
+            >
+              {TRANSLATIONS.dataNotice}
             </p>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-8 pt-5 border-t border-border flex flex-col sm:flex-row justify-between items-center text-xs text-text-tertiary">
-          <p>© 2025 RailMate Bangladesh · Built with ❤️ in Bangladesh</p>
-          <a href="http://railway.gov.bd" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors mt-2 sm:mt-0">
-            Data: railway.gov.bd
+        <div className="border-t border-[#1E2E42] py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p
+            className="text-[#4E6480]"
+            style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}
+          >
+            {TRANSLATIONS.copyright}
+          </p>
+          <a
+            href="https://www.railway.gov.bd"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#4E6480] hover:text-[#8FA3C0] transition-colors"
+            style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}
+          >
+            {TRANSLATIONS.dataLink}
           </a>
         </div>
+
       </div>
     </footer>
-  );
+  )
 }

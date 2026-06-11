@@ -1,34 +1,69 @@
-"use client";
+const STATS = [
+  { num: '100+',   label: 'Train Routes Covered' },
+  { num: '500+',   label: 'Stations Searchable' },
+  { num: '8',      label: 'Coach Classes Supported' },
+  { num: 'Free',   label: 'Core Features, Always' },
+]
 
-import { Info } from "@phosphor-icons/react";
+const TRANSLATIONS = {
+  notice: 'Schedule data is sourced from Bangladesh Railway official publications (railway.gov.bd) and community-verified. Always confirm critical journeys with official sources. Live delay data is community-reported.',
+}
 
-const stats = [
-  { value: "100+", label: "Train Routes Covered" },
-  { value: "500+", label: "Stations Searchable" },
-  { value: "8", label: "Coach Classes Supported" },
-  { value: "Free", label: "Core Features, Always" },
-];
+function InfoIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="9" cy="9" r="7.75" stroke="#F5A623" strokeWidth="1.5"/>
+      <path d="M9 8v5" stroke="#F5A623" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="9" cy="5.5" r="0.75" fill="#F5A623"/>
+    </svg>
+  )
+}
 
 export default function StatsSection() {
   return (
-    <section className="bg-bg-base py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 text-center divide-y-2 md:divide-y-0 md:divide-x-2 divide-border">
-          {stats.map((stat, index) => (
-            <div key={index} className="py-8">
-              <p className="text-4xl md:text-5xl font-extrabold text-primary">{stat.value}</p>
-              <p className="mt-2 text-sm text-text-secondary">{stat.label}</p>
+    <section className="bg-[#080D17] py-16" id="stats">
+      <div className="container-inner">
+
+        {/* Stat Blocks */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-0 divide-y sm:divide-y-0 sm:divide-x divide-[#1E2E42]">
+          {STATS.map((s) => (
+            <div key={s.num} className="flex flex-col items-center text-center px-8 py-6 sm:py-2">
+              <span
+                className="text-[#00A859] font-extrabold"
+                style={{ fontSize: 'clamp(36px, 5vw, 48px)', fontFamily: 'var(--font-jakarta)', lineHeight: '1' }}
+              >
+                {s.num}
+              </span>
+              <span
+                className="text-[#8FA3C0] mt-1"
+                style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}
+              >
+                {s.label}
+              </span>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 max-w-3xl mx-auto p-4 rounded-md bg-accent/10 border border-accent/20 flex items-start gap-4">
-          <Info size={20} className="text-accent flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-text-secondary">
-            Schedule data is sourced from Bangladesh Railway official publications (railway.gov.bd) and community-verified. Always confirm critical journeys with official sources. Live delay data is community-reported.
+        {/* Trust Notice */}
+        <div
+          className="mt-12 flex items-start gap-3 rounded-md p-4 mx-auto"
+          style={{
+            maxWidth: '720px',
+            background: 'rgba(245,166,35,0.08)',
+            border: '1px solid rgba(245,166,35,0.25)',
+            borderRadius: '10px',
+          }}
+        >
+          <InfoIcon />
+          <p
+            className="text-[#8FA3C0]"
+            style={{ fontSize: '13px', fontFamily: 'var(--font-inter)', lineHeight: '1.6' }}
+          >
+            {TRANSLATIONS.notice}
           </p>
         </div>
+
       </div>
     </section>
-  );
+  )
 }
