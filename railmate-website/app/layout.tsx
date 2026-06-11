@@ -28,16 +28,32 @@ const notoSansBengali = Noto_Sans_Bengali({
 })
 
 export const metadata: Metadata = {
-  title: 'RailMate Bangladesh — Your Railway, Simplified',
+  title: 'RailMate Bangladesh — Travel Smarter. Travel RailMate.',
   description:
     'Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline.',
   keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
   manifest: '/manifest.json',
   openGraph: {
     title: 'RailMate Bangladesh',
-    description: 'Your Railway, Simplified. Real schedules, live delays, fare calculator.',
+    description: 'Travel Smarter. Travel RailMate.',
+    url: 'https://railmatebd.com',
+    siteName: 'RailMate Bangladesh',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'RailMate Bangladesh',
+      },
+    ],
+    locale: 'en_US',
     type: 'website',
-    locale: 'bn_BD',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RailMate Bangladesh',
+    description: 'Travel Smarter. Travel RailMate.',
+    images: ['/og-image.png'],
   },
 }
 
