@@ -58,9 +58,19 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export function generateStaticParams() {
+  return [{locale: 'en'}, {locale: 'bn'}];
+}
+
+export default function RootLayout({
+  children,
+  params: {locale}
+}: {
+  children: React.ReactNode;
+  params: {locale: string};
+}) {
   return (
-    <html lang="bn" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} font-inter antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <I18nProvider>

@@ -16,16 +16,19 @@ import {
   InstagramLogo,
   LinkedinLogo
 } from "@phosphor-icons/react";
-
-const subjects = [
-  { value: "General", label: "General Inquiry" },
-  { value: "Support", label: "Technical Support" },
-  { value: "Partnership", label: "Partnership" },
-  { value: "Bug Report", label: "Bug Report" },
-  { value: "Media", label: "Media Inquiry" },
-];
+import { useI18n } from "@/lib/i18n";
 
 export default function ContactForm() {
+  const { t } = useI18n();
+
+  const subjects = [
+    { value: "General", label: t.contact.subjects.general },
+    { value: "Support", label: t.contact.subjects.support },
+    { value: "Partnership", label: t.contact.subjects.partnership },
+    { value: "Bug Report", label: t.contact.subjects.bug },
+    { value: "Media", label: t.contact.subjects.media },
+  ];
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -54,28 +57,28 @@ export default function ContactForm() {
         setFormData({ name: "", email: "", subject: "General", message: "" });
       } else {
         setStatus("error");
-        setErrorMessage(data.error || "Something went wrong. Please try again.");
+        setErrorMessage(data.error || t.contact.errors.generic);
       }
     } catch (error) {
       setStatus("error");
-      setErrorMessage("Failed to send message. Please check your connection.");
+      setErrorMessage(t.contact.errors.connection);
     }
   };
 
   const contactDetails = [
     {
       icon: <EnvelopeSimple size={24} />,
-      title: "Support",
+      title: t.contact.details.support,
       email: "support@railmatebd.com",
     },
     {
       icon: <Handshake size={24} />,
-      title: "Business/Partnership",
+      title: t.contact.details.business,
       email: "hello@railmatebd.com",
     },
     {
       icon: <ChatTeardropText size={24} />,
-      title: "Legal/Privacy",
+      title: t.contact.details.legal,
       email: "privacy@railmatebd.com",
     },
   ];
@@ -84,8 +87,8 @@ export default function ContactForm() {
     <main className="pt-24 pb-16">
       <div className="container mx-auto px-4 max-w-6xl">
         <SectionHeader
-          title="Get in Touch"
-          subtitle="We'd love to hear from you. Our team typically responds within 48 hours."
+          title={t.contact.title}
+          subtitle={t.contact.subtitle}
           align="center"
         />
 
@@ -95,15 +98,15 @@ export default function ContactForm() {
             {status === "success" ? (
               <div className="text-center py-12">
                 <CheckCircle size={64} weight="fill" className="text-primary mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-text-primary mb-2">Message Sent!</h3>
+                <h3 className="text-2xl font-bold text-text-primary mb-2">{t.contact.success.title}</h3>
                 <p className="text-text-secondary mb-8">
-                  Thank you for reaching out. We've received your message and will get back to you within 48 hours.
+                  {t.contact.success.message}
                 </p>
                 <button
                   onClick={() => setStatus("idle")}
                   className="px-6 py-3 bg-primary text-bg-base font-bold rounded-lg hover:bg-primary-dim transition-colors"
                 >
-                  Send Another Message
+                  {t.contact.success.send_another}
                 </button>
               </div>
             ) : (
@@ -111,7 +114,7 @@ export default function ContactForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-text-secondary mb-2">
-                      Full Name
+                      {t.contact.form.name.label}
                     </label>
                     <input
                       type="text"
@@ -120,12 +123,12 @@ export default function ContactForm() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full bg-bg-card border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Shariar Ahmed"
+                      placeholder={t.contact.form.name.placeholder}
                     />
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-2">
-                      Email Address
+                      {t.contact.form.email.label}
                     </label>
                     <input
                       type="email"
@@ -134,14 +137,14 @@ export default function ContactForm() {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full bg-bg-card border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Shariar@example.com"
+                      placeholder={t.contact.form.email.placeholder}
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-text-secondary mb-2">
-                    Subject
+                    {t.contact.form.subject.label}
                   </label>
                   <select
                     id="subject"
@@ -159,7 +162,7 @@ export default function ContactForm() {
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-text-secondary mb-2">
-                    Message
+                    {t.contact.form.message.label}
                   </label>
                   <textarea
                     id="message"
@@ -168,7 +171,7 @@ export default function ContactForm() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full bg-bg-card border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:outline-none transition-colors resize-none"
-                    placeholder="How can we help you?"
+                    placeholder={t.contact.form.message.placeholder}
                   />
                 </div>
 
@@ -187,10 +190,10 @@ export default function ContactForm() {
                   {status === "loading" ? (
                     <>
                       <CircleNotch size={20} className="animate-spin" />
-                      Sending...
+                      {t.contact.form.sending}
                     </>
                   ) : (
-                    "Send Message"
+                    t.contact.form.send
                   )}
                 </button>
               </form>
@@ -200,7 +203,7 @@ export default function ContactForm() {
           {/* Sidebar */}
           <div className="space-y-8">
             <div className="bg-bg-elevated p-8 rounded-xl border border-border">
-              <h3 className="text-xl font-bold text-text-primary mb-6">Contact Details</h3>
+              <h3 className="text-xl font-bold text-text-primary mb-6">{t.contact.sidebar.details.title}</h3>
               <div className="space-y-6">
                 {contactDetails.map((detail, index) => (
                   <div key={index} className="flex gap-4">
@@ -220,7 +223,7 @@ export default function ContactForm() {
             </div>
 
             <div className="bg-bg-elevated p-8 rounded-xl border border-border">
-              <h3 className="text-xl font-bold text-text-primary mb-4">Follow Us</h3>
+              <h3 className="text-xl font-bold text-text-primary mb-4">{t.contact.sidebar.social.title}</h3>
               <div className="flex gap-4">
                 <a href="#" className="p-3 bg-bg-card rounded-lg text-text-secondary hover:text-primary border border-border transition-all">
                   <FacebookLogo size={24} />
@@ -238,9 +241,9 @@ export default function ContactForm() {
             </div>
 
             <div className="p-6 rounded-xl bg-accent-subtle border border-accent/20">
-              <h4 className="font-bold text-accent mb-2">Partnership Inquiry</h4>
+              <h4 className="font-bold text-accent mb-2">{t.contact.sidebar.partnership.title}</h4>
               <p className="text-text-secondary text-sm leading-relaxed">
-                Interested in a data partnership, API integration, or business collaboration? Use subject 'Partnership' in the form or email hello@railmatebd.com.
+                {t.contact.sidebar.partnership.message}
               </p>
             </div>
           </div>

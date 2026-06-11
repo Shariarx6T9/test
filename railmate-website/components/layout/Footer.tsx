@@ -4,36 +4,37 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 import { FacebookLogo, TwitterLogo, InstagramLogo } from '@phosphor-icons/react'
+import DownloadButton from '../ui/DownloadButton'
 
 export default function Footer() {
   const { t } = useI18n()
 
   const productLinks = [
-    { label: t.nav.home,      href: '/' },
-    { label: t.nav.features,  href: '/features' },
-    { label: t.nav.download,  href: '/download' },
-    { label: t.nav.faq,       href: '/faq' },
+    { label: t.nav.home, href: '/' },
+    { label: t.nav.features, href: '/features' },
+    { label: t.nav.download, href: '/download' },
+    { label: t.nav.faq, href: '/faq' },
   ]
 
   const legalLinks = [
-    { label: 'Privacy Policy',     href: '/privacy' },
+    { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms & Conditions', href: '/terms' },
-    { label: 'Copyright Notice',   href: '/copyright' },
+    { label: 'Copyright Notice', href: '/copyright' },
   ]
 
   const socialLinks = [
-    { label: 'Facebook',  icon: <FacebookLogo size={20} />, href: '#' },
-    { label: 'Twitter',   icon: <TwitterLogo size={20} />,  href: '#' },
+    { label: 'Facebook', icon: <FacebookLogo size={20} />, href: '#' },
+    { label: 'Twitter', icon: <TwitterLogo size={20} />, href: '#' },
     { label: 'Instagram', icon: <InstagramLogo size={20} />, href: '#' },
   ]
 
   return (
     <footer className="bg-bg-elevated border-t border-border-subtle pt-16 pb-8">
       <div className="max-w-[1200px] mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           
           {/* Brand Column */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             <Link href="/" className="flex items-center gap-2.5">
               <Image 
                 src="/logo.png" 
@@ -60,6 +61,28 @@ export default function Footer() {
                   {s.icon}
                 </a>
               ))}
+            </div>
+          </div>
+
+          {/* Download Column */}
+          <div>
+            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-6 font-inter">
+              {t.nav.download}
+            </h4>
+            <div className="space-y-3">
+              <DownloadButton
+                platform="google-play"
+                href={process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL!}
+              />
+              <DownloadButton
+                platform="app-store"
+                href={process.env.NEXT_PUBLIC_APP_STORE_URL!}
+                status="coming-soon"
+              />
+              <DownloadButton
+                platform="apk"
+                href={process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL!}
+              />
             </div>
           </div>
 
@@ -94,30 +117,15 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Data Sources Column */}
-          <div>
-            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-6 font-inter">
-              {t.footer.data_sources}
-            </h4>
-            <p className="text-text-tertiary text-sm leading-relaxed font-inter mb-4">
-              {t.footer.data_notice}
-            </p>
-            <a 
-              href="https://railway.gov.bd" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-primary hover:underline text-sm font-bold font-inter"
-            >
-              Data: railway.gov.bd
-            </a>
-          </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-text-tertiary text-xs font-inter">
             {t.footer.copyright}
+          </p>
+          <p className="text-text-tertiary text-xs font-inter text-center md:text-left">
+            {t.footer.data_notice}
           </p>
           <div className="flex items-center gap-6">
              <span className="text-[10px] text-text-tertiary px-2 py-1 border border-border-subtle rounded uppercase tracking-widest font-bold">
@@ -129,3 +137,4 @@ export default function Footer() {
     </footer>
   )
 }
+

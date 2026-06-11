@@ -1,64 +1,54 @@
-import DownloadButton from '@/components/ui/DownloadButton'
+"use client";
 
-const COPY = {
-  overline:    'DOWNLOAD FREE TODAY',
-  headline1:   'Stop guessing.',
-  headline2:   'Start knowing.',
-  subheadline:
-    'Join Bangladeshi travelers who check RailMate before every train journey. Know if your train is late before you leave home.',
-  platform:    'Android 7.0+ required · iOS coming soon · 100% free to download',
-  bengali:     'আপনার রেলযাত্রা, সহজ করা হলো।',
-}
+import { useI18n } from "@/lib/i18n";
+import DownloadButton from "@/components/ui/DownloadButton";
 
 export default function DownloadCTA() {
-  return (
-    <section className="bg-[#080D17] py-24" id="download">
-      <div className="max-w-[1200px] mx-auto px-6">
-        <div className="flex flex-col items-center text-center" style={{ maxWidth: '680px', margin: '0 auto' }}>
+  const { t } = useI18n();
 
-          <p
-            className="text-[#00A859] uppercase mb-4"
-            style={{ fontSize: '11px', fontFamily: 'var(--font-inter)', fontWeight: 600, letterSpacing: '0.08em' }}
-          >
-            {COPY.overline}
+  return (
+    <section className="bg-gray-900 py-24" id="download">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto flex flex-col items-center text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-4 font-inter">
+            {t.cta.overline}
           </p>
 
-          <h2
-            className="text-[#F0F4FF] font-extrabold"
-            style={{ fontSize: 'clamp(32px, 5vw, 44px)', fontFamily: 'var(--font-jakarta)', lineHeight: '1.1' }}
-          >
-            {COPY.headline1}
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white font-jakarta leading-tight">
+            {t.cta.headline1}
             <br />
-            {COPY.headline2}
+            {t.cta.headline2}
           </h2>
 
-          <p
-            className="mt-5 text-[#8FA3C0]"
-            style={{ fontSize: '17px', fontFamily: 'var(--font-inter)', lineHeight: '1.6' }}
-          >
-            {COPY.subheadline}
+          <p className="mt-5 text-lg text-gray-400 font-inter leading-relaxed">
+            {t.cta.subheadline}
           </p>
 
-          <div className="mt-8">
-            <DownloadButton showNote={false} align="center" />
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <DownloadButton
+              platform="google-play"
+              href={process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL!}
+            />
+            <DownloadButton
+              platform="apk"
+              href={process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL!}
+            />
+            <DownloadButton
+              platform="app-store"
+              href={process.env.NEXT_PUBLIC_APP_STORE_URL!}
+              status="coming-soon"
+            />
           </div>
 
-          <p
-            className="mt-4 text-[#4E6480]"
-            style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}
-          >
-            {COPY.platform}
+          <p className="mt-4 text-xs text-gray-600 font-inter">
+            {t.cta.platform}
           </p>
 
-          <p
-            className="mt-8 text-[#8FA3C0]"
-            style={{ fontSize: '18px', fontFamily: 'var(--font-bengali)', lineHeight: '1.7' }}
-          >
-            {COPY.bengali}
+          <p className="mt-8 text-xl text-gray-400 font-bengali">
+            {t.cta.bengali}
           </p>
-
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -39,13 +39,43 @@
     "values": "Our Values",
     "privacy": "Privacy",
     "community": "Community",
-    "reliability": "Reliability"
+    "reliability": "Reliability",
+    "why_exists": "Why RailMate Exists",
+    "reliability_desc": "We strive to provide the most accurate and up-to-date information possible through official data and community verification.",
+    "community_desc": "RailMate is built for travelers, by travelers. We believe in the power of shared information to improve everyone's journey.",
+    "privacy_desc": "Your data is yours. We collect only what's necessary to provide our service and never compromise your personal information.",
+    "vision": "\"RailMate Bangladesh is the most trusted railway companion app for Bangladeshi travelers — the app they open before, during, and after every train journey.\"",
+    "why_exists_p1": "For years, Bangladeshi train travelers have navigated a fragmented landscape of information. Official schedules were often hard to find on mobile, real-time delay information was non-existent except at station platforms, and there was no unified way for passengers to help each other.",
+    "why_exists_p2": "Existing apps often lacked a modern user experience, didn't support iOS, or didn't provide a community layer that reflected the real-time reality of the tracks. We saw a need for a new standard — a companion that feels like it belongs in 2025.",
+    "independent_platform": "RailMate is an independent platform developed by Bangladeshi developers. It is not affiliated with Bangladesh Railway."
   },
   "faq": {
     "title": "Frequently Asked Questions",
     "subtitle": "Everything you need to know about RailMate Bangladesh.",
     "still_questions": "Still have questions?",
-    "contact_support": "Contact Support"
+    "contact_support": "Contact Support",
+    "questions": [
+      {
+        "question": "Is RailMate free to use?",
+        "answer": "Yes, the core app is completely free — schedules, fares, saved routes, community reports, and delay alerts are all free. We offer an optional RailMate+ premium subscription (৳99–299/month) for advanced features."
+      },
+      {
+        "question": "How accurate is the schedule information?",
+        "answer": "Schedule data is sourced from Bangladesh Railway's official published timetables. We update it when official timetables change. Real-time accuracy depends on community reports — we recommend verifying against official sources for critical journeys."
+      },
+      {
+        "question": "Does RailMate sell train tickets?",
+        "answer": "No. RailMate is an information and companion platform. For ticket purchases, we direct you to the official Rail Sheba platform (railshebashohoz.com) or the government e-ticketing portal."
+      },
+      {
+        "question": "How do community reports work?",
+        "answer": "Any registered user can submit a delay, crowding, or condition report for any train. Reports are validated through a community upvote/confirm system. Reports with multiple confirmations are ranked higher."
+      },
+      {
+        "question": "Is RailMate affiliated with Bangladesh Railway?",
+        "answer": "No. RailMate is an independent platform built by Bangladeshi developers. We use publicly available schedule data from Bangladesh Railway's official publications. We are not officially affiliated unless a formal partnership is announced."
+      }
+    ]
   },
   "sections": {
     "problem": {
@@ -60,5 +90,154 @@
       "title": "Community Powered Intelligence",
       "subtitle": "Connect with other travelers who help each other stay informed."
     }
+  },
+  "trust": {
+    "title": "Data & Trust",
+    "disclaimer": "RailMate is an independent app and is not affiliated with Bangladesh Railway. We use official public data and community reports to provide the best experience."
+  },
+  "download": {
+    "play": "Download on Google Play",
+    "apk": "Download APK",
+    "apple": "Download on App Store",
+    "coming_soon": "Coming Soon",
+    "note": "App Store version coming soon · Free · Android 7.0+"
+  },
+  "cta": {
+    "overline": "DOWNLOAD FREE TODAY",
+    "headline1": "Stop guessing.",
+    "headline2": "Start knowing.",
+    "subheadline": "Join Bangladeshi travelers who check RailMate before every train journey. Know if your train is late before you leave home.",
+    "platform": "Android 7.0+ required · iOS coming soon · 100% free to download",
+    "bengali": "আপনার রেলযাত্রা, সহজ করা হলো।"
+  },
+  "screenshots": {
+    "overline": "APP PREVIEW",
+    "headline": "See it before you download it.",
+    "subheadline": "A quick look at every screen you'll use.",
+    "screens": [
+      { "id": "search", "label": "Train Search" },
+      { "id": "results", "label": "Search Results" },
+      { "id": "fare", "label": "Fare Calculator" },
+      { "id": "alerts", "label": "Departure Alerts" }
+    ]
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "subtitle": "We'd love to hear from you. Our team typically responds within 48 hours.",
+    "subjects": {
+      "general": "General Inquiry",
+      "support": "Technical Support",
+      "partnership": "Partnership",
+      "bug": "Bug Report",
+      "media": "Media Inquiry"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "connection": "Failed to send message. Please check your connection."
+    },
+    "details": {
+      "support": "Support",
+      "business": "Business/Partnership",
+      "legal": "Legal/Privacy"
+    },
+    "success": {
+      "title": "Message Sent!",
+      "message": "Thank you for reaching out. We've received your message and will get back to you within 48 hours.",
+      "send_another": "Send Another Message"
+    },
+    "form": {
+      "name": {
+        "label": "Full Name",
+        "placeholder": "Shariar Ahmed"
+      },
+      "email": {
+        "label": "Email Address",
+        "placeholder": "shariar@example.com"
+      },
+      "subject": {
+        "label": "Subject"
+      },
+      "message": {
+        "label": "Message",
+        "placeholder": "How can we help you?"
+      },
+      "sending": "Sending...",
+      "send": "Send Message"
+    },
+    "sidebar": {
+      "details": {
+        "title": "Contact Details"
+      },
+      "social": {
+        "title": "Follow Us"
+      },
+      "partnership": {
+        "title": "Partnership Inquiry",
+        "message": "Interested in a data partnership, API integration, or business collaboration? Use subject 'Partnership' in the form or email hello@railmatebd.com."
+      }
+    }
+  },
+  "copyright": {
+    "title": "Copyright & Intellectual Property",
+    "subtitle": "Information about our assets, trademarks, and third-party data.",
+    "legal_notice": "The RailMate name, logo, brand assets, app design, code, and all original content are copyright <strong>© 2025 RailMate Bangladesh</strong>. All rights reserved.",
+    "prohibition": "Unauthorized copying, reproduction, redistribution, or commercial use of any RailMate asset is strictly prohibited.",
+    "trademarks": {
+      "title": "Third-Party Trademarks",
+      "body": "Google Play, Apple App Store, Android, and iOS remain the property of their respective owners."
+    },
+    "data_sources": {
+      "title": "Data Sources",
+      "body": "Bangladesh Railway schedules and fare data are sourced from Bangladesh Railway's official publications (railway.gov.bd) and are the property of Bangladesh Railway / Government of Bangladesh. Used with attribution for informational purposes only."
+    },
+    "independence": {
+      "title": "Independence",
+      "body": "RailMate is an independent platform and is not affiliated with Bangladesh Railway, Shohoz, or any government entity unless officially stated."
+    },
+    "reporting": {
+      "title": "To report a copyright concern, please contact:"
+    }
+  },
+  "download_page": {
+    "meta_title": "Download RailMate Bangladesh",
+    "meta_description": "Download RailMate Bangladesh on Android. Available on Google Play and as a direct APK. iOS coming soon.",
+    "json_ld_name": "RailMate Bangladesh",
+    "json_ld_description": "Bangladesh's most trusted railway companion app.",
+    "title": "Get RailMate on Your Device",
+    "subtitle": "The most trusted railway companion for Bangladesh is available now on Android. iOS version is currently in development.",
+    "google_play": "Google Play",
+    "google_play_desc": "Official Store — Recommended for auto-updates and security.",
+    "direct_apk": "Direct APK",
+    "direct_apk_desc": "Manual installation. Version: v1.0.0 (Coming Soon)",
+    "sha_hash": "SHA256: 7f83b...placeholder",
+    "app_store": "App Store",
+    "app_store_desc": "Coming to iOS in Late 2025.",
+    "instructions_suffix": "Instructions",
+    "step_label": "Step {number}",
+    "install_steps": {
+      "google_play": {
+        "step1": "Tap 'Download on Google Play' below",
+        "step2": "Open the app after installation",
+        "step3": "Allow location permission (optional)"
+      },
+      "direct_apk": {
+        "step1": "Download the APK file to your device",
+        "step2": "Enable 'Install from unknown sources' in Settings",
+        "step3": "Tap the APK file to begin installation",
+        "step4": "Done! Open RailMate from your app drawer"
+      }
+    },
+    "version_notes_title": "Version & Release Notes",
+    "table_header_version": "Version",
+    "table_header_release_date": "Release Date",
+    "table_header_changes": "Changes",
+    "v1_release_notes": "Initial public release featuring schedules, fares, and community reporting.",
+    "requirements_title": "System Requirements",
+    "android": "Android",
+    "android_version": "7.0+ (API 24+)",
+    "ios": "iOS",
+    "ios_version": "15.0+ (Coming Soon)",
+    "storage": "Storage",
+    "storage_size": "~25 MB"
   }
 }

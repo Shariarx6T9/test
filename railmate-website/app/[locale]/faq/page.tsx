@@ -1,5 +1,5 @@
 import { buildMetadata } from "@/lib/metadata";
-import FAQAccordion from "./FAQAccordion";
+import { FAQAccordion } from "./FAQAccordion";
 
 export const metadata = buildMetadata({
   title: "FAQ",

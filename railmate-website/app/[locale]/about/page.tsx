@@ -11,17 +11,17 @@ export default function AboutPage() {
     {
       icon: <Heart size={32} />,
       title: t.about.reliability,
-      desc: "We strive to provide the most accurate and up-to-date information possible through official data and community verification.",
+      desc: t.about.reliability_desc,
     },
     {
       icon: <Users size={32} />,
       title: t.about.community,
-      desc: "RailMate is built for travelers, by travelers. We believe in the power of shared information to improve everyone's journey.",
+      desc: t.about.community_desc,
     },
     {
       icon: <ShieldCheck size={32} />,
       title: t.about.privacy,
-      desc: "Your data is yours. We collect only what's necessary to provide our service and never compromise your personal information.",
+      desc: t.about.privacy_desc,
     },
   ];
 
@@ -39,7 +39,7 @@ export default function AboutPage() {
           {/* Vision Block */}
           <div className="p-8 lg:p-12 bg-primary/5 border border-primary/20 rounded-xl">
              <h2 className="text-2xl lg:text-3xl font-jakarta font-extrabold text-primary leading-tight">
-               "RailMate Bangladesh is the most trusted railway companion app for Bangladeshi travelers — the app they open before, during, and after every train journey."
+               {t.about.vision}
              </h2>
           </div>
 
@@ -53,14 +53,10 @@ export default function AboutPage() {
 
           {/* Why RailMate Exists */}
           <div className="space-y-6 font-inter">
-            <h3 className="text-2xl font-jakarta font-extrabold text-text-primary">Why RailMate Exists</h3>
+            <h3 className="text-2xl font-jakarta font-extrabold text-text-primary">{t.about.why_exists}</h3>
             <div className="space-y-4 text-text-secondary leading-relaxed">
-              <p>
-                For years, Bangladeshi train travelers have navigated a fragmented landscape of information. Official schedules were often hard to find on mobile, real-time delay information was non-existent except at station platforms, and there was no unified way for passengers to help each other.
-              </p>
-              <p>
-                Existing apps often lacked a modern user experience, didn't support iOS, or didn't provide a community layer that reflected the real-time reality of the tracks. We saw a need for a new standard — a companion that feels like it belongs in 2025.
-              </p>
+              <p>{t.about.why_exists_p1}</p>
+              <p>{t.about.why_exists_p2}</p>
             </div>
           </div>
 
@@ -82,7 +78,7 @@ export default function AboutPage() {
           
           <div className="pt-8 border-t border-border-subtle text-center">
              <p className="text-text-tertiary text-sm max-w-2xl mx-auto italic font-inter">
-               RailMate is an independent platform developed by Bangladeshi developers. It is not affiliated with Bangladesh Railway.
+               {t.about.independent_platform}
              </p>
           </div>
         </div>
