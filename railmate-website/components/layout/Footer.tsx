@@ -2,7 +2,7 @@ const COPY = {
   brand:     'RailMate',
   bengali:   'আপনার রেলযাত্রা, সহজ করা হলো।',
   notice:    'Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.',
-  copyright: '© 2025 RailMate Bangladesh · Built with ❤️ in Bangladesh',
+  copyright: '© 2025 RailMate Bangladesh · Built By Najmul Hasan',
   dataLink:  'Data: railway.gov.bd',
 }
 

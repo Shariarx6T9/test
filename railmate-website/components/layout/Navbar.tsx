@@ -18,14 +18,8 @@ const NAV_LINKS = [
 
 function LogoMark() {
   return (
-    <div className="w-8 h-8 rounded-full bg-[#00A859] flex items-center justify-center flex-shrink-0">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-        <rect x="3" y="2" width="12" height="10" rx="2.5" stroke="white" strokeWidth="1.4"/>
-        <path d="M3 8h12" stroke="white" strokeWidth="1.4"/>
-        <path d="M6 12l-1.5 3M12 12l1.5 3" stroke="white" strokeWidth="1.4" strokeLinecap="round"/>
-        <circle cx="6.5" cy="10" r="0.9" fill="white"/>
-        <circle cx="11.5" cy="10" r="0.9" fill="white"/>
-      </svg>
+    <div className="flex-shrink-0">
+      <img src="/logo.png" alt="RailMate Logo" className="w-8 h-8 rounded-lg object-contain" />
     </div>
   )
 }
