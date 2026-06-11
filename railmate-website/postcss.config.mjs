@@ -1,6 +1,6 @@
 export default {
   plugins: {
-    tailwindcss: {},
+    tailwindcss: { config: './railmate-website/tailwind.config.ts' },
     autoprefixer: {},
   },
 };
