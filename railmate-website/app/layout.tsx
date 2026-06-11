@@ -36,14 +36,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="bn" className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable}`}>
-      <body className={`bg-[#080D17] text-[#F0F4FF] antialiased`}>
+    <html
+      lang="bn"
+      className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable}`}
+    >
+      <body className="bg-[#080D17] text-[#F0F4FF] antialiased">
         {children}
       </body>
     </html>
