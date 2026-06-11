@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "about": "About",
+    "download": "Download",
+    "faq": "FAQ",
+    "cta": "Download App →"
+  },
+  "hero": {
+    "overline": "🇧🇩 Built for Bangladeshi Railway Travelers",
+    "headline1": "Your Railway,",
+    "headline2": "Simplified",
+    "subtitle": "Stop using 3 different apps just to catch one train. RailMate gives you real schedules, real fares, and live delay reports from fellow travelers — all in one place. Free.",
+    "cta": "Get RailMate Now",
+    "badge1": "Free Forever",
+    "badge2": "Bengali + English",
+    "badge3": "Works Offline"
+  },
+  "common": {
+    "brand": "RailMate",
+    "tagline": "Bangladesh",
+    "coming_soon": "Coming Soon",
+    "available": "Available Now",
+    "learn_more": "Learn More"
+  },
+  "footer": {
+    "brand_desc": "Your railway journey, simplified.",
+    "product": "Product",
+    "legal": "Legal",
+    "data_sources": "Data Sources",
+    "data_notice": "Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.",
+    "copyright": "© 2026 RailMate Bangladesh · Built By Najmul Hasan"
+  },
+  "about": {
+    "title": "About RailMate Bangladesh",
+    "mission": "Our Mission",
+    "mission_desc": "To simplify and improve the Bangladesh Railway experience through unified, intelligent, community-powered tools — without replacing existing government services.",
+    "values": "Our Values",
+    "privacy": "Privacy",
+    "community": "Community",
+    "reliability": "Reliability"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about RailMate Bangladesh.",
+    "still_questions": "Still have questions?",
+    "contact_support": "Contact Support"
+  },
+  "sections": {
+    "problem": {
+      "title": "The Railway Problem in Bangladesh",
+      "subtitle": "Travelers are tired of fragmented information, inaccurate schedules, and zero live updates."
+    },
+    "features": {
+      "title": "Built for the Real World",
+      "subtitle": "Everything you need to navigate Bangladesh Railway with confidence."
+    },
+    "community": {
+      "title": "Community Powered Intelligence",
+      "subtitle": "Connect with other travelers who help each other stay informed."
+    }
+  }
+}

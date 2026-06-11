@@ -52,7 +52,7 @@ export default function UserBenefits() {
              
              {/* Large Callout */}
              <div className="col-span-2 mt-4 p-8 bg-primary/10 border border-primary/20 rounded-xl text-center">
-                <p className="text-primary font-bold">Trusted by thousands of passengers every day.</p>
+                <p className="text-primary font-bold">Built for Bangladeshi railway travelers.</p>
              </div>
           </div>
         </div>

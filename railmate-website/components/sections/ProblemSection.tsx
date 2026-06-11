@@ -1,90 +1,64 @@
+'use client'
+
 import SectionHeader from '@/components/ui/SectionHeader'
-
-const COPY = {
-  headline:    'Sound familiar?',
-  subheadline: 'Every Bangladesh train traveler knows these problems.',
-  transition:  'RailMate fixes all three. For free.',
-}
-
-const PAIN_POINTS = [
-  {
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
-        <path d="M16 5L28 27H4L16 5z" stroke="#E8394B" strokeWidth="2" strokeLinejoin="round"/>
-        <path d="M16 13v6M16 22.5v.5" stroke="#E8394B" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
-    title:       'Is my train even on time?',
-    body:        'You leave home, reach the station, and only then find out your train is delayed 45 minutes. No app warned you. No one knew.',
-    bg:          'rgba(232,57,75,0.06)',
-    border:      'rgba(232,57,75,0.2)',
-  },
-  {
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
-        <rect x="4"  y="4"  width="10" height="10" rx="2" stroke="#F5A623" strokeWidth="2"/>
-        <rect x="18" y="4"  width="10" height="10" rx="2" stroke="#F5A623" strokeWidth="2"/>
-        <rect x="4"  y="18" width="10" height="10" rx="2" stroke="#F5A623" strokeWidth="2"/>
-        <rect x="18" y="18" width="10" height="10" rx="2" stroke="#F5A623" strokeWidth="2"/>
-      </svg>
-    ),
-    title:       '3 apps for 1 journey',
-    body:        "BR website for schedules. Shohoz for tickets. WhatsApp groups for delay news. There's no single place that does everything.",
-    bg:          'rgba(245,166,35,0.06)',
-    border:      'rgba(245,166,35,0.2)',
-  },
-  {
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
-        <circle cx="16" cy="16" r="11" stroke="#4EA8E0" strokeWidth="2"/>
-        <text x="16" y="22" textAnchor="middle" fill="#4EA8E0" fontSize="15" fontWeight="700" fontFamily="serif">৳</text>
-      </svg>
-    ),
-    title:       'What does this ticket actually cost?',
-    body:        "Fare tables are buried in PDFs. Prices differ by class, season, and nobody tells you that Snigdha isn't available on this route.",
-    bg:          'rgba(78,168,224,0.06)',
-    border:      'rgba(78,168,224,0.2)',
-  },
-]
+import { useI18n } from '@/lib/i18n'
+import { Warning, SquaresFour, CurrencyCircleDollar } from '@phosphor-icons/react'
 
 export default function ProblemSection() {
+  const { t } = useI18n()
+
+  const painPoints = [
+    {
+      icon: <Warning size={32} weight="duotone" className="text-danger" />,
+      title: 'Is my train even on time?',
+      body: 'You leave home, reach the station, and only then find out your train is delayed 45 minutes. No app warned you. No one knew.',
+      bg: 'bg-danger/5',
+      border: 'border-danger/20',
+    },
+    {
+      icon: <SquaresFour size={32} weight="duotone" className="text-accent" />,
+      title: '3 apps for 1 journey',
+      body: "BR website for schedules. Shohoz for tickets. WhatsApp groups for delay news. There's no single place that does everything.",
+      bg: 'bg-accent/5',
+      border: 'border-accent/20',
+    },
+    {
+      icon: <CurrencyCircleDollar size={32} weight="duotone" className="text-info" />,
+      title: 'What does this ticket actually cost?',
+      body: "Fare tables are buried in PDFs. Prices differ by class, season, and nobody tells you that Snigdha isn't available on this route.",
+      bg: 'bg-info/5',
+      border: 'border-info/20',
+    },
+  ]
+
   return (
-    <section className="bg-[#0F1929] py-20" id="problem">
+    <section className="bg-bg-elevated py-24" id="problem">
       <div className="max-w-[1200px] mx-auto px-6">
+        <SectionHeader 
+          title={t.sections.problem.title} 
+          subtitle={t.sections.problem.subtitle} 
+          centered 
+        />
 
-        <SectionHeader headline={COPY.headline} subheadline={COPY.subheadline} />
-
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
-          {PAIN_POINTS.map((p) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          {painPoints.map((p, i) => (
             <div
-              key={p.title}
-              className="rounded-2xl p-6 border"
-              style={{ background: p.bg, borderColor: p.border }}
+              key={i}
+              className={`rounded-2xl p-8 border ${p.bg} ${p.border} transition-transform hover:-translate-y-1`}
             >
-              <div className="mb-4">{p.icon}</div>
-              <h3
-                className="text-[#F0F4FF] font-bold mb-3"
-                style={{ fontSize: '18px', fontFamily: 'var(--font-jakarta)', lineHeight: '1.3' }}
-              >
+              <div className="mb-6">{p.icon}</div>
+              <h3 className="text-text-primary font-bold text-xl mb-4 font-jakarta leading-tight">
                 {p.title}
               </h3>
-              <p
-                className="text-[#8FA3C0]"
-                style={{ fontSize: '15px', fontFamily: 'var(--font-inter)', lineHeight: '1.65' }}
-              >
+              <p className="text-text-secondary leading-relaxed font-inter text-sm">
                 {p.body}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Transition line */}
-        <p
-          className="text-center mt-10 font-bold text-[#00A859]"
-          style={{ fontSize: '20px', fontFamily: 'var(--font-jakarta)' }}
-        >
-          {COPY.transition}
+        <p className="text-center mt-12 font-bold text-primary text-xl font-jakarta">
+          RailMate fixes all three. For free.
         </p>
       </div>
     </section>

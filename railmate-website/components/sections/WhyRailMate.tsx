@@ -33,7 +33,7 @@ const DIFFERENTIATORS = [
   {
     num:   '02',
     title: 'Community over automation',
-    body:  "We don't pretend to have a real-time BR API — it doesn't exist. Instead we harness thousands of travelers who are on those trains right now.",
+    body:  "We don't pretend to have a real-time BR API — it doesn't exist. Instead we rely on real travelers who are on those trains right now.",
   },
   {
     num:   '03',

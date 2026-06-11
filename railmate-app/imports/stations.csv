@@ -1,0 +1,53 @@
+id,name_en,name_bn,code,shohoz_city,zone,division,gauge,lat,lng,is_intercity_hub,type,note
+1,Dhaka (Kamalapur),ঢাকা (কমলাপুর),DHKA,DHAKA,East,Dhaka,Dual,23.7332,90.4272,True,A,
+2,Dhaka Airport,ঢাকা বিমানবন্দর,DABB,DHAKA AIRPORT,East,Dhaka,Dual,23.8522,90.4083,False,B,
+3,Dhaka Cantonment,ঢাকা ক্যান্টনমেন্ট,DHCA,DHAKA CANTONMENT,East,Dhaka,Dual,23.8155,90.4106,False,B,International terminus — Maitree Express & Mitali Express to India
+4,Banani,বনানী,BNNI,BANANI,East,Dhaka,Dual,23.7957,90.4008,False,C,
+5,Tejgaon,তেজগাঁও,TJG,TEJGAON,East,Dhaka,Dual,23.7676,90.3896,False,C,
+6,Tongi,টঙ্গী,TNG,TONGI,East,Dhaka,Dual,23.8973,90.3994,False,B,
+7,Joydebpur,জয়দেবপুর,JDP,JOYDEBPUR,East,Dhaka,Dual,23.9999,90.4011,False,B,
+8,Narsingdi,নরসিংদী,NSD,NARSINGDI,East,Dhaka,Meter,23.9215,90.7139,False,B,
+9,Bhairab Bazar,ভৈরব বাজার,BBZ,BHAIRAB BAZAR,East,Dhaka,Meter,24.0528,90.9736,False,B,
+10,Narayanganj,নারায়ণগঞ্জ,NRG,NARAYANGANJ,East,Dhaka,Meter,23.6238,90.4996,False,B,
+11,Chattogram,চট্টগ্রাম,CTG,CHATTOGRAM,East,Chittagong,Meter,22.3384,91.8317,True,A,
+12,Comilla,কুমিল্লা,COM,COMILLA,East,Chittagong,Meter,23.4607,91.1809,False,B,
+13,Akhaura,আখাউড়া,AKH,AKHAURA,East,Chittagong,Meter,23.8842,91.1497,False,B,Junction for Sylhet and Chittagong lines
+14,Laksam,লাকসাম,LKS,LAKSAM,East,Chittagong,Meter,23.2481,91.1367,False,B,
+15,Noakhali,নোয়াখালী,NOA,NOAKHALI,East,Chittagong,Meter,22.8696,91.0996,False,B,
+16,Chandpur,চাঁদপুর,CDP,CHANDPUR,East,Chittagong,Meter,23.2332,90.6518,False,B,
+17,Cox's Bazar,কক্সবাজার,CXBZ,COX'S BAZAR,East,Chittagong,Meter,21.4272,92.0058,False,B,Newly opened 2023 — served by Cox's Bazar Express 813/814
+18,Sylhet,সিলেট,SYT,SYLHET,East,Sylhet,Meter,24.8949,91.8687,True,A,
+19,Sreemangal,শ্রীমঙ্গল,SRM,SREEMANGAL,East,Sylhet,Meter,24.3068,91.7279,False,B,
+20,Kulaura,কুলাউড়া,KLR,KULAURA,East,Sylhet,Meter,24.5358,92.0356,False,C,
+21,Kishoreganj,কিশোরগঞ্জ,KSG,KISHOREGANJ,East,Dhaka,Meter,24.4449,90.782,False,B,
+22,Mymensingh,ময়মনসিংহ,MYM,MYMENSINGH,East,Mymensingh,Meter,24.7471,90.4073,True,A,
+23,Jamalpur,জামালপুর,JMP,JAMALPUR,East,Mymensingh,Meter,24.9004,89.9433,False,B,
+24,Netrokona,নেত্রকোণা,NTK,NETROKONA,East,Mymensingh,Meter,24.8803,90.8674,False,B,
+25,Rajshahi,রাজশাহী,RAJ,RAJSHAHI,West,Rajshahi,Broad,24.3749,88.6048,True,A,
+26,Natore,নাটোর,NTR,NATORE,West,Rajshahi,Broad,24.4203,88.9922,False,B,
+27,Ishwardi,ঈশ্বরদী,IWD,ISHWARDI,West,Rajshahi,Broad,24.1302,89.0611,False,B,Major junction — East-West crossing point
+28,Santahar,সান্তাহার,STH,SANTAHAR,West,Rajshahi,Broad,24.7573,89.0391,False,B,Major junction for Rangpur/Dinajpur lines
+29,Bogura,বগুড়া,BOG,BOGURA,West,Rajshahi,Broad,24.8466,89.3773,False,B,
+30,Sirajganj,সিরাজগঞ্জ,SJG,SIRAJGANJ,West,Rajshahi,Broad,24.4536,89.7161,False,B,
+31,Joypurhat,জয়পুরহাট,JPH,JOYPURHAT,West,Rajshahi,Broad,25.1006,89.0189,False,B,
+32,Chapai Nawabganj,চাঁপাইনবাবগঞ্জ,CPN,CHAPAINAWABGANJ,West,Rajshahi,Broad,24.5948,88.2773,False,B,
+33,Parbatipur,পার্বতীপুর,PBP,PARBATIPUR,West,Rangpur,Broad,25.6476,88.9002,False,B,Junction — Rangpur/Dinajpur/Lalmonirhat lines
+34,Dinajpur,দিনাজপুর,DNJ,DINAJPUR,West,Rangpur,Broad,25.6279,88.6337,False,B,
+35,Rangpur,রংপুর,RNG,RANGPUR,West,Rangpur,Broad,25.7439,89.2752,False,B,
+36,Lalmonirhat,লালমনিরহাট,LMH,LALMONIRHAT,West,Rangpur,Broad,25.92,89.448,False,B,
+37,Panchagarh,পঞ্চগড়,PCG,PANCHAGARH,West,Rangpur,Broad,26.3393,88.5493,False,B,
+38,Kurigram,কুড়িগ্রাম,KRG,KURIGRAM,West,Rangpur,Broad,25.8033,89.636,False,B,
+39,Chilahati,চিলাহাটি,CLH,CHILAHATI,West,Rangpur,Broad,25.9913,88.7742,False,B,Border station — potential international link to India
+40,Khulna,খুলনা,KHU,KHULNA,West,Khulna,Broad,22.8456,89.5403,True,A,
+41,Jessore (Jashore),যশোর,JS,JASHORE,West,Khulna,Broad,23.1543,89.2086,False,B,
+42,Benapole,বেনাপোল,BNP,BENAPOLE,West,Khulna,Broad,23.0113,88.9307,False,B,Border station — India-Bangladesh land port
+43,Rupsha,রূপসা,RPS,RUPSHA,West,Khulna,Broad,22.7786,89.5584,False,C,
+44,Barisal,বরিশাল,BRL,BARISAL,West,Barisal,Broad,22.701,90.3535,False,B,Planned — Padma Bridge rail link extension pending
+45,Faridpur,ফরিদপুর,FRP,FARIDPUR,West,Dhaka,Broad,23.607,89.8429,False,B,New Padma Bridge rail link station
+46,Rajbari,রাজবাড়ী,RBR,RAJBARI,West,Dhaka,Broad,23.7621,89.6398,False,B,
+47,Tangail,টাঙ্গাইল,TGL,TANGAIL,East,Dhaka,Meter,24.2512,89.9167,False,B,
+48,Gazipur,গাজীপুর,GZP,GAZIPUR,East,Dhaka,Dual,23.999,90.4115,False,B,
+49,Gaibandha,গাইবান্ধা,GBD,GAIBANDHA,West,Rangpur,Broad,25.3285,89.5283,False,B,
+50,Pabna,পাবনা,PBN,PABNA,West,Rajshahi,Broad,24.0064,89.2372,False,B,
+51,Ullapara,উল্লাপাড়া,ULP,ULLAPARA,West,Rajshahi,Broad,24.3301,89.6024,False,B,
+52,Burimari,বুড়িমারী,BMR,BURIMARI,West,Rangpur,Broad,25.8813,89.3394,False,B,Border station — India-Bangladesh land port

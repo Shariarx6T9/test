@@ -1,0 +1,44 @@
+train_number,train_name,stop_sequence,station_code,shohoz_city,arrive,depart,day_offset,is_origin,is_destination
+787,Sonar Bangla Express,1,DHKA,DHAKA,,07:00,0,True,False
+787,Sonar Bangla Express,2,DABB,DHAKA AIRPORT,07:20,07:22,0,False,False
+787,Sonar Bangla Express,3,CTG,CHATTOGRAM,11:55,,0,False,True
+788,Sonar Bangla Express,1,CTG,CHATTOGRAM,,15:00,0,True,False
+788,Sonar Bangla Express,2,DABB,DHAKA AIRPORT,19:38,19:40,0,False,False
+788,Sonar Bangla Express,3,DHKA,DHAKA,19:55,,0,False,True
+703,Mahanagar Godhuli,1,CTG,CHATTOGRAM,,15:00,0,True,False
+703,Mahanagar Godhuli,2,COM,COMILLA,17:10,17:15,0,False,False
+703,Mahanagar Godhuli,3,AKH,AKHAURA,17:55,18:00,0,False,False
+703,Mahanagar Godhuli,4,BBZ,BHAIRAB BAZAR,18:45,18:50,0,False,False
+703,Mahanagar Godhuli,5,NSD,NARSINGDI,19:20,19:22,0,False,False
+703,Mahanagar Godhuli,6,DHKA,DHAKA,21:40,,0,False,True
+704,Mahanagar Provati,1,DHKA,DHAKA,,07:45,0,True,False
+704,Mahanagar Provati,2,NSD,NARSINGDI,08:45,08:47,0,False,False
+704,Mahanagar Provati,3,BBZ,BHAIRAB BAZAR,09:20,09:25,0,False,False
+704,Mahanagar Provati,4,AKH,AKHAURA,10:10,10:15,0,False,False
+704,Mahanagar Provati,5,COM,COMILLA,10:55,11:00,0,False,False
+704,Mahanagar Provati,6,CTG,CHATTOGRAM,14:25,,0,False,True
+701,Suborno Express,1,DHKA,DHAKA,,07:00,0,True,False
+701,Suborno Express,2,DABB,DHAKA AIRPORT,07:20,07:22,0,False,False
+701,Suborno Express,3,NSD,NARSINGDI,08:20,08:22,0,False,False
+701,Suborno Express,4,COM,COMILLA,10:00,10:05,0,False,False
+701,Suborno Express,5,CTG,CHATTOGRAM,13:30,,0,False,True
+739,Upaban Express,1,DHKA,DHAKA,,21:40,0,True,False
+739,Upaban Express,2,DABB,DHAKA AIRPORT,22:00,22:02,0,False,False
+739,Upaban Express,3,BBZ,BHAIRAB BAZAR,23:10,23:15,0,False,False
+739,Upaban Express,4,AKH,AKHAURA,00:10,00:15,1,False,False
+739,Upaban Express,5,SRM,SREEMANGAL,02:15,02:20,1,False,False
+739,Upaban Express,6,SYT,SYLHET,04:50,,1,False,True
+707,Tista Express,1,DHKA,DHAKA,,19:00,0,True,False
+707,Tista Express,2,DABB,DHAKA AIRPORT,19:20,19:22,0,False,False
+707,Tista Express,3,TNG,TONGI,19:45,19:48,0,False,False
+707,Tista Express,4,IWD,ISHWARDI,23:20,23:30,0,False,False
+707,Tista Express,5,STH,SANTAHAR,01:10,01:20,1,False,False
+707,Tista Express,6,BOG,BOGURA,02:20,02:25,1,False,False
+707,Tista Express,7,PBP,PARBATIPUR,03:55,04:05,1,False,False
+707,Tista Express,8,LMH,LALMONIRHAT,04:30,,1,False,True
+725,Sundarban Express,1,DHKA,DHAKA,,06:20,0,True,False
+725,Sundarban Express,2,DABB,DHAKA AIRPORT,06:40,06:42,0,False,False
+725,Sundarban Express,3,TNG,TONGI,07:05,07:08,0,False,False
+725,Sundarban Express,4,IWD,ISHWARDI,10:40,10:50,0,False,False
+725,Sundarban Express,5,JS,JASHORE,13:05,13:10,0,False,False
+725,Sundarban Express,6,KHU,KHULNA,14:50,,0,False,True

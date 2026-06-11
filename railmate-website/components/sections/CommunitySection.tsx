@@ -60,7 +60,7 @@ export default function CommunitySection() {
                   <span className="text-primary">Real Travelers.</span>
                 </h2>
                 <p className="text-text-secondary text-lg leading-relaxed max-w-xl">
-                  RailMate is powered by thousands of travelers sharing real-time updates. Know about delays, crowding, and coach conditions before you even reach the station.
+                  RailMate relies on real travelers sharing real-time updates. Know about delays, crowding, and coach conditions before you even reach the station.
                 </p>
               </div>
 

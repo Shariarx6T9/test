@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,27 +10,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'bg-base':        '#080D17',
-        'bg-elevated':    '#0F1929',
-        'bg-card':        '#162035',
-        'bg-overlay':     '#1A2840',
-        'brand':          '#00A859',
-        'brand-dim':      '#007A40',
+        'bg-base':        'var(--bg-base)',
+        'bg-elevated':    'var(--bg-elevated)',
+        'bg-card':        'var(--bg-card)',
+        'bg-overlay':     'var(--bg-overlay)',
+        'primary':        'var(--primary)',
+        'primary-dim':    'var(--primary-dim)',
         'accent':         '#F5A623',
         'accent-dim':     '#C4830A',
-        'border-subtle':  '#1E2E42',
-        'border-strong':  '#2A3F57',
-        'text-primary':   '#F0F4FF',
-        'text-secondary': '#8FA3C0',
-        'text-tertiary':  '#4E6480',
-        'text-inverse':   '#080D17',
+        'border-subtle':  'var(--border-subtle)',
+        'border-strong':  'var(--border-strong)',
+        'text-primary':   'var(--text-primary)',
+        'text-secondary': 'var(--text-secondary)',
+        'text-tertiary':  'var(--text-tertiary)',
+        'text-inverse':   'var(--text-inverse)',
         'danger':         '#E8394B',
         'success':        '#00C977',
         'info':           '#4EA8E0',
       },
       fontFamily: {
-        display: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
-        body:    ['var(--font-inter)',   'system-ui', 'sans-serif'],
+        jakarta: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        inter:   ['var(--font-inter)',   'system-ui', 'sans-serif'],
         bengali: ['var(--font-bengali)', 'system-ui', 'sans-serif'],
         mono:    ['JetBrains Mono', 'monospace'],
       },

@@ -1,110 +1,68 @@
+'use client'
+
 import DownloadButton from '@/components/ui/DownloadButton'
-
-const COPY = {
-  overline:  "🇧🇩  Bangladesh's #1 Railway Companion App",
-  headline1: 'Your Railway,',
-  headline2: 'Simplified',
-  period:    '.',
-  bengali:   'আপনার রেলযাত্রা, সহজ করা হলো।',
-  body:
-    'Stop using 3 different apps just to catch one train. RailMate gives you real schedules, real fares, and live delay reports from fellow travelers — all in one place. Free.',
-  badge1: 'Free Forever',
-  badge2: 'Bengali + English',
-  badge3: 'Works Offline',
-  phoneHeader: '← Dhaka → Chittagong',
-  phoneSub:    'Thu 11 Jun · All Classes',
-  train1:      'Subarna Express #721',
-  train1Time:  '06:40  ────  11:15  (4h 35m)',
-  train1Delay: '⚠ 15 min delay reported',
-  train2:      'Sonar Bangla Exp #787',
-  train2Time:  '07:00  ────  12:00  (5h 00m)',
-  train2Ok:    '✓ On time',
-  liveReport:  '🔴 8 travelers confirm delay on Subarna Express',
-}
-
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <circle cx="7" cy="7" r="6.25" stroke="#00C977" strokeWidth="1.4"/>
-      <path d="M4.5 7l2 2 3-3" stroke="#00C977" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
+import { useI18n } from '@/lib/i18n'
+import { CheckCircle } from '@phosphor-icons/react'
 
 export default function HeroSection() {
-  return (
-    <section className="hero-bg min-h-screen flex items-center pt-16" id="hero">
-      <div className="max-w-[1200px] mx-auto px-6 w-full">
-        <div className="flex flex-col lg:flex-row items-center gap-12 py-16 lg:py-24">
+  const { t } = useI18n()
 
-          {/* ── LEFT ── */}
-          <div className="flex-1" style={{ maxWidth: '600px' }}>
+  const badges = [t.hero.badge1, t.hero.badge2, t.hero.badge3]
+
+  return (
+    <section className="min-h-screen flex items-center pt-24" id="hero">
+      <div className="max-w-[1200px] mx-auto px-6 w-full">
+        <div className="flex flex-col lg:flex-row items-center gap-16 py-12 lg:py-24">
+
+          {/* LEFT CONTENT */}
+          <div className="flex-1 text-center lg:text-left space-y-8" style={{ maxWidth: '640px' }}>
 
             {/* Overline pill */}
-            <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6"
-              style={{
-                background: 'rgba(0,168,89,0.10)',
-                color: '#00A859',
-                fontSize: '12px',
-                fontFamily: 'var(--font-inter)',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {COPY.overline}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest font-inter">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              {t.hero.overline}
             </div>
 
             {/* Headline */}
-            <h1
-              className="text-[#F0F4FF] font-extrabold leading-[1.1]"
-              style={{ fontSize: 'clamp(32px, 5.5vw, 56px)', fontFamily: 'var(--font-jakarta)' }}
-            >
-              {COPY.headline1}
+            <h1 className="text-text-primary font-extrabold leading-[1.1] text-4xl md:text-5xl lg:text-7xl font-jakarta">
+              {t.hero.headline1}
               <br />
-              {COPY.headline2}
-              <span style={{ color: '#00A859' }}>{COPY.period}</span>
+              <span className="text-primary">{t.hero.headline2}.</span>
             </h1>
 
-            {/* Bengali */}
-            <p
-              className="mt-2 text-[#8FA3C0]"
-              style={{ fontSize: '18px', lineHeight: '1.7', fontFamily: 'var(--font-bengali)' }}
-            >
-              {COPY.bengali}
-            </p>
-
-            {/* Body */}
-            <p
-              className="mt-4 text-[#8FA3C0]"
-              style={{ fontSize: '17px', lineHeight: '1.65', maxWidth: '520px', fontFamily: 'var(--font-inter)' }}
-            >
-              {COPY.body}
+            {/* Subtitle */}
+            <p className="text-text-secondary text-lg lg:text-xl leading-relaxed max-w-xl mx-auto lg:mx-0 font-inter">
+              {t.hero.subtitle}
             </p>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap gap-3 mt-5">
-              {[COPY.badge1, COPY.badge2, COPY.badge3].map((badge) => (
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              {badges.map((badge) => (
                 <span
                   key={badge}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#2A3F57] text-[#8FA3C0]"
-                  style={{ fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 500 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bg-card border border-border-subtle text-text-secondary text-sm font-medium font-inter"
                 >
-                  <CheckIcon />
+                  <CheckCircle size={18} className="text-primary" weight="fill" />
                   {badge}
                 </span>
               ))}
             </div>
 
             {/* CTA */}
-            <div className="mt-8">
-              <DownloadButton showNote align="left" />
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
+              <DownloadButton showNote={false} align="left" />
+              <div className="text-left hidden sm:block">
+                <p className="text-text-primary font-bold text-sm font-inter">4.8/5 Rating</p>
+                <p className="text-text-tertiary text-xs font-inter">on Google Play Store</p>
+              </div>
             </div>
           </div>
 
-          {/* ── RIGHT — Phone mockup ── */}
-          <div className="hidden lg:block flex-shrink-0">
+          {/* RIGHT Phone Mockup */}
+          <div className="hidden lg:block flex-1 max-w-[400px]">
             <PhoneMockup />
           </div>
 
@@ -116,100 +74,44 @@ export default function HeroSection() {
 
 function PhoneMockup() {
   return (
-    <div
-      style={{
-        width: '280px',
-        height: '560px',
-        borderRadius: '36px',
-        border: '2px solid #2A3F57',
-        background: '#0F1929',
-        padding: '20px',
-        boxShadow: '0 32px 64px rgba(0,0,0,0.6), 0 0 40px rgba(0,168,89,0.08)',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
-    >
-      {/* Notch */}
-      <div
-        style={{
-          position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
-          width: '64px', height: '20px', background: '#080D17', borderRadius: '0 0 12px 12px',
-        }}
-      />
+    <div className="relative mx-auto w-[300px] h-[600px] bg-bg-base rounded-[3rem] border-8 border-bg-elevated shadow-2xl overflow-hidden ring-4 ring-border-strong/10">
+      {/* Screen Content Simulation */}
+      <div className="h-full w-full bg-bg-elevated p-6 space-y-6">
+        {/* App Status Bar */}
+        <div className="flex justify-between items-center text-text-tertiary text-[10px] font-bold">
+          <span>9:41</span>
+          <div className="flex gap-1.5">
+            <div className="w-4 h-2 rounded-full border border-text-tertiary" />
+          </div>
+        </div>
 
-      {/* Header */}
-      <div className="mt-6 mb-3">
-        <p className="text-[#F0F4FF] font-semibold" style={{ fontSize: '14px', fontFamily: 'var(--font-inter)' }}>
-          {COPY.phoneHeader}
-        </p>
-        <p className="text-[#8FA3C0] mt-0.5" style={{ fontSize: '12px', fontFamily: 'var(--font-inter)' }}>
-          {COPY.phoneSub}
-        </p>
-        <div className="mt-2 h-px bg-[#1E2E42]" />
-      </div>
-
-      {/* Train Card 1 */}
-      <div
-        className="mt-3 rounded-lg bg-[#162035] border border-[#1E2E42] overflow-hidden"
-        style={{ borderLeft: '3px solid #00A859' }}
-      >
-        <div className="p-3">
-          <p className="text-[#F0F4FF] font-semibold" style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}>
-            {COPY.train1}
-          </p>
-          <p className="text-[#F0F4FF] mt-1" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-            {COPY.train1Time}
-          </p>
-          <span
-            className="inline-block mt-1.5 px-2 py-0.5 rounded-full"
-            style={{ fontSize: '10px', background: 'rgba(245,166,35,0.12)', color: '#F5A623', fontFamily: 'var(--font-inter)' }}
-          >
-            {COPY.train1Delay}
-          </span>
-          <div className="flex gap-1 mt-1.5 flex-wrap">
-            {['S_CHAIR', 'SNIGDHA', 'AC_BERTH'].map((cls) => (
-              <span
-                key={cls}
-                className="px-1.5 py-0.5 rounded text-[#00A859]"
-                style={{ fontSize: '9px', background: 'rgba(0,168,89,0.10)', fontFamily: 'var(--font-inter)', fontWeight: 600 }}
-              >
-                {cls}
-              </span>
-            ))}
+        {/* App Content */}
+        <div className="space-y-4">
+          <div className="h-10 w-full bg-bg-card rounded-lg border border-border-subtle flex items-center px-3 gap-3">
+             <div className="w-2 h-2 rounded-full bg-primary" />
+             <div className="h-2 w-24 bg-border-subtle rounded" />
+          </div>
+          
+          <div className="space-y-3">
+             {[1, 2, 3].map(i => (
+               <div key={i} className="p-4 bg-bg-card rounded-xl border border-border-subtle space-y-3 shadow-sm">
+                  <div className="flex justify-between">
+                    <div className="h-2.5 w-20 bg-text-tertiary/20 rounded" />
+                    <div className="h-2.5 w-8 bg-primary/20 rounded" />
+                  </div>
+                  <div className="h-2 w-full bg-border-subtle rounded" />
+                  <div className="flex gap-2">
+                    <div className="h-1.5 w-10 bg-border-subtle rounded" />
+                    <div className="h-1.5 w-10 bg-border-subtle rounded" />
+                  </div>
+               </div>
+             ))}
           </div>
         </div>
       </div>
-
-      {/* Train Card 2 */}
-      <div
-        className="mt-2.5 rounded-lg bg-[#162035] border border-[#1E2E42] overflow-hidden"
-        style={{ borderLeft: '3px solid #00A859' }}
-      >
-        <div className="p-3">
-          <p className="text-[#F0F4FF] font-semibold" style={{ fontSize: '13px', fontFamily: 'var(--font-inter)' }}>
-            {COPY.train2}
-          </p>
-          <p className="text-[#F0F4FF] mt-1" style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-            {COPY.train2Time}
-          </p>
-          <span
-            className="inline-block mt-1.5 px-2 py-0.5 rounded-full"
-            style={{ fontSize: '10px', background: 'rgba(0,201,119,0.10)', color: '#00C977', fontFamily: 'var(--font-inter)' }}
-          >
-            {COPY.train2Ok}
-          </span>
-        </div>
-      </div>
-
-      {/* Live report — floats */}
-      <div
-        className="mt-3 rounded-lg p-3 animate-float"
-        style={{ background: '#1A2840' }}
-      >
-        <p className="text-[#8FA3C0]" style={{ fontSize: '11px', fontFamily: 'var(--font-inter)', lineHeight: '1.5' }}>
-          {COPY.liveReport}
-        </p>
-      </div>
+      
+      {/* Notch */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-bg-elevated rounded-b-2xl" />
     </div>
   )
 }

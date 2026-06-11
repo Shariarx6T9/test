@@ -2,167 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─────────────────────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────────────────────── */
 :root {
-  --bg-base:        #080D17;
-  --bg-elevated:    #0F1929;
-  --bg-card:        #162035;
-  --bg-overlay:     #1A2840;
+  --bg-base: #FFFFFF;
+  --bg-elevated: #F8FAFC;
+  --bg-card: #F1F5F9;
+  --bg-overlay: rgba(255, 255, 255, 0.8);
+  --primary: #00A859;
+  --primary-dim: #007A40;
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-inverse: #FFFFFF;
+}
 
-  --primary:        #00A859;
-  --primary-dim:    #007A40;
-  --primary-subtle: rgba(0, 168, 89, 0.10);
-  --accent:         #F5A623;
-  --accent-dim:     #C4830A;
-
-  --danger:         #E8394B;
-  --success:        #00C977;
-  --info:           #4EA8E0;
-
-  --text-primary:   #F0F4FF;
+.dark {
+  --bg-base: #080D17;
+  --bg-elevated: #0F1929;
+  --bg-card: #162035;
+  --bg-overlay: rgba(8, 13, 23, 0.8);
+  --primary: #00A859;
+  --primary-dim: #007A40;
+  --border-subtle: #1E2E42;
+  --border-strong: #2A3F57;
+  --text-primary: #F0F4FF;
   --text-secondary: #8FA3C0;
-  --text-tertiary:  #4E6480;
-  --text-inverse:   #080D17;
-
-  --border:         #1E2E42;
-  --border-strong:  #2A3F57;
-
-  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;
-  --space-4: 16px;  --space-6: 24px;  --space-8: 32px;
-  --space-10: 40px; --space-12: 48px; --space-16: 64px;
-  --space-20: 80px;
-
-  --radius-sm:   6px;
-  --radius-md:   10px;
-  --radius-lg:   16px;
-  --radius-xl:   24px;
-  --radius-full: 9999px;
+  --text-tertiary: #4E6480;
+  --text-inverse: #080D17;
 }
 
-/* ─────────────────────────────────────────────────────
-   BASE
-───────────────────────────────────────────────────── */
-html,
-body {
-  background-color: #080D17;
-  color: #F0F4FF;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
+@layer base {
+  body {
+    @apply bg-bg-base text-text-primary transition-colors duration-300;
+  }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-jakarta), system-ui, sans-serif;
+@layer components {
+  .nav-scrolled {
+    @apply backdrop-blur-md border-b border-border-subtle;
+    background-color: var(--bg-overlay);
+  }
 }
-
-/* ─────────────────────────────────────────────────────
-   HERO BACKGROUND
-───────────────────────────────────────────────────── */
-.hero-bg {
-  background-color: var(--bg-base);
-  background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 40px 40px;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 65% 65% at 8% 92%, rgba(0,168,89,0.07) 0%, transparent 70%);
-  animation: pulseGlow 6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* ─────────────────────────────────────────────────────
-   NAV
-───────────────────────────────────────────────────── */
-.nav-scrolled {
-  background-color: rgba(15, 25, 41, 0.92) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom-color: var(--border) !important;
-}
-
-/* ─────────────────────────────────────────────────────
-   CARD HOVER
-───────────────────────────────────────────────────── */
-.feature-card {
-  transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
-}
-.feature-card:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-
-/* ─────────────────────────────────────────────────────
-   TABLE
-───────────────────────────────────────────────────── */
-.table-row:hover {
-  background-color: rgba(255,255,255,0.02);
-}
-
-/* ─────────────────────────────────────────────────────
-   REPORT FEED ANIMATIONS
-───────────────────────────────────────────────────── */
-.report-fade-1 { opacity: 0; animation: fadeIn 0.6s ease-out 0.10s forwards; }
-.report-fade-2 { opacity: 0; animation: fadeIn 0.6s ease-out 0.35s forwards; }
-.report-fade-3 { opacity: 0; animation: fadeIn 0.6s ease-out 0.60s forwards; }
-
-/* ─────────────────────────────────────────────────────
-   SCREENSHOT CAROUSEL
-───────────────────────────────────────────────────── */
-.screenshot-track {
-  display: flex;
-  gap: 20px;
-  transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.screenshot-dot {
-  width: 6px; height: 6px;
-  border-radius: 9999px;
-  background: var(--border-strong);
-  transition: background 200ms, width 200ms;
-}
-.screenshot-dot.active {
-  background: var(--primary);
-  width: 20px;
-}
-
-/* ─────────────────────────────────────────────────────
-   KEYFRAMES
-───────────────────────────────────────────────────── */
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.6; }
-  50%       { opacity: 1;   }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-6px); }
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-/* ─────────────────────────────────────────────────────
-   SCROLLBAR
-───────────────────────────────────────────────────── */
-::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }

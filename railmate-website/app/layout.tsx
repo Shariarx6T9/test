@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, Inter, Noto_Sans_Bengali } from 'next/font/google'
 import './globals.css'
+import { ThemeProvider } from 'next-themes'
+import { I18nProvider } from '@/lib/i18n'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -28,6 +32,7 @@ export const metadata: Metadata = {
   description:
     'Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline.',
   keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
+  manifest: '/manifest.json',
   openGraph: {
     title: 'RailMate Bangladesh',
     description: 'Your Railway, Simplified. Real schedules, live delays, fare calculator.',
@@ -38,12 +43,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="bn"
-      className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable}`}
-    >
-      <body className="bg-[#080D17] text-[#F0F4FF] antialiased">
-        {children}
+    <html lang="bn" suppressHydrationWarning>
+      <body className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} font-inter antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <I18nProvider>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
