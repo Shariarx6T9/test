@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, Inter, Noto_Sans_Bengali } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from 'next-themes'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { I18nProvider } from '@/lib/i18n'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { getTranslations } from 'next-intl/server'
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -29,11 +30,11 @@ const notoSansBengali = Noto_Sans_Bengali({
 })
 
 export async function generateMetadata({
-  params: { locale }
+  params: { locale },
 }: {
   params: { locale: string }
-}) {
-  const t = await getTranslations({ locale, namespace: 'metadata' });
+}): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'metadata' })
 
   return {
     metadataBase: new URL('https://railmatebd.com'),
@@ -46,14 +47,7 @@ export async function generateMetadata({
       description: t('description'),
       url: 'https://railmatebd.com',
       siteName: 'RailMate Bangladesh',
-      images: [
-        {
-          url: '/og-image.png',
-          width: 1200,
-          height: 630,
-          alt: 'RailMate Bangladesh',
-        },
-      ],
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'RailMate Bangladesh' }],
       locale: locale === 'bn' ? 'bn_BD' : 'en_US',
       type: 'website',
     },
@@ -67,29 +61,41 @@ export async function generateMetadata({
 }
 
 export function generateStaticParams() {
-  return [{locale: 'en'}, {locale: 'bn'}];
+  return [{ locale: 'en' }, { locale: 'bn' }]
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-  params: {locale}
+  params: { locale },
 }: {
-  children: React.ReactNode;
-  params: {locale: string};
+  children: React.ReactNode
+  params: { locale: string }
 }) {
+  // Fetch messages on the server so NextIntlClientProvider can pass them
+  // to the client without an extra round-trip.
+  const messages = await getMessages()
+
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} font-inter antialiased`}>
+      <body
+        className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} font-inter antialiased`}
+      >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <I18nProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </I18nProvider>
+          {/*
+            NextIntlClientProvider MUST wrap any component that uses next-intl
+            navigation hooks (useRouter, Link, usePathname from
+            lib/i18n/navigation.ts).  I18nProvider sits inside it so that
+            useParams is available for locale detection.
+          */}
+          <NextIntlClientProvider messages={messages}>
+            <I18nProvider>
+              <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+              </div>
+            </I18nProvider>
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>
