@@ -1,7 +1,7 @@
 {
   "name": "RailMate Bangladesh",
   "short_name": "RailMate",
-  "description": "Your Railway Journey, Simplified.",
+  "description": "Travel Smarter. Travel RailMate.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#080D17",

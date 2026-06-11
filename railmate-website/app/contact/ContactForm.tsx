@@ -120,7 +120,7 @@ export default function ContactForm() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full bg-bg-card border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:outline-none transition-colors"
-                      placeholder="John Doe"
+                      placeholder="Shariar Ahmed"
                     />
                   </div>
                   <div>
@@ -134,7 +134,7 @@ export default function ContactForm() {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full bg-bg-card border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:outline-none transition-colors"
-                      placeholder="john@example.com"
+                      placeholder="Shariar@example.com"
                     />
                   </div>
                 </div>
