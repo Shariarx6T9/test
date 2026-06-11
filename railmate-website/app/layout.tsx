@@ -28,6 +28,7 @@ const notoSansBengali = Noto_Sans_Bengali({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://railmatebd.com'),
   title: 'RailMate Bangladesh — Travel Smarter. Travel RailMate.',
   description:
     'Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline.',
