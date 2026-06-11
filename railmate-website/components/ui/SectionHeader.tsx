@@ -1,7 +1,9 @@
 interface SectionHeaderProps {
   overline?: string
-  headline: string
+  headline?: string
+  title?: string        // alias for headline — keeps existing pages working
   subheadline?: string
+  subtitle?: string     // alias for subheadline
   align?: 'left' | 'center'
   maxWidth?: string
 }
@@ -9,10 +11,14 @@ interface SectionHeaderProps {
 export default function SectionHeader({
   overline,
   headline,
+  title,
   subheadline,
+  subtitle,
   align = 'center',
   maxWidth = '680px',
 }: SectionHeaderProps) {
+  const headingText = headline ?? title ?? ''
+  const subText     = subheadline ?? subtitle
   const textAlign = align === 'center' ? 'text-center' : 'text-left'
   const margin    = align === 'center' ? 'mx-auto' : ''
 
@@ -31,17 +37,19 @@ export default function SectionHeader({
           {overline}
         </p>
       )}
-      <h2
-        className="text-[#F0F4FF] font-extrabold"
-        style={{
-          fontSize: 'clamp(26px, 4vw, 36px)',
-          fontFamily: 'var(--font-jakarta)',
-          lineHeight: '1.2',
-        }}
-      >
-        {headline}
-      </h2>
-      {subheadline && (
+      {headingText && (
+        <h2
+          className="text-[#F0F4FF] font-extrabold"
+          style={{
+            fontSize: 'clamp(26px, 4vw, 36px)',
+            fontFamily: 'var(--font-jakarta)',
+            lineHeight: '1.2',
+          }}
+        >
+          {headingText}
+        </h2>
+      )}
+      {subText && (
         <p
           className="mt-3 text-[#8FA3C0]"
           style={{
@@ -50,7 +58,7 @@ export default function SectionHeader({
             lineHeight: '1.6',
           }}
         >
-          {subheadline}
+          {subText}
         </p>
       )}
     </div>
