@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 const LABELS = {
   brand:    'RailMate',
@@ -19,7 +20,14 @@ const NAV_LINKS = [
 function LogoMark() {
   return (
     <div className="flex-shrink-0">
-      <img src="/logo.png" alt="RailMate Logo" className="w-8 h-8 rounded-lg object-contain" />
+      <Image 
+        src="/logo.png" 
+        alt="RailMate Logo" 
+        width={32} 
+        height={32} 
+        className="rounded-lg object-contain"
+        priority
+      />
     </div>
   )
 }
