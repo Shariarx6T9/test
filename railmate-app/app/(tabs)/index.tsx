@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, Pressable, Modal, Image } from 'react-native';
+import { View, ScrollView, Pressable, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { 
   BellSimple, 
@@ -110,6 +110,7 @@ export default function HomeScreen() {
   return (
     <ScreenWrapper className="bg-bg-base">
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+
         {/* Header Area */}
         <View className="flex-row justify-between items-center py-6">
           <View>
@@ -135,7 +136,7 @@ export default function HomeScreen() {
           <View className="relative">
             {/* Journey Line Decorator */}
             <View className="absolute left-[11px] top-[24px] bottom-[24px] w-[2px] items-center">
-               <View className="flex-1 w-[2px] bg-border-strong border-dashed" style={{ borderStyle: 'dashed' }} />
+              <View className="flex-1 w-[2px] bg-border-strong" style={{ borderStyle: 'dashed' }} />
             </View>
 
             {/* From Station */}
@@ -144,13 +145,13 @@ export default function HomeScreen() {
               className="flex-row items-center mb-4"
             >
               <View className="z-10 w-6 h-6 rounded-full bg-danger/10 border-2 border-danger items-center justify-center mr-4">
-                 <View className="w-2 h-2 rounded-full bg-danger" />
+                <View className="w-2 h-2 rounded-full bg-danger" />
               </View>
               <View className="flex-1 pb-4 border-b border-border">
                 <Typography variant="caption" className="text-text-tertiary mb-0.5" isBengali={isBengali}>
                   {t('search.from')}
                 </Typography>
-                <Typography variant="h3" className={fromStation ? "text-text-primary" : "text-text-tertiary"} isBengali={isBengali}>
+                <Typography variant="h3" className={fromStation ? 'text-text-primary' : 'text-text-tertiary'} isBengali={isBengali}>
                   {fromStation ? (isBengali ? fromStation.name_bn : fromStation.name_en) : t('station.search_placeholder')}
                 </Typography>
               </View>
@@ -170,13 +171,13 @@ export default function HomeScreen() {
               className="flex-row items-center mb-6"
             >
               <View className="z-10 w-6 h-6 rounded-full bg-primary/10 border-2 border-primary items-center justify-center mr-4">
-                 <View className="w-2 h-2 rounded-full bg-primary" />
+                <View className="w-2 h-2 rounded-full bg-primary" />
               </View>
               <View className="flex-1">
                 <Typography variant="caption" className="text-text-tertiary mb-0.5" isBengali={isBengali}>
                   {t('search.to')}
                 </Typography>
-                <Typography variant="h3" className={toStation ? "text-text-primary" : "text-text-tertiary"} isBengali={isBengali}>
+                <Typography variant="h3" className={toStation ? 'text-text-primary' : 'text-text-tertiary'} isBengali={isBengali}>
                   {toStation ? (isBengali ? toStation.name_bn : toStation.name_en) : t('station.search_placeholder')}
                 </Typography>
               </View>
@@ -192,12 +193,12 @@ export default function HomeScreen() {
               <CalendarBlank size={24} color={activeColors.primary} weight="duotone" />
             </View>
             <View className="flex-1">
-               <Typography variant="caption" className="text-text-tertiary" isBengali={isBengali}>
-                 {t('search.date')}
-               </Typography>
-               <Typography variant="h4" className="text-text-primary" isBengali={isBengali}>
-                 {formattedDate}
-               </Typography>
+              <Typography variant="caption" className="text-text-tertiary" isBengali={isBengali}>
+                {t('search.date')}
+              </Typography>
+              <Typography variant="h4" className="text-text-primary" isBengali={isBengali}>
+                {formattedDate}
+              </Typography>
             </View>
             <CaretRight size={20} color={activeColors['text-tertiary']} />
           </Pressable>
@@ -222,7 +223,7 @@ export default function HomeScreen() {
             {savedRoutes.length > 0 && (
               <Pressable onPress={() => router.push('/profile')}>
                 <Typography variant="label" className="text-primary" isBengali={isBengali}>
-                  See All
+                  {t('home.see_all')}
                 </Typography>
               </Pressable>
             )}
@@ -243,7 +244,7 @@ export default function HomeScreen() {
                 className="bg-primary/10 border border-primary/30 border-dashed rounded-full px-5 py-3 flex-row items-center h-[52px]"
               >
                 <View className="mr-2">
-                   <Plus size={16} color={activeColors.primary} weight="bold" />
+                  <Plus size={16} color={activeColors.primary} weight="bold" />
                 </View>
                 <Typography variant="label" className="text-primary font-inter-semibold" isBengali={isBengali}>
                   {t('common.add')}
@@ -273,27 +274,28 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Info Card / Ad / Promo */}
+        {/* Promo Card */}
         <Card className="bg-primary p-6 mb-10 relative overflow-hidden">
-           <View className="z-10">
-             <Typography variant="h3" className="text-text-inverse mb-1" isBengali={isBengali}>
-                Travel Smarter.
-             </Typography>
-             <Typography variant="body" className="text-text-inverse/80 mb-4" isBengali={isBengali}>
-                Get real-time updates and live train tracking in our next update.
-             </Typography>
-             <View className="flex-row">
-                <View className="bg-text-inverse px-3 py-1 rounded-full">
-                   <Typography variant="label" className="text-primary font-inter-bold" isBengali={isBengali}>
-                      PRO
-                   </Typography>
-                </View>
-             </View>
-           </View>
-           <View className="absolute -right-4 -bottom-4 opacity-20">
-              <Train size={120} color="#FFFFFF" weight="duotone" />
-           </View>
+          <View className="z-10">
+            <Typography variant="h3" className="text-text-inverse mb-1" isBengali={isBengali}>
+              {t('home.promo_title')}
+            </Typography>
+            <Typography variant="body" className="text-text-inverse/80 mb-4" isBengali={isBengali}>
+              {t('home.promo_body')}
+            </Typography>
+            <View className="flex-row">
+              <View className="bg-text-inverse px-3 py-1 rounded-full">
+                <Typography variant="label" className="text-primary font-inter-bold" isBengali={isBengali}>
+                  {t('home.pro_badge')}
+                </Typography>
+              </View>
+            </View>
+          </View>
+          <View className="absolute -right-4 -bottom-4 opacity-20">
+            <Train size={120} color="#FFFFFF" weight="duotone" />
+          </View>
         </Card>
+
       </ScrollView>
 
       {/* Station Selector Modal */}

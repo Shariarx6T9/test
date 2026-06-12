@@ -2,6 +2,7 @@ import React from 'react';
 import { View, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MagnifyingGlass, CaretLeft, Faders } from 'phosphor-react-native';
+import { Colors } from '../../constants/colors';
 
 import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Header } from '../../components/layout/Header';
@@ -63,7 +64,7 @@ export default function SearchResultsScreen() {
         isBengali={isBengali} 
         rightElement={
           <Pressable className="p-2 -mr-2">
-            <Faders size={24} color="#8FA3C0" />
+            <Faders size={24} color={Colors.dark['text-secondary']} />
           </Pressable>
         }
       />
@@ -103,7 +104,7 @@ export default function SearchResultsScreen() {
       ) : (
         <View className="flex-1 items-center justify-center p-6">
           <View className="w-20 h-20 rounded-full bg-bg-card items-center justify-center mb-6">
-            <MagnifyingGlass size={48} color="#4E6480" weight="thin" />
+            <MagnifyingGlass size={48} color={Colors.dark['text-tertiary']} weight="thin" />
           </View>
           <Typography variant="h3" className="text-text-primary text-center mb-2" isBengali={isBengali}>
             {t('results.none')}
