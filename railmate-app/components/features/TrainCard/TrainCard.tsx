@@ -22,8 +22,8 @@ export const TrainCard: React.FC<TrainCardProps> = ({ train, fromId, toId }) => 
 
   const handlePress = () => {
     router.push({
-      pathname: `/train/${train.train_id}`,
-      params: { fromId, toId }
+      pathname: '/train/[id]',
+      params: { id: train.train_id, fromId, toId },
     });
   };
 
