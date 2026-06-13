@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
-import { activeColors } from '../theme/colors';
+import { useColorScheme } from 'nativewind';
+import { Colors } from '../constants/colors';
 // Keep any existing providers/imports you already have below
 // e.g. fonts, GestureHandlerRootView, SafeAreaProvider, etc.
 
 export default function RootLayout() {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { initialize, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const segments = useSegments();

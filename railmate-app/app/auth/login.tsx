@@ -20,6 +20,8 @@ import { Colors } from '../../constants/colors'; // adjust path if colors live e
 type Mode = 'phone' | 'email';
 
 export default function LoginScreen() {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
   const router = useRouter();
@@ -253,7 +255,8 @@ export default function LoginScreen() {
               className="w-full"
               isBengali={isBengali}
               isLoading={submitting}
-              icon={<ArrowRight size={18} color={currentColors['text-inverse']} />}
+              icon={ArrowRight}
+              iconPosition="right"
             />
 
             {/* Divider */}

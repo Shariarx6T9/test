@@ -14,6 +14,8 @@ import { useColorScheme } from 'nativewind';
 import { Colors } from '../../constants/colors';
 
 export default function RegisterScreen() {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
   const router = useRouter();
@@ -188,7 +190,6 @@ export default function RegisterScreen() {
               value={displayName}
               onChangeText={setDisplayName}
               placeholder={t('auth.display_name_placeholder')}
-              icon={<UserIcon size={20} color={currentColors['text-secondary']} />}
               isBengali={isBengali}
             />
           </View>

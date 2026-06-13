@@ -26,6 +26,8 @@ function getInitials(name?: string | null): string {
 }
 
 export default function ProfileScreen() {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { t, locale, setLocale } = useTranslation();
   const isBengali = locale === 'bn';
   const router = useRouter();
