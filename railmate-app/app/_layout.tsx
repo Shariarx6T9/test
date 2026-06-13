@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './global.css';
+import '../global.css';
 import { View, ActivityIndicator } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
