@@ -17,7 +17,7 @@ export type TranslationKey = keyof typeof en;
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useTranslation = () => {
-  const { language } = usePrefsStore();
+  const { language, setLanguage } = usePrefsStore();
 
   const locale = language as SupportedLocale;
 
@@ -42,5 +42,5 @@ export const useTranslation = () => {
   // Convenience flag — avoids scattering `locale === 'bn'` checks everywhere
   const isBengali = locale === 'bn';
 
-  return { t, locale, isBengali };
+  return { t, locale, setLocale: setLanguage, isBengali };
 };

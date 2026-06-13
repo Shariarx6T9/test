@@ -14,12 +14,15 @@ import { Typography } from '../../components/ui/Typography/Typography';
 import { Button } from '../../components/ui/Button/Button';
 import { useTranslation } from '../../i18n';
 import { useAuth } from '../../hooks/useAuth';
-import { activeColors } from '../../theme/colors';
+import { useColorScheme } from 'nativewind';
+import { Colors } from '../../constants/colors';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 60;
 
 export default function OtpScreen() {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
   const router = useRouter();
@@ -90,7 +93,7 @@ export default function OtpScreen() {
         }
 
         if (isNewUser) {
-          router.replace('/auth/register');
+          router.replace('/auth/register' as any);
         } else {
           router.replace('/(tabs)');
         }
@@ -181,7 +184,7 @@ export default function OtpScreen() {
           onPress={() => router.back()}
           className="w-10 h-10 rounded-full bg-bg-elevated items-center justify-center mb-8 border border-border"
         >
-          <ArrowLeft size={20} color={activeColors['text-primary']} />
+          <ArrowLeft size={20} color={currentColors['text-primary']} />
         </Pressable>
 
         {/* Headline */}
@@ -258,7 +261,7 @@ export default function OtpScreen() {
           onPress={() => handleVerify()}
           className="w-full"
           isBengali={isBengali}
-          loading={verifying}
+          isLoading={verifying}
           disabled={digits.join('').length !== OTP_LENGTH}
         />
       </View>

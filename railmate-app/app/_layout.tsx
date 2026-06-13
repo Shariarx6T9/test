@@ -25,11 +25,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (!initialized || isLoading) return;
 
-    const inAuthGroup = segments[0] === 'auth';
+    const inAuthGroup = (segments[0] as string) === 'auth';
 
     if (!isAuthenticated && !inAuthGroup) {
       // No session and not already on an auth screen -> send to login
-      router.replace('/auth/login');
+      router.replace('/auth/login' as any);
     } else if (isAuthenticated && inAuthGroup) {
       // Has session but stuck on auth screen -> send to tabs
       router.replace('/(tabs)');

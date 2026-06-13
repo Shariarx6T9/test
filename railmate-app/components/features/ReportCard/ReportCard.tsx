@@ -84,7 +84,7 @@ export default function ReportCard({
     ? report.station.name_bn
     : report.station.name_en;
 
-  const time = timeAgo(report.reported_at, isBengali, t);
+  const time = timeAgo(report.reported_at, isBengali, t as any);
   const reporterName = report.user?.display_name ?? '—';
 
   // ── Main message line ────────────────────────────────────────────────────
@@ -93,11 +93,11 @@ export default function ReportCard({
       case 'DELAY':
         return (
           <Typography variant="body-sm" className="text-text-primary">
-            {t('community.delay_report', { minutes: report.delay_minutes })}
+            {t('community.delay_report', { minutes: report.delay_minutes ?? 0 })}
           </Typography>
         );
       case 'CROWDING': {
-        const levelKey = `community.crowd_${report.crowd_level?.toLowerCase()}`;
+        const levelKey = `community.crowd_${report.crowd_level?.toLowerCase()}` as any;
         return (
           <Typography variant="body-sm" className="text-text-primary">
             {t('community.crowding_report', { level: t(levelKey) })}
@@ -111,7 +111,7 @@ export default function ReportCard({
               <StarRating rating={report.condition_rating ?? 0} />
               <Typography variant="caption" className="text-text-secondary">
                 {t('community.condition_report', {
-                  rating: report.condition_rating,
+                  rating: report.condition_rating ?? 0,
                 })}
               </Typography>
             </View>

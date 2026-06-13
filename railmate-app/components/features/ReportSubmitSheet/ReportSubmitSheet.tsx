@@ -17,12 +17,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useColorScheme } from 'nativewind';
-import { Colors } from '../../../constants/colors';
-import * as ImagePicker from 'expo-image-picker';
-import { Image } from 'expo-image';
-import {
+  Image,
+  } from 'react-native';
+  import { useColorScheme } from 'nativewind';
+  import { Colors } from '../../../constants/colors';
+  import * as ImagePicker from 'expo-image-picker';
+  import {
   Camera,
   CheckCircle,
   Lock,
@@ -80,7 +80,7 @@ function TypeCard({
       <View className={`w-[3px] self-stretch ${accentClass}`} />
       <View className="flex-row items-center gap-3 px-4 py-4 flex-1">
         {icon}
-        <Typography variant="body1" className="text-text-primary">
+        <Typography variant="body" className="text-text-primary">
           {label}
         </Typography>
       </View>
@@ -381,11 +381,11 @@ export default function ReportSubmitSheet({
         <TouchableOpacity
           onPress={() => {
             handleClose();
-            router.push('/auth/login');
+            router.push('/auth/login' as any);
           }}
           className="bg-primary px-8 py-3 rounded-xl w-full items-center"
         >
-          <Typography variant="body1" className="text-white font-semibold">
+          <Typography variant="body" className="text-white font-semibold">
             Sign In
           </Typography>
         </TouchableOpacity>
@@ -422,7 +422,7 @@ export default function ReportSubmitSheet({
           icon={<Star size={24} color={currentColors.info} weight="fill" />}
           accentClass="bg-info"
           onPress={() => {
-            setSelectedType('CONDITION');
+            setSelectedType('COACH_CONDITION');
             setStep('CONDITION');
           }}
         />
@@ -610,7 +610,7 @@ export default function ReportSubmitSheet({
                     variant="caption"
                     className={isActive ? 'text-white' : 'text-text-secondary'}
                   >
-                    {t(`community.crowd_${level.toLowerCase()}`)}
+                    {t(`community.crowd_${level.toLowerCase()}` as any)}
                   </Typography>
                 </TouchableOpacity>
               );
@@ -767,7 +767,7 @@ export default function ReportSubmitSheet({
           onPress={handleClose}
           className="bg-primary px-8 py-3 rounded-xl w-full items-center mt-2"
         >
-          <Typography variant="body1" className="text-white font-semibold">
+          <Typography variant="body" className="text-white font-semibold">
             {t('community.done')}
           </Typography>
         </TouchableOpacity>
@@ -898,7 +898,7 @@ function SubmitButton({
         <ActivityIndicator color="#ffffff" />
       ) : (
         <Typography
-          variant="body1"
+          variant="body"
           className={`font-semibold ${disabled ? 'text-text-secondary' : 'text-white'}`}
         >
           {label}

@@ -57,7 +57,7 @@ export default function LoginScreen() {
           return;
         }
         router.push({
-          pathname: '/auth/otp',
+          pathname: '/auth/otp' as any,
           params: { contact: fullPhone, type: 'phone' },
         });
       } else {
@@ -73,7 +73,7 @@ export default function LoginScreen() {
           return;
         }
         router.push({
-          pathname: '/auth/otp',
+          pathname: '/auth/otp' as any,
           params: { contact: email, type: 'email' },
         });
       }
@@ -282,7 +282,7 @@ export default function LoginScreen() {
               >
                 {t('auth.new_here')}
               </Typography>
-              <Pressable onPress={() => router.push('/auth/register')}>
+              <Pressable onPress={() => router.push('/auth/register' as any)}>
                 <Typography
                   variant="caption"
                   className="text-primary"

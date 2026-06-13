@@ -35,7 +35,7 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/auth/login');
+    router.replace('/auth/login' as any);
   };
 
   const toggleLanguage = () => {
@@ -76,14 +76,14 @@ export default function ProfileScreen() {
 
             <Button
               label={t('auth.create_account')}
-              onPress={() => router.push('/auth/login')}
+              onPress={() => router.push('/auth/login' as any)}
               className="w-full mb-3"
               isBengali={isBengali}
             />
 
             <Button
               label={t('auth.sign_in')}
-              onPress={() => router.push('/auth/login')}
+              onPress={() => router.push('/auth/login' as any)}
               variant="ghost"
               className="w-full"
               isBengali={isBengali}
@@ -211,7 +211,7 @@ export default function ProfileScreen() {
 
           <Card className="overflow-hidden p-0">
             <Pressable
-              onPress={() => router.push('/auth/register')}
+              onPress={() => router.push('/auth/register' as any)}
               className="flex-row items-center justify-between px-4 py-4 border-b border-border"
             >
               <View className="flex-row items-center gap-3">

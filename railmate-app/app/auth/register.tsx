@@ -9,7 +9,7 @@ import { Button } from '../../components/ui/Button/Button';
 import { Input } from '../../components/ui/Input/Input';
 import { useTranslation } from '../../i18n';
 import { useAuth } from '../../hooks/useAuth';
-import supabase from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { useColorScheme } from 'nativewind';
 import { Colors } from '../../constants/colors';
 

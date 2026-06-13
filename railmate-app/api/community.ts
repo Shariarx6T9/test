@@ -4,7 +4,7 @@
 // No business logic here — only data access.
 
 import * as FileSystem from 'expo-file-system';
-import supabase from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import type {
   CommunityReport,
   ReportFilter,
@@ -99,7 +99,7 @@ export async function getUserVotesForReports(
   }
 
   return Object.fromEntries(
-    (data ?? []).map((row) => [row.report_id, row.vote_type as VoteType]),
+    (data ?? []).map((row: { report_id: string; vote_type: string }) => [row.report_id, row.vote_type as VoteType]),
   );
 }
 

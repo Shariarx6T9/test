@@ -189,10 +189,13 @@ function Header({
   onFilterChange,
 }: {
   isBengali: boolean;
-  t: (key: string) => string;
+  t: any;
   activeFilter: ReportFilter;
   onFilterChange: (f: ReportFilter) => void;
 }) {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
+
   return (
     <View>
       {/* Title row */}
@@ -233,7 +236,7 @@ function Header({
                 className={isActive ? 'text-white' : 'text-text-secondary'}
                 isBengali={isBengali}
               >
-                {t(chip.labelKey)}
+                {t(chip.labelKey as any)}
               </Typography>
             </TouchableOpacity>
           );
@@ -250,7 +253,7 @@ function EmptyState({
   isBengali,
   onReport,
 }: {
-  t: (key: string) => string;
+  t: any;
   isBengali: boolean;
   onReport: () => void;
 }) {

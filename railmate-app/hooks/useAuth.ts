@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import supabase from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { useAuthStore, AppUser } from '../stores/authStore';
 
 const BD_PHONE_REGEX = /^\+880\d{10}$/;
@@ -65,15 +65,15 @@ export function useAuth() {
       }
 
       // Listen for future auth state changes
-      supabase.auth.onAuthStateChange(async (_event, newSession) => {
-        setSession(newSession);
-        if (newSession?.user) {
-          const profile = await fetchProfile(newSession.user.id);
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
           setUser(
             profile ?? {
-              id: newSession.user.id,
-              phone: newSession.user.phone,
-              email: newSession.user.email,
+              id: session.user.id,
+              phone: session.user.phone,
+              email: session.user.email,
             }
           );
         } else {
