@@ -17,6 +17,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useColorScheme } from 'nativewind';
 import { Colors } from '../../constants/colors'; // adjust path if colors live elsewhere
 
+import { useAuthStore } from '../../stores/authStore';
+
 type Mode = 'phone' | 'email';
 
 export default function LoginScreen() {
@@ -26,6 +28,7 @@ export default function LoginScreen() {
   const isBengali = locale === 'bn';
   const router = useRouter();
   const { signInWithPhone, signInWithEmail } = useAuth();
+  const { setGuest } = useAuthStore();
 
   const [mode, setMode] = useState<Mode>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -85,6 +88,7 @@ export default function LoginScreen() {
   };
 
   const handleGuest = () => {
+    setGuest(true);               // set flag BEFORE navigation
     router.replace('/(tabs)');
   };
 

@@ -20,8 +20,10 @@ interface AuthState {
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isGuest: boolean;
   setUser: (user: AppUser | null) => void;
   setSession: (session: Session | null) => void;
+  setGuest: (val: boolean) => void;
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -33,11 +35,13 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       isLoading: true,
       isAuthenticated: false,
+      isGuest: false,
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setSession: (session) =>
         set({ session, isAuthenticated: !!session }),
+      setGuest: (val) => set({ isGuest: val }),
       clearAuth: () =>
-        set({ user: null, session: null, isAuthenticated: false }),
+        set({ user: null, session: null, isAuthenticated: false, isGuest: false }),
       setLoading: (loading) => set({ isLoading: loading }),
     }),
     {
@@ -47,6 +51,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         session: state.session,
         isAuthenticated: state.isAuthenticated,
+        isGuest: state.isGuest,
       }),
     }
   )

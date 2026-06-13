@@ -10,19 +10,37 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#080D17"
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F7FA"
     },
     "ios": {
       "bundleIdentifier": "com.railmate.bd",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F5F7FA",
+        "dark": {
+          "image": "./assets/images/splash.png",
+          "backgroundColor": "#080D17"
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#080D17"
+        "backgroundColor": "#00A859"
       },
-      "package": "com.railmate.bd"
+      "package": "com.railmate.bd",
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F5F7FA",
+        "dark": {
+          "image": "./assets/images/splash.png",
+          "backgroundColor": "#080D17"
+        }
+      }
     },
     "plugins": [
       "expo-router",

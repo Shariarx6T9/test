@@ -2,6 +2,9 @@ import React from 'react';
 import { View, ViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { cssInterop } from 'nativewind';
+
+cssInterop(SafeAreaView, { className: 'style' });
 
 interface ScreenWrapperProps extends ViewProps {
   children: React.ReactNode;
@@ -27,7 +30,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     >
       <StatusBar style="auto" />
       <View
-        className={`flex-1 ${withPadding ? 'px-4' : ''} ${bgClass} ${className}`}
+        className={`flex-1 w-full ${withPadding ? 'px-5' : ''} ${bgClass} ${className}`}
         {...props}
       >
         {children}

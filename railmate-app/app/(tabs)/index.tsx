@@ -109,7 +109,11 @@ export default function HomeScreen() {
 
   return (
     <ScreenWrapper className="bg-bg-base">
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        className="flex-1 w-full"
+        contentContainerClassName="flex-grow pb-8"
+      >
 
         {/* Header Area */}
         <View className="flex-row justify-between items-center py-6">

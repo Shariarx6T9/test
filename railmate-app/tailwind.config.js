@@ -5,43 +5,38 @@ module.exports = {
     './components/**/*.{js,jsx,ts,tsx}',
   ],
   presets: [require('nativewind/preset')],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // ── DARK MODE BACKGROUNDS ─────────────────────────────────────────
-        'bg-base':          '#080D17',
-        'bg-elevated':      '#0F1929',
-        'bg-card':          '#162035',
-        'bg-overlay':       '#1A2840',
+        'bg-base':          'var(--color-bg-base)',
+        'bg-elevated':      'var(--color-bg-elevated)',
+        'bg-card':          'var(--color-bg-card)',
+        'bg-overlay':       'var(--color-bg-overlay)',
 
-        // ── BRAND / PRIMARY ───────────────────────────────────────────────
-        'primary':          '#00A859',
-        'primary-dim':      '#007A40',
-        'primary-subtle':   '#00A85918',  // ← WAS MISSING — used by Chip, TrainCard, etc.
+        'primary':          'var(--color-primary)',
+        'primary-dim':      'var(--color-primary-dim)',
+        'primary-subtle':   'var(--color-primary-subtle)',
 
-        // ── ACCENT ────────────────────────────────────────────────────────
-        'accent':           '#F5A623',
-        'accent-dim':       '#C4830A',
-        'accent-subtle':    '#F5A62318',  // ← WAS MISSING — used by profile palette icon
+        'accent':           'var(--color-accent)',
+        'accent-dim':       'var(--color-accent-dim)',
+        'accent-subtle':    'var(--color-accent-subtle)',
 
-        // ── SEMANTIC ──────────────────────────────────────────────────────
-        'danger':           '#E8394B',
-        'danger-subtle':    '#E8394B1A',  // ← WAS MISSING — used by station dot, trash btn
-        'success':          '#00C977',
-        'success-subtle':   '#00C9771A',  // ← WAS MISSING — used by Badge
-        'info':             '#4EA8E0',
-        'info-subtle':      '#4EA8E018',  // ← WAS MISSING — used by language icon bg
+        'danger':           'var(--color-danger)',
+        'danger-subtle':    'var(--color-danger-subtle)',
+        'success':          'var(--color-success)',
+        'success-subtle':   'var(--color-success-subtle)',
+        'info':             'var(--color-info)',
+        'info-subtle':      'var(--color-info-subtle)',
 
-        // ── TEXT ──────────────────────────────────────────────────────────
-        'text-primary':     '#F0F4FF',
-        'text-secondary':   '#8FA3C0',
-        'text-tertiary':    '#4E6480',
-        'text-inverse':     '#080D17',
+        'text-primary':     'var(--color-text-primary)',
+        'text-secondary':   'var(--color-text-secondary)',
+        'text-tertiary':    'var(--color-text-tertiary)',
+        'text-inverse':     'var(--color-text-inverse)',
 
-        // ── BORDERS ───────────────────────────────────────────────────────
-        'border':           '#1E2E42',
-        'border-strong':    '#2A3F57',    // ← WAS MISSING — used by SavedRoutes empty state
-        'border-focus':     '#00A859',    // ← WAS MISSING — used by Input focus ring
+        'border':           'var(--color-border)',
+        'border-strong':    'var(--color-border-strong)',
+        'border-focus':     'var(--color-border-focus)',
       },
       fontFamily: {
         'jakarta':          ['PlusJakartaSans_700Bold'],

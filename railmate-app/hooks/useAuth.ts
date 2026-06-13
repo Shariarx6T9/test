@@ -192,6 +192,7 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
+    useAuthStore.getState().setGuest(false);  // clear guest flag on sign out
     clearAuth();
     if (error) {
       return { error: error.message };

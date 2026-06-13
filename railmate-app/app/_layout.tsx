@@ -5,13 +5,14 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { useColorScheme } from 'nativewind';
 import { Colors } from '../constants/colors';
+import { useAuthStore } from '../stores/authStore';
 // Keep any existing providers/imports you already have below
-// e.g. fonts, GestureHandlerRootView, SafeAreaProvider, etc.
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
   const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { initialize, isAuthenticated, isLoading } = useAuth();
+  const { isGuest } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
   const [initialized, setInitialized] = useState(false);
@@ -28,14 +29,13 @@ export default function RootLayout() {
 
     const inAuthGroup = (segments[0] as string) === 'auth';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // No session and not already on an auth screen -> send to login
+    // Guest users and authenticated users both go to tabs
+    if (!isAuthenticated && !isGuest && !inAuthGroup) {
       router.replace('/auth/login' as any);
     } else if (isAuthenticated && inAuthGroup) {
-      // Has session but stuck on auth screen -> send to tabs
       router.replace('/(tabs)');
     }
-  }, [initialized, isLoading, isAuthenticated, segments]);
+  }, [initialized, isLoading, isAuthenticated, isGuest, segments]);
 
   if (!initialized || isLoading) {
     return (

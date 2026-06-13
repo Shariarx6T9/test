@@ -24,14 +24,20 @@ export default function TabLayout() {
         tabBarInactiveTintColor: activeColors['text-tertiary'],
         tabBarStyle: {
           backgroundColor: activeColors['bg-elevated'],
-          borderTopColor: activeColors.border,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          borderTopWidth: 0,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          height: 72,
+          paddingBottom: 12,
+          paddingTop: 12,
         },
         tabBarLabelStyle: {
           fontFamily: 'Inter_500Medium',
           fontSize: 12,
+          marginTop: 4,
         },
       }}
     >
