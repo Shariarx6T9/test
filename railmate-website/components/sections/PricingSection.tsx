@@ -1,4 +1,6 @@
 'use client'
+import { useState } from 'react'
+import PremiumCheckoutModal from './PremiumCheckoutModal'
 
 import { useI18n } from '@/lib/i18n'
 import { Check, X, Crown, DownloadSimple, Lock } from '@phosphor-icons/react'
@@ -134,12 +136,12 @@ export default function PricingSection() {
               ))}
             </ul>
 
-            <Link
-              href="/download"
-              className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary-dim text-white rounded-lg font-semibold text-sm font-inter transition-colors shadow-md shadow-primary/20"
-            >
-              {s.pro_cta}
-            </Link>
+            <button
+				onClick={() => setCheckoutOpen(true)}
+				className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary-dim text-white rounded-lg font-semibold text-sm font-inter transition-colors shadow-md shadow-primary/20"
+			>
+				{s.pro_cta}
+			</button>
 
             <p className="text-center text-text-tertiary text-xs font-inter mt-3">
               {s.trial_note}
@@ -171,6 +173,7 @@ export default function PricingSection() {
           </div>
         </div>
       </div>
+      <PremiumCheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
     </section>
   )
 }
