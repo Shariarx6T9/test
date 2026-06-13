@@ -31,7 +31,7 @@ export default function ScreenshotsCarousel() {
   const activeScreen = SCREENS[active];
 
   return (
-    <section className="bg-gray-900 py-20" id="screenshots">
+    <section className="bg-bg-base py-20" id="screenshots">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <SectionHeader
           overline={t.screenshots.overline}
@@ -40,9 +40,9 @@ export default function ScreenshotsCarousel() {
         />
 
         <div className="mt-12 flex flex-col items-center gap-8">
-          <div className="relative w-[280px] h-[580px] rounded-[36px] border-[8px] border-gray-800 bg-gray-800 overflow-hidden shadow-2xl transition-all duration-300">
+          <div className="relative w-[280px] h-[580px] rounded-[36px] border-[8px] border-border-strong bg-bg-card overflow-hidden shadow-2xl transition-all duration-300">
             {/* Camera Notch */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-gray-800 rounded-b-2xl z-20" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-border-strong rounded-b-2xl z-20" />
 
             {SCREENS.map((screen, i) => (
               <div
@@ -63,7 +63,7 @@ export default function ScreenshotsCarousel() {
             ))}
 
             {/* Content Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#080D17] via-[#080D17]/90 to-transparent z-10 text-center">
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-bg-base via-bg-base/90 to-transparent z-10 text-center">
               <div className="text-primary text-xs font-bold uppercase tracking-widest mb-2 font-inter">
                 {activeScreen.label}
               </div>
@@ -76,7 +76,7 @@ export default function ScreenshotsCarousel() {
           <div className="flex items-center gap-4">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-700 text-gray-400 hover:text-white hover:border-gray-600 transition-colors bg-gray-800/50"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-border-subtle text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors bg-bg-card/50"
               aria-label="Previous screenshot"
             >
               &larr;
@@ -88,7 +88,7 @@ export default function ScreenshotsCarousel() {
                   onClick={() => setActive(i)}
                   className={clsx(
                     "h-2 w-6 rounded-full transition-all duration-300",
-                    i === active ? "bg-primary w-10" : "bg-gray-700 hover:bg-gray-600"
+                    i === active ? "bg-primary w-10" : "bg-border-subtle hover:bg-bg-elevated"
                   )}
                   aria-label={`Go to screenshot ${i + 1}`}
                 />
@@ -96,7 +96,7 @@ export default function ScreenshotsCarousel() {
             </div>
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-700 text-gray-400 hover:text-white hover:border-gray-600 transition-colors bg-gray-800/50"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-border-subtle text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors bg-bg-card/50"
               aria-label="Next screenshot"
             >
               &rarr;

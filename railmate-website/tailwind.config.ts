@@ -18,6 +18,7 @@ const config: Config = {
         'primary-dim':    'var(--primary-dim)',
         'accent':         '#F5A623',
         'accent-dim':     '#C4830A',
+        'border':         'var(--border)',
         'border-subtle':  'var(--border-subtle)',
         'border-strong':  'var(--border-strong)',
         'text-primary':   'var(--text-primary)',

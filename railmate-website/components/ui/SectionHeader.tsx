@@ -29,24 +29,16 @@ export default function SectionHeader({
     <div className={`${textAlign} ${margin}`} style={{ maxWidth }}>
       {overline && (
         <p
-          className="text-[#00A859] uppercase mb-3"
-          style={{
-            fontSize: '11px',
-            fontFamily: 'var(--font-inter)',
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-          }}
+          className="text-primary uppercase mb-3 text-[11px] font-semibold tracking-[0.08em] font-inter"
         >
           {overline}
         </p>
       )}
       {headingText && (
         <h2
-          className="text-[#F0F4FF] font-extrabold"
+          className="text-text-primary font-extrabold font-jakarta leading-[1.2]"
           style={{
             fontSize: 'clamp(26px, 4vw, 36px)',
-            fontFamily: 'var(--font-jakarta)',
-            lineHeight: '1.2',
           }}
         >
           {headingText}
@@ -54,12 +46,7 @@ export default function SectionHeader({
       )}
       {subText && (
         <p
-          className="mt-3 text-[#8FA3C0]"
-          style={{
-            fontSize: '17px',
-            fontFamily: 'var(--font-inter)',
-            lineHeight: '1.6',
-          }}
+          className="mt-3 text-text-secondary text-[17px] font-inter leading-[1.6]"
         >
           {subText}
         </p>

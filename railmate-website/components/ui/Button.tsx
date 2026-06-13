@@ -15,11 +15,11 @@ interface ButtonProps {
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-[#00A859] hover:bg-[#007A40] text-[#080D17] font-semibold',
+    'bg-primary hover:bg-primary-dim text-text-inverse font-semibold',
   secondary:
-    'border border-[#2A3F57] hover:border-[#4E6480] text-[#8FA3C0] hover:text-[#F0F4FF] bg-transparent',
+    'border border-border-strong text-text-secondary hover:text-text-primary hover:border-border-strong bg-transparent',
   ghost:
-    'text-[#8FA3C0] hover:text-[#F0F4FF] bg-transparent',
+    'text-text-secondary hover:text-text-primary bg-transparent',
 }
 
 const sizes: Record<Size, string> = {

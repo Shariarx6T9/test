@@ -53,19 +53,19 @@ export default function DownloadButton({
     case "google-play":
       icon = <PlayIcon />;
       label = t.download.play;
-      styleClasses = "bg-[#00A859] text-[#080D17] hover:bg-[#007A40]";
+      styleClasses = "bg-primary text-text-inverse hover:bg-primary-dim";
       break;
     case "apk":
       icon = <AndroidIcon />;
       label = t.download.apk;
-      styleClasses = "bg-transparent text-[#8FA3C0] border border-[#2A3F57] hover:text-[#F0F4FF] hover:border-[#4E6480]";
+      styleClasses = "bg-transparent text-text-secondary border border-border-strong hover:text-text-primary hover:border-border-strong";
       break;
     case "app-store":
       icon = <AppleIcon />;
       label = isComingSoon ? t.download.coming_soon : t.download.apple;
       styleClasses = isComingSoon
-        ? "bg-[#1A2533] text-[#4E6480] border border-[#2A3F57] cursor-not-allowed"
-        : "bg-white text-black hover:bg-gray-200";
+        ? "bg-bg-card text-text-tertiary border border-border-subtle cursor-not-allowed"
+        : "bg-text-primary text-bg-base hover:bg-text-secondary";
       break;
   }
 

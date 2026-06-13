@@ -59,10 +59,10 @@ export default function CommunitySection() {
               </div>
               
               <div className="space-y-4">
-                <h2
-                  className="text-4xl lg:text-5xl font-jakarta font-extrabold text-text-primary"
-                  dangerouslySetInnerHTML={{ __html: t.community_section.headline }}
-                />
+                <h2 className="text-4xl lg:text-5xl font-jakarta font-extrabold text-text-primary">
+                  {t.community_section.headline_start}{" "}
+                  <span className="text-primary">{t.community_section.headline_highlight}</span>
+                </h2>
                 <p className="text-text-secondary text-lg leading-relaxed max-w-xl">
                   {t.community_section.subheadline}
                 </p>

@@ -134,7 +134,7 @@
     "annual_label": "Annual · ৳799",
     "checkout_title": "Upgrade to RailMate Pro",
     "payment_methods_label": "Payment methods (coming soon)",
-    "beta_note": "Online payment is in active integration. Pro features are free during beta — leave your email and we'll notify you the moment checkout goes live, with an early-access discount.",
+    "beta_note": "RailMate Pro is currently free during beta. Online payment is being integrated. Enter your email to be notified when the official subscription launches and receive an early-access discount.",
     "waitlist_success": "You're on the list — we'll email you at launch.",
     "waitlist_placeholder": "you@example.com",
     "waitlist_cta": "Notify me",
@@ -232,7 +232,8 @@
   },
   "community_section": {
     "badge": "Community Driven",
-    "headline": "Built for Modern <br /> <span class='text-primary'>Rail Travelers</span>",
+    "headline_start": "Built for Modern",
+    "headline_highlight": "Rail Travelers",
     "subheadline": "Schedules, fares, journey planning, and community-powered intelligence — all in one experience.",
     "delay_reporting_title": "Delay Reporting",
     "delay_reporting_desc": "Crowdsourced delay times updated by passengers on the train.",

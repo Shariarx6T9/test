@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: "RailMate Contact Form <onboarding@resend.dev>", // Resend default for testing
+      from: "RailMate Bangladesh <noreply@railmatebd.com>",
       to: process.env.CONTACT_TO_EMAIL || "support@railmatebd.com",
       subject: `[Contact Form] ${subject}: ${name}`,
       text: `
