@@ -62,9 +62,6 @@ export default function HeroSection() {
                 href={process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL!}
               />
             </div>
-            <div className="flex items-center justify-center lg:justify-start">
-              <GooglePlayRating />
-            </div>
           </div>
 
           {/* RIGHT Phone Mockup */}
@@ -118,15 +115,6 @@ function PhoneMockup() {
       
       {/* Notch */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-bg-elevated rounded-b-2xl" />
-    </div>
-  )
-}
-
-function GooglePlayRating() {
-  return (
-    <div className="text-left">
-      <p className="text-text-primary font-bold text-sm font-inter">4.8/5 Rating</p>
-      <p className="text-text-tertiary text-xs font-inter">on Google Play Store</p>
     </div>
   )
 }

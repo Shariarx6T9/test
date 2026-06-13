@@ -38,7 +38,7 @@ export default function DownloadPageClient({ translations }: { translations: any
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "MobileApplication",
+    "@type": "SoftwareApplication",
     "name": t.download_page.json_ld_name,
     "operatingSystem": "Android",
     "applicationCategory": "TravelApplication",
@@ -47,12 +47,7 @@ export default function DownloadPageClient({ translations }: { translations: any
       "price": "0",
       "priceCurrency": "BDT"
     },
-    "description": t.download_page.json_ld_description,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "0"
-    }
+    "description": t.download_page.json_ld_description
   };
 
   return (

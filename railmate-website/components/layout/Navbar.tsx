@@ -30,6 +30,7 @@ export default function Navbar() {
     { label: t.nav.about,    href: '/about' },
     { label: t.nav.download, href: '/download' },
     { label: t.nav.faq,      href: '/faq' },
+    { label: t.nav.contact,  href: '/contact' },
   ]
 
   const toggleLanguage = () => {

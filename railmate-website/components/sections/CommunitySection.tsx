@@ -2,8 +2,11 @@
 
 import { Users, Warning, Clock, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import Button from "../ui/Button";
+import { useI18n } from "@/lib/i18n";
 
 export default function CommunitySection() {
+  const { t } = useI18n();
+
   const reports = [
     {
       id: 1,
@@ -51,16 +54,16 @@ export default function CommunitySection() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold">
                 <Users weight="bold" />
-                Community Driven
+                {t.community_section.badge}
               </div>
               
               <div className="space-y-4">
-                <h2 className="text-4xl lg:text-5xl font-jakarta font-extrabold text-text-primary">
-                  Real Reports. <br />
-                  <span className="text-primary">Real Travelers.</span>
-                </h2>
+                <h2
+                  className="text-4xl lg:text-5xl font-jakarta font-extrabold text-text-primary"
+                  dangerouslySetInnerHTML={{ __html: t.community_section.headline }}
+                />
                 <p className="text-text-secondary text-lg leading-relaxed max-w-xl">
-                  RailMate relies on real travelers sharing real-time updates. Know about delays, crowding, and coach conditions before you even reach the station.
+                  {t.community_section.subheadline}
                 </p>
               </div>
 
@@ -70,8 +73,8 @@ export default function CommunitySection() {
                        <Warning className="text-accent" size={24} />
                     </div>
                     <div>
-                       <h4 className="text-text-primary font-bold">Delay Reporting</h4>
-                       <p className="text-text-tertiary text-sm">Crowdsourced delay times updated by passengers on the train.</p>
+                       <h4 className="text-text-primary font-bold">{t.community_section.delay_reporting_title}</h4>
+                       <p className="text-text-tertiary text-sm">{t.community_section.delay_reporting_desc}</p>
                     </div>
                  </div>
                  <div className="flex gap-4">
@@ -79,13 +82,13 @@ export default function CommunitySection() {
                        <Users className="text-primary" size={24} />
                     </div>
                     <div>
-                       <h4 className="text-text-primary font-bold">Crowd Status</h4>
-                       <p className="text-text-tertiary text-sm">Real-time occupancy info to help you choose the right coach.</p>
+                       <h4 className="text-text-primary font-bold">{t.community_section.crowd_status_title}</h4>
+                       <p className="text-text-tertiary text-sm">{t.community_section.crowd_status_desc}</p>
                     </div>
                  </div>
               </div>
 
-              <Button size="lg">Join the community</Button>
+              <Button size="lg">{t.community_section.cta}</Button>
             </div>
 
             <div className="space-y-4">

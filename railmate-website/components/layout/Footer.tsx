@@ -14,12 +14,13 @@ export default function Footer() {
     { label: t.nav.features, href: '/features' },
     { label: t.nav.download, href: '/download' },
     { label: t.nav.faq, href: '/faq' },
+    { label: t.nav.contact, href: '/contact' },
   ]
 
   const legalLinks = [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms & Conditions', href: '/terms' },
-    { label: 'Copyright Notice', href: '/copyright' },
+    { label: t.footer.privacy, href: '/privacy' },
+    { label: t.footer.terms, href: '/terms' },
+    { label: t.footer.copyright_notice, href: '/copyright' },
   ]
 
   const socialLinks = [

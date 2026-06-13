@@ -97,6 +97,24 @@ export default async function RootLayout({
             </I18nProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "RailMate Bangladesh",
+              "url": "https://railmatebd.com",
+              "logo": "https://railmatebd.com/logo.png",
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "customer service",
+                "email": "support@railmatebd.com"
+              },
+              "sameAs": []
+            })
+          }}
+        />
       </body>
     </html>
   )

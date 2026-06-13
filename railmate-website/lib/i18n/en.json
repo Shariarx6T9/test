@@ -5,6 +5,7 @@
     "about": "About",
     "download": "Download",
     "faq": "FAQ",
+    "contact": "Contact",
     "cta": "Download App →"
   },
   "hero": {
@@ -28,6 +29,10 @@
     "brand_desc": "Travel Smarter. Travel RailMate.",
     "product": "Product",
     "legal": "Legal",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "copyright_notice": "Copyright Notice",
     "data_sources": "Data Sources",
     "data_notice": "Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.",
     "copyright": "© 2026 RailMate Bangladesh · Built By Najmul Hasan"
@@ -121,6 +126,16 @@
       { "id": "fare", "label": "Fare Calculator" },
       { "id": "alerts", "label": "Departure Alerts" }
     ]
+  },
+  "community_section": {
+    "badge": "Community Driven",
+    "headline": "Real Reports. <br /> <span class='text-primary'>Real Travelers.</span>",
+    "subheadline": "RailMate relies on real travelers sharing real-time updates. Know about delays, crowding, and coach conditions before you even reach the station.",
+    "delay_reporting_title": "Delay Reporting",
+    "delay_reporting_desc": "Crowdsourced delay times updated by passengers on the train.",
+    "crowd_status_title": "Crowd Status",
+    "crowd_status_desc": "Real-time occupancy info to help you choose the right coach.",
+    "cta": "Join the community"
   },
   "contact": {
     "title": "Get in Touch",
