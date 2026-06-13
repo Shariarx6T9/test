@@ -6,6 +6,7 @@
     "download": "Download",
     "faq": "FAQ",
     "contact": "Contact",
+    "community": "Community",
     "cta": "Download App →"
   },
   "hero": {
@@ -35,7 +36,14 @@
     "copyright_notice": "Copyright Notice",
     "data_sources": "Data Sources",
     "data_notice": "Schedule and fare data sourced from Bangladesh Railway official publications. Community reports are user-submitted. RailMate is not affiliated with Bangladesh Railway.",
-    "copyright": "© 2026 RailMate Bangladesh · Built By Najmul Hasan"
+    "copyright": "© 2026 RailMate Bangladesh",
+    "pro": "RailMate Pro",
+    "partnerships": "Partnerships",
+    "advertising": "Advertising",
+    "company": "Company",
+    "legal_short": "RailMate is an independent platform for informational purposes only.",
+    "data_notice_short": "Independent platform · Not affiliated with BR.",
+    "built_in_bangladesh": " Built By Najmul Hasan"
   },
   "about": {
     "title": "About RailMate Bangladesh",
