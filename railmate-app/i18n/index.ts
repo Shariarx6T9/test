@@ -1,16 +1,34 @@
+// i18n/index.ts
+
 import { usePrefsStore } from '../stores/prefsStore';
 import en from './en.json';
 import bn from './bn.json';
 
-const translations = { en, bn };
+// ─── Types ────────────────────────────────────────────────────────────────────
 
+const translations = { en, bn } as const;
+
+export type SupportedLocale = keyof typeof translations;
+
+// TranslationKey is derived from en.json — it is the single source of truth.
+// Any key that exists in en but not bn will fall back to en at runtime.
 export type TranslationKey = keyof typeof en;
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useTranslation = () => {
   const { language } = usePrefsStore();
 
-  const t = (key: TranslationKey, params?: Record<string, string | number>) => {
-    let text = (translations[language] as any)[key] || (translations.en as any)[key] || key;
+  const locale = language as SupportedLocale;
+
+  const t = (
+    key: TranslationKey,
+    params?: Record<string, string | number>,
+  ): string => {
+    // Prefer the current locale, fall back to English, fall back to the key itself
+    const dict = translations[locale] as Record<string, string>;
+    const fallback = translations.en as Record<string, string>;
+    let text: string = dict[key] ?? fallback[key] ?? key;
 
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
@@ -21,5 +39,8 @@ export const useTranslation = () => {
     return text;
   };
 
-  return { t, locale: language };
+  // Convenience flag — avoids scattering `locale === 'bn'` checks everywhere
+  const isBengali = locale === 'bn';
+
+  return { t, locale, isBengali };
 };

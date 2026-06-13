@@ -1,82 +1,45 @@
-import '../global.css';
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { QueryClientProvider } from '@tanstack/react-query';
-import * as SplashScreen from 'expo-splash-screen';
-import {
-  useFonts,
-  PlusJakartaSans_700Bold,
-  PlusJakartaSans_800ExtraBold,
-} from '@expo-google-fonts/plus-jakarta-sans';
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-} from '@expo-google-fonts/inter';
-import {
-  NotoSansBengali_400Regular,
-  NotoSansBengali_600SemiBold,
-} from '@expo-google-fonts/noto-sans-bengali';
-import {
-  JetBrainsMono_400Regular,
-  JetBrainsMono_500Medium,
-} from '@expo-google-fonts/jetbrains-mono';
-
-import { queryClient } from '../lib/queryClient';
-import { usePrefsStore } from '../stores/prefsStore';
-import { Colors } from '../constants/colors';
-import '../global.css';
-
-SplashScreen.preventAutoHideAsync();
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { useAuth } from '../hooks/useAuth';
+import { activeColors } from '../theme/colors';
+// Keep any existing providers/imports you already have below
+// e.g. fonts, GestureHandlerRootView, SafeAreaProvider, etc.
 
 export default function RootLayout() {
-  const { theme, hasFinishedOnboarding } = usePrefsStore();
-
-  // Resolve the actual background colour from our design token
-  const bgColor =
-    theme === 'light'
-      ? Colors.light['bg-base']
-      : Colors.dark['bg-base'];
-
-  const [loaded, error] = useFonts({
-    PlusJakartaSans_700Bold,
-    PlusJakartaSans_800ExtraBold,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    NotoSansBengali_400Regular,
-    NotoSansBengali_600SemiBold,
-    JetBrainsMono_400Regular,
-    JetBrainsMono_500Medium,
-  });
+  const { initialize, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const segments = useSegments();
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
+    (async () => {
+      await initialize();
+      setInitialized(true);
+    })();
+  }, []);
 
-  if (!loaded && !error) {
-    return null;
+  useEffect(() => {
+    if (!initialized || isLoading) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // No session and not already on an auth screen -> send to login
+      router.replace('/auth/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Has session but stuck on auth screen -> send to tabs
+      router.replace('/(tabs)');
+    }
+  }, [initialized, isLoading, isAuthenticated, segments]);
+
+  if (!initialized || isLoading) {
+    return (
+      <View className="flex-1 bg-bg-base items-center justify-center">
+        <ActivityIndicator size="large" color={currentColors['primary']} />
+      </View>
+    );
   }
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: bgColor },
-        }}
-        initialRouteName={hasFinishedOnboarding ? '(tabs)' : 'onboarding'}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="onboarding"
-          options={{ headerShown: false, animation: 'fade' }}
-        />
-      </Stack>
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
-    </QueryClientProvider>
-  );
+  return <Slot />;
 }
