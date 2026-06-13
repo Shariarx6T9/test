@@ -70,7 +70,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
             </span>
           </div>
           <h3 className="text-2xl font-extrabold text-text-primary font-jakarta mb-5">
-            Upgrade to RailMate Pro
+            {s.checkout_title}
           </h3>
 
           {/* Plan toggle */}
@@ -81,7 +81,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
                 plan === 'monthly' ? 'bg-primary text-white' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              {s.monthly_label ?? 'Monthly · ৳99'}
+              {s.monthly_label}
             </button>
             <button
               onClick={() => setPlan('annual')}
@@ -89,7 +89,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
                 plan === 'annual' ? 'bg-primary text-white' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              {s.annual_label ?? 'Annual · ৳799'}
+              {s.annual_label}
               <span className="absolute -top-2 -right-1 bg-accent text-bg-base text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                 -33%
               </span>
@@ -101,7 +101,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
             <div className="flex items-center gap-2 mb-3">
               <Lock size={14} className="text-text-tertiary" />
               <p className="text-text-secondary text-xs font-semibold font-inter">
-                Payment methods (coming soon)
+                {s.payment_methods_label}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -119,7 +119,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
           {/* Honest status note */}
           <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 mb-6">
             <p className="text-text-secondary text-xs leading-relaxed font-inter">
-              Online payment is in active integration. <strong className="text-primary">Pro features are free during beta</strong> — leave your email and we&apos;ll notify you the moment checkout goes live, with an early-access discount.
+              {s.beta_note}
             </p>
           </div>
 
@@ -127,7 +127,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
           {status === 'success' ? (
             <div className="flex items-center gap-2 text-primary text-sm font-semibold font-inter p-3 bg-primary/10 rounded-lg">
               <CheckCircle size={18} weight="fill" />
-              You&apos;re on the list — we&apos;ll email you at launch.
+              {s.waitlist_success}
             </div>
           ) : (
             <form onSubmit={handleNotify} className="flex flex-col sm:flex-row gap-3">
@@ -136,7 +136,7 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={s.waitlist_placeholder}
                 className="flex-1 bg-bg-card border border-border-subtle rounded-lg px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none transition-colors"
               />
               <button
@@ -144,12 +144,12 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
                 disabled={status === 'loading'}
                 className="px-5 py-3 bg-primary hover:bg-primary-dim text-white text-sm font-bold rounded-lg font-inter transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
               >
-                {status === 'loading' ? <CircleNotch size={16} className="animate-spin" /> : 'Notify me'}
+                {status === 'loading' ? <CircleNotch size={16} className="animate-spin" /> : s.waitlist_cta}
               </button>
             </form>
           )}
           {status === 'error' && (
-            <p className="text-danger text-xs font-inter mt-2">Something went wrong — please try again.</p>
+            <p className="text-danger text-xs font-inter mt-2">{s.waitlist_error}</p>
           )}
         </div>
       </div>

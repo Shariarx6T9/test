@@ -46,6 +46,7 @@ function McLogo({ className }: { className?: string }) {
 export default function PricingSection() {
   const { t } = useI18n()
   const s = t.pricing_section
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
 
   const freeFeatures: string[] = [
     s.free_feature1, s.free_feature2, s.free_feature3, s.free_feature4, s.free_feature5,
