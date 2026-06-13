@@ -8,14 +8,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
   },
   headers: async () => [
     {
@@ -27,7 +19,7 @@ const nextConfig: NextConfig = {
             "default-src 'self'",
             "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires 'unsafe-eval' and 'unsafe-inline' for dev
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: https://via.placeholder.com", // Allow placeholder images
+            "img-src 'self' data:",
             "font-src 'self'",
             "connect-src 'self' https:", // Allow API calls to other domains
             "form-action 'self'",

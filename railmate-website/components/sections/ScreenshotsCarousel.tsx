@@ -12,7 +12,7 @@ export default function ScreenshotsCarousel() {
 
   const SCREENS = t.screenshots.screens.map((s: any) => ({
     ...s,
-    src: `https://via.placeholder.com/300x600/0F1929/FFFFFF?text=${s.label.replace(' ', '+')}`,
+    src: `/images/screenshots/screen-${s.id}.png`,
   }));
 
   const next = useCallback(() => setActive((i) => (i + 1) % SCREENS.length), [SCREENS.length]);

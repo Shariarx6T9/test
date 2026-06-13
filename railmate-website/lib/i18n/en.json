@@ -58,6 +58,7 @@
     "title": "Frequently Asked Questions",
     "subtitle": "Everything you need to know about RailMate Bangladesh.",
     "still_questions": "Still have questions?",
+    "no_answer_text": "If you couldn't find the answer you're looking for, please contact our support team.",
     "contact_support": "Contact Support",
     "questions": [
       {
@@ -285,5 +286,167 @@
   "metadata": {
     "title": "RailMate Bangladesh — Travel Smarter. Travel RailMate.",
     "description": "Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline."
+  },
+  "features_page": {
+    "title": "Every Feature You Need for Better Train Travel",
+    "badge_available": "Available Now",
+    "badge_coming_soon": "Coming Soon",
+    "badge_future": "Future Update",
+    "features": [
+      {
+        "name": "Train Schedules",
+        "desc": "Browse full Bangladesh Railway timetable by route or station. Search by departure, arrival, or train name. Bilingual display ensures accessibility for everyone."
+      },
+      {
+        "name": "Fare Lookup",
+        "desc": "View fare matrix across all 8 seat classes (Shovon, Shovon Chair, Snigdha, AC Berth, AC Seat, First Berth, First Seat, AC S Chair). No more surprises at the counter."
+      },
+      {
+        "name": "Saved Routes",
+        "desc": "Bookmark your most-used routes for one-tap access. Your daily commute info is always just a second away, even on the go."
+      },
+      {
+        "name": "Journey Planning",
+        "desc": "Plan multi-leg journeys with transfer suggestions. Find the most efficient way to reach your destination with smart connection logic."
+      },
+      {
+        "name": "Community Delay Reports",
+        "desc": "Real-time user-submitted delay reports. Upvote system ensures reliability and accuracy through collective intelligence from fellow passengers."
+      },
+      {
+        "name": "Crowding Reports",
+        "desc": "Know how packed your train is before boarding. Community-shared data helps you decide whether to wait for the next one or find a better coach."
+      },
+      {
+        "name": "Delay Notifications & Alerts",
+        "desc": "Get push alerts for your saved routes. Powered by community reports, these alerts keep you informed about delays before you leave home."
+      },
+      {
+        "name": "Train Condition Reports",
+        "desc": "Cleanliness, AC status, toilet status — community reported. Choose the best trains based on recent passenger experiences."
+      },
+      {
+        "name": "Station Info",
+        "desc": "Platform numbers, facilities, nearby transport links. Navigate complex stations like a pro with detailed local information."
+      },
+      {
+        "name": "Premium Features (RailMate+)",
+        "desc": "Offline maps, priority alerts, ad-free experience, and advanced journey analytics. Support the mission while getting the ultimate companion experience."
+      }
+    ]
+  },
+  "problem_section": {
+    "tagline": "RailMate fixes all three. For free.",
+    "pain_points": [
+      {
+        "title": "Is my train even on time?",
+        "body": "You leave home, reach the station, and only then find out your train is delayed 45 minutes. No app warned you. No one knew."
+      },
+      {
+        "title": "3 apps for 1 journey",
+        "body": "BR website for schedules. Shohoz for tickets. WhatsApp groups for delay news. There's no single place that does everything."
+      },
+      {
+        "title": "What does this ticket actually cost?",
+        "body": "Fare tables are buried in PDFs. Prices differ by class, season, and nobody tells you that Snigdha isn't available on this route."
+      }
+    ]
+  },
+  "why_railmate": {
+    "overline": "WHY RAILMATE",
+    "headline": "Built for how Bangladeshis actually travel.",
+    "subheadline": "Other tools are generic. RailMate was designed from day one for Bangladesh Railway's specific routes, classes, and realities.",
+    "comparisons": [
+      {
+        "label": "BR Official Website",
+        "highlight": false,
+        "details": ["Schedule data ✓", "Fare info ✗", "Delay reports ✗", "Works offline ✗", "Bengali UI ✗"]
+      },
+      {
+        "label": "RailMate",
+        "highlight": true,
+        "details": ["Schedule data ✓", "Fare info ✓", "Delay reports ✓", "Works offline ✓", "Bengali UI ✓"]
+      },
+      {
+        "label": "Other Rail Apps",
+        "highlight": false,
+        "details": ["Schedule data ✓", "Fare info partial", "Delay reports ✗", "Works offline ✗", "Bengali UI ✗"]
+      }
+    ],
+    "differentiators": [
+      {
+        "num": "01",
+        "title": "Offline-first architecture",
+        "body": "We cache the entire BR schedule to your device on install. No signal? No problem. Your 3am platform change at Akhaura still works."
+      },
+      {
+        "num": "02",
+        "title": "Community over automation",
+        "body": "We don't pretend to have a real-time BR API — it doesn't exist. Instead we rely on real travelers who are on those trains right now."
+      },
+      {
+        "num": "03",
+        "title": "Bengali is first-class",
+        "body": "Station names in Bengali aren't an afterthought. Noto Sans Bengali renders every district and junction name the way it should look."
+      },
+      {
+        "num": "04",
+        "title": "Honest about data limits",
+        "body": "We show the last-verified date on every schedule. We never present stale data as live. You always know what you can trust."
+      }
+    ]
+  },
+  "stats_section": {
+    "notice": "Schedule data is sourced from Bangladesh Railway official publications (railway.gov.bd) and community-verified. Always confirm critical journeys with official sources. Live delay data is community-reported.",
+    "stats": [
+      { "num": "100+", "label": "Train Routes Covered" },
+      { "num": "500+", "label": "Stations Searchable" },
+      { "num": "8", "label": "Coach Classes Supported" },
+      { "num": "Free", "label": "Core Features, Always" }
+    ]
+  },
+  "premium_section": {
+    "headline": "Travel smarter. Upgrade to Pro.",
+    "subheadline": "Core features are free forever. Pro unlocks the tools frequent travelers need.",
+    "monthly_price": "৳99 / month",
+    "monthly_label": "Monthly Plan",
+    "annual_price": "৳799 / year",
+    "annual_label": "Best Value · Save 33%",
+    "popular": "MOST POPULAR",
+    "trial_note": "7-day free trial · Cancel anytime · No commitment",
+    "cta": "Start Free Trial →",
+    "table_feature_col": "Feature",
+    "table_free_col": "Free",
+    "table_pro_col": "Pro",
+    "table_rows": [
+      { "feature": "Train schedules & fares", "free": "✓", "pro": "✓" },
+      { "feature": "Community reports", "free": "✓", "pro": "✓" },
+      { "feature": "Saved routes", "free": "3 max", "pro": "∞" },
+      { "feature": "Departure alerts", "free": "1/day", "pro": "∞" },
+      { "feature": "Delay notifications", "free": "—", "pro": "✓" },
+      { "feature": "Offline schedule access", "free": "—", "pro": "✓" },
+      { "feature": "Home screen widgets", "free": "—", "pro": "✓" },
+      { "feature": "Cross-device sync", "free": "—", "pro": "✓" },
+      { "feature": "Ad-free experience", "free": "—", "pro": "✓" }
+    ]
+  },
+  "user_benefits": {
+    "headline1": "Built for the",
+    "headline2": "Bangladeshi Traveler",
+    "callout": "Built for Bangladeshi railway travelers.",
+    "benefits": [
+      { "title": "Bengali & English", "desc": "Native support for both languages across the entire app." },
+      { "title": "Works Offline", "desc": "Access full train schedules even without an internet connection." },
+      { "title": "Free to Use", "desc": "Core features like schedules and fares are free forever." },
+      { "title": "Community Verified", "desc": "Reports are validated by other travelers in real-time." },
+      { "title": "Regular Updates", "desc": "Timetables and features updated frequently." },
+      { "title": "Privacy First", "desc": "We collect minimal data and never sell your personal info." }
+    ],
+    "stats": [
+      { "label": "Train Routes", "value": "10+" },
+      { "label": "Stations", "value": "100+" },
+      { "label": "Powered By", "value": "Community" },
+      { "label": "Core App", "value": "Free Forever" }
+    ]
   }
 }

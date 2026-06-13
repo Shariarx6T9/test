@@ -1,101 +1,92 @@
 'use client'
 
-import Image from 'next/image'
 import { useI18n } from '@/lib/i18n'
-import { FacebookLogo, TwitterLogo, InstagramLogo } from '@phosphor-icons/react'
-import DownloadButton from '../ui/DownloadButton'
+import { FacebookLogo, TwitterLogo, Train, EnvelopeSimple } from '@phosphor-icons/react'
 import { Link } from '@/lib/i18n/navigation'
 
 export default function Footer() {
   const { t } = useI18n()
 
   const productLinks = [
-    { label: t.nav.home, href: '/' },
-    { label: t.nav.features, href: '/features' },
-    { label: t.nav.download, href: '/download' },
-    { label: t.nav.faq, href: '/faq' },
-    { label: t.nav.contact, href: '/contact' },
+    { label: t.nav.features,   href: '/features' },
+    { label: t.nav.download,   href: '/download' },
+    { label: t.footer.pro,     href: '/#pricing' },
+    { label: t.nav.community,  href: '/#community' },
+  ]
+
+  const companyLinks = [
+    { label: t.nav.about,      href: '/about' },
+    { label: t.footer.partnerships, href: '/#business' },
+    { label: t.footer.advertising,  href: '/#business' },
+    { label: t.nav.contact,    href: '/contact' },
   ]
 
   const legalLinks = [
-    { label: t.footer.privacy, href: '/privacy' },
-    { label: t.footer.terms, href: '/terms' },
-    { label: t.footer.copyright_notice, href: '/copyright' },
+    { label: t.footer.privacy,           href: '/privacy' },
+    { label: t.footer.terms,             href: '/terms' },
+    { label: t.footer.copyright_notice,  href: '/copyright' },
+    { label: t.nav.faq,                  href: '/faq' },
   ]
 
   const socialLinks = [
-    { label: 'Facebook', icon: <FacebookLogo size={20} />, href: '#' },
-    { label: 'Twitter', icon: <TwitterLogo size={20} />, href: '#' },
-    { label: 'Instagram', icon: <InstagramLogo size={20} />, href: '#' },
+    { label: 'Facebook', icon: <FacebookLogo size={18} />, href: '#' },
+    { label: 'Twitter',  icon: <TwitterLogo size={18} />,  href: '#' },
   ]
 
   return (
-    <footer className="bg-bg-elevated border-t border-border-subtle pt-16 pb-8">
-      <div className="max-w-[1200px] mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
-          
-          {/* Brand Column */}
-          <div className="space-y-6 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5">
-              <Image 
-                src="/logo.png" 
-                alt="RailMate Logo" 
-                width={32} 
-                height={32} 
-                className="rounded-lg object-contain"
-              />
-              <span className="text-text-primary font-bold text-xl font-jakarta">
+    <footer className="bg-bg-elevated border-t border-border-subtle">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
+
+        {/* 4-column grid: Brand | Product | Company | Legal */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+
+          {/* Col 1: Brand */}
+          <div className="sm:col-span-2 lg:col-span-1 space-y-5">
+            <Link href="/" className="flex items-center gap-2.5 group w-fit">
+              <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Train size={16} weight="fill" className="text-primary" />
+              </div>
+              <span className="text-text-primary font-bold text-base font-jakarta">
                 {t.common.brand}
               </span>
             </Link>
-            <p className="text-text-secondary leading-relaxed font-inter">
+            <p className="text-text-secondary text-sm leading-relaxed font-inter max-w-xs">
               {t.footer.brand_desc}
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {socialLinks.map((s) => (
-                <a 
-                  key={s.label} 
-                  href={s.href} 
-                  className="p-2 bg-bg-card rounded-full text-text-tertiary hover:text-primary transition-colors border border-border-subtle"
+                <a
+                  key={s.label}
+                  href={s.href}
+                  className="w-8 h-8 flex items-center justify-center bg-bg-card rounded-full text-text-tertiary hover:text-primary border border-border-subtle hover:border-primary/30 transition-all"
                   aria-label={s.label}
                 >
                   {s.icon}
                 </a>
               ))}
             </div>
+            {/* Contact email */}
+            <a
+              href="mailto:support@railmatebd.com"
+              className="inline-flex items-center gap-2 text-text-tertiary hover:text-primary transition-colors text-xs font-inter"
+            >
+              <EnvelopeSimple size={14} />
+              support@railmatebd.com
+            </a>
           </div>
 
-          {/* Download Column */}
+          {/* Col 2: Product */}
           <div>
-            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-6 font-inter">
-              {t.nav.download}
-            </h4>
-            <div className="space-y-3">
-              <DownloadButton
-                platform="google-play"
-                href={process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL!}
-              />
-              <DownloadButton
-                platform="app-store"
-                href={process.env.NEXT_PUBLIC_APP_STORE_URL!}
-                status="coming-soon"
-              />
-              <DownloadButton
-                platform="apk"
-                href={process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL!}
-              />
-            </div>
-          </div>
-
-          {/* Product Column */}
-          <div>
-            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-6 font-inter">
+            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-5 font-inter">
               {t.footer.product}
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3.5">
               {productLinks.map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="text-text-secondary hover:text-primary transition-colors font-inter text-sm">
+                  <Link
+                    href={l.href}
+                    className="text-text-secondary hover:text-primary transition-colors font-inter text-sm"
+                  >
                     {l.label}
                   </Link>
                 </li>
@@ -103,36 +94,63 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Column */}
+          {/* Col 3: Company */}
           <div>
-            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-6 font-inter">
-              {t.footer.legal}
+            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-5 font-inter">
+              {t.footer.company}
             </h4>
-            <ul className="space-y-4">
-              {legalLinks.map((l) => (
+            <ul className="space-y-3.5">
+              {companyLinks.map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="text-text-secondary hover:text-primary transition-colors font-inter text-sm">
+                  <Link
+                    href={l.href}
+                    className="text-text-secondary hover:text-primary transition-colors font-inter text-sm"
+                  >
                     {l.label}
                   </Link>
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Col 4: Legal */}
+          <div>
+            <h4 className="text-text-primary font-bold uppercase tracking-wider text-xs mb-5 font-inter">
+              {t.footer.legal}
+            </h4>
+            <ul className="space-y-3.5">
+              {legalLinks.map((l) => (
+                <li key={l.label}>
+                  <Link
+                    href={l.href}
+                    className="text-text-secondary hover:text-primary transition-colors font-inter text-sm"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            {/* Legal contact note */}
+            <div className="mt-6 p-3 bg-bg-card border border-border-subtle rounded-lg">
+              <p className="text-text-tertiary text-xs leading-relaxed font-inter">
+                {t.footer.legal_short}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Bottom bar */}
+        <div className="pt-7 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-text-tertiary text-xs font-inter">
             {t.footer.copyright}
           </p>
-          <p className="text-text-tertiary text-xs font-inter text-center md:text-left">
-            {t.footer.data_notice}
+          <p className="text-text-tertiary text-xs font-inter text-center">
+            {t.footer.data_notice_short}
           </p>
-          <div className="flex items-center gap-6">
-             <span className="text-[10px] text-text-tertiary px-2 py-1 border border-border-subtle rounded uppercase tracking-widest font-bold">
-               v1.0.0-production
-             </span>
-          </div>
+          <p className="text-text-tertiary text-xs font-inter">
+            {t.footer.built_in_bangladesh}
+          </p>
         </div>
       </div>
     </footer>

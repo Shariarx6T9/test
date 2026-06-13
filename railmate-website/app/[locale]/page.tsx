@@ -1,33 +1,45 @@
 import HeroSection from '@/components/sections/HeroSection'
+import AboutSection from '@/components/sections/AboutSection'
 import FeaturesSection from '@/components/sections/FeaturesSection'
 import CommunitySection from '@/components/sections/CommunitySection'
-import ScreenshotsCarousel from '@/components/sections/ScreenshotsCarousel'
-import DownloadCTA from '@/components/sections/DownloadCTA'
+import PricingSection from '@/components/sections/PricingSection'
+import BusinessSection from '@/components/sections/BusinessSection'
 import { FAQAccordion } from './faq/FAQAccordion'
 import { TrustDisclaimer } from '@/components/sections/TrustDisclaimer'
+import LegalSection from '@/components/sections/LegalSection'
+import DownloadCTA from '@/components/sections/DownloadCTA'
 
 export default function Home() {
   return (
     <>
-      {/* 1. Hero: What it is, what it does, and primary CTA */}
+      {/* 1. Hero: What it is, primary CTA */}
       <HeroSection />
 
-      {/* 2. Screenshots: Show, don't just tell. */}
-      <ScreenshotsCarousel />
+      {/* 2. About: Who we are — required for payment gateway review */}
+      <AboutSection />
 
-      {/* 3. Features: 3-6 key benefits. */}
+      {/* 3. Features: Key benefits */}
       <FeaturesSection />
 
-      {/* 4. Community: Explain the 'community intelligence' aspect. */}
+      {/* 4. Community: Live intelligence layer */}
       <CommunitySection />
 
-      {/* 5. FAQ Preview: Answer top questions to reduce friction. */}
+      {/* 5. Pricing: Free vs Pro + payment methods */}
+      <PricingSection />
+
+      {/* 6. For Business: Advertising & partnerships */}
+      <BusinessSection />
+
+      {/* 7. FAQ: Reduce conversion friction */}
       <FAQAccordion homepage />
 
-      {/* 6. Trust & Credibility: Legal and disclaimer. */}
+      {/* 8. Trust & Credibility: Disclaimer */}
       <TrustDisclaimer />
 
-      {/* 7. Final CTA: Last chance to convert. */}
+      {/* 9. Legal compliance links */}
+      <LegalSection />
+
+      {/* 10. Final CTA */}
       <DownloadCTA />
     </>
   )
