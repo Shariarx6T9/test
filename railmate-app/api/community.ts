@@ -4,7 +4,7 @@
 // No business logic here — only data access.
 
 import * as FileSystem from 'expo-file-system';
-import supabase from '../../lib/supabase';
+import supabase from '../lib/supabase';
 import type {
   CommunityReport,
   ReportFilter,

@@ -7,7 +7,7 @@ import {
   EnvelopeSimple,
   ArrowRight,
 } from 'phosphor-react-native';
-import ScreenWrapper from '../../components/layout/ScreenWrapper';
+import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Typography } from '../../components/ui/Typography/Typography';
 import { Button } from '../../components/ui/Button/Button';
 import { Input } from '../../components/ui/Input/Input';
@@ -225,12 +225,6 @@ export default function LoginScreen() {
                   placeholder={t('auth.email_placeholder')}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  icon={
-                    <EnvelopeSimple
-                      size={20}
-                      color={currentColors['text-secondary']}
-                    />
-                  }
                   isBengali={isBengali}
                 />
               </View>

@@ -9,7 +9,7 @@ import {
   SignOut,
   PencilSimple,
 } from 'phosphor-react-native';
-import ScreenWrapper from '../../components/layout/ScreenWrapper';
+import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Typography } from '../../components/ui/Typography/Typography';
 import { Button } from '../../components/ui/Button/Button';
 import { Card } from '../../components/ui/Card/Card';

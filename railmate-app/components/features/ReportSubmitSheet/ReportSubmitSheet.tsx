@@ -18,6 +18,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useColorScheme } from 'nativewind';
+import { Colors } from '../../../constants/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import {
@@ -33,7 +35,7 @@ import {
 } from 'phosphor-react-native';
 import { useTranslation } from '../../../i18n';
 import { useAuthStore } from '../../../stores/authStore';
-import Typography from '../../ui/Typography';
+import { Typography } from '../../ui/Typography/Typography';
 import {
   useSubmitReport,
   useTrainSearch,
@@ -105,6 +107,8 @@ function SearchableSelector<T extends { id: string }>({
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const { data = [], isLoading } = useSearch(query);
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
 
   return (
     <View className="mb-4">
@@ -114,7 +118,7 @@ function SearchableSelector<T extends { id: string }>({
         activeOpacity={0.8}
       >
         <Typography
-          variant="body2"
+          variant="body-sm"
           className={value ? 'text-text-primary' : 'text-text-secondary'}
         >
           {value ? displayValue : placeholder}
@@ -136,13 +140,13 @@ function SearchableSelector<T extends { id: string }>({
                 value={query}
                 onChangeText={setQuery}
                 placeholder={placeholder}
-                placeholderTextColor="#8FA3C0"
+                placeholderTextColor={currentColors['text-secondary']}
                 className="bg-bg-base border border-border rounded-xl px-4 py-3 text-text-primary"
-                style={{ color: '#F0F4FF' }}
+                style={{ color: currentColors['text-primary'] }}
               />
             </View>
             {isLoading ? (
-              <ActivityIndicator color="#00A859" className="py-4" />
+              <ActivityIndicator color={currentColors.primary} className="py-4" />
             ) : (
               <FlatList
                 data={data}
@@ -157,7 +161,7 @@ function SearchableSelector<T extends { id: string }>({
                     className="px-4 py-3 border-b border-border"
                   >
                     <Typography
-                      variant="body2"
+                      variant="body-sm"
                       className="text-text-primary"
                     >
                       {renderItem(item)}
@@ -186,6 +190,9 @@ function PhotoPicker({
   onPick: () => void;
   onRemove: () => void;
 }) {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
+
   if (uri) {
     return (
       <View className="flex-row items-center gap-3 mb-4">
@@ -208,8 +215,8 @@ function PhotoPicker({
       className="flex-row items-center gap-2 border border-dashed border-border rounded-xl px-4 py-3 mb-4"
       activeOpacity={0.7}
     >
-      <Camera size={20} color="#8FA3C0" />
-      <Typography variant="body2" className="text-text-secondary">
+      <Camera size={20} color={currentColors['text-secondary']} />
+      <Typography variant="body-sm" className="text-text-secondary">
         {label}
       </Typography>
     </TouchableOpacity>
@@ -232,6 +239,8 @@ export default function ReportSubmitSheet({
   const { t } = useTranslation();
   const { user, isAuthenticated } = useAuthStore();
   const submitMutation = useSubmitReport();
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
 
   // ── Sheet slide animation ───────────────────────────────────────────────
   const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
@@ -365,7 +374,7 @@ export default function ReportSubmitSheet({
   function renderAuthGate() {
     return (
       <View className="flex-1 items-center justify-center gap-5 px-6">
-        <Lock size={48} color="#8FA3C0" />
+        <Lock size={48} color={currentColors['text-secondary']} />
         <Typography variant="h3" className="text-text-primary text-center">
           {t('community.sign_in_required')}
         </Typography>
@@ -392,7 +401,7 @@ export default function ReportSubmitSheet({
       >
         <TypeCard
           label={t('community.type_delay')}
-          icon={<Warning size={24} color="#E8394B" weight="fill" />}
+          icon={<Warning size={24} color={currentColors.danger} weight="fill" />}
           accentClass="bg-danger"
           onPress={() => {
             setSelectedType('DELAY');
@@ -401,7 +410,7 @@ export default function ReportSubmitSheet({
         />
         <TypeCard
           label={t('community.type_crowding')}
-          icon={<Users size={24} color="#F5A623" weight="fill" />}
+          icon={<Users size={24} color={currentColors.accent} weight="fill" />}
           accentClass="bg-accent"
           onPress={() => {
             setSelectedType('CROWDING');
@@ -410,7 +419,7 @@ export default function ReportSubmitSheet({
         />
         <TypeCard
           label={t('community.type_condition')}
-          icon={<Star size={24} color="#4EA8E0" weight="fill" />}
+          icon={<Star size={24} color={currentColors.info} weight="fill" />}
           accentClass="bg-info"
           onPress={() => {
             setSelectedType('CONDITION');
@@ -476,7 +485,7 @@ export default function ReportSubmitSheet({
               onPress={() => setDelayMinutes((v) => Math.max(1, v - 5))}
               className="w-9 h-9 rounded-full bg-bg-base items-center justify-center"
             >
-              <Minus size={18} color="#F0F4FF" />
+              <Minus size={18} color={currentColors['text-primary']} />
             </TouchableOpacity>
             <TextInput
               value={String(delayMinutes)}
@@ -486,14 +495,14 @@ export default function ReportSubmitSheet({
               }}
               keyboardType="number-pad"
               className="flex-1 text-center text-text-primary text-lg font-semibold"
-              style={{ color: '#F0F4FF' }}
+              style={{ color: currentColors['text-primary'] }}
               selectTextOnFocus
             />
             <TouchableOpacity
               onPress={() => setDelayMinutes((v) => Math.min(300, v + 5))}
               className="w-9 h-9 rounded-full bg-bg-base items-center justify-center"
             >
-              <Plus size={18} color="#F0F4FF" />
+              <Plus size={18} color={currentColors['text-primary']} />
             </TouchableOpacity>
           </View>
 
@@ -574,9 +583,9 @@ export default function ReportSubmitSheet({
             value={coachNumber}
             onChangeText={setCoachNumber}
             placeholder="e.g. SL-4"
-            placeholderTextColor="#8FA3C0"
+            placeholderTextColor={currentColors['text-secondary']}
             className="bg-bg-card border border-border rounded-xl px-4 py-3 text-text-primary mb-4"
-            style={{ color: '#F0F4FF' }}
+            style={{ color: currentColors['text-primary'] }}
             maxLength={10}
           />
 
@@ -666,9 +675,9 @@ export default function ReportSubmitSheet({
             value={coachNumber}
             onChangeText={setCoachNumber}
             placeholder="e.g. SL-4"
-            placeholderTextColor="#8FA3C0"
+            placeholderTextColor={currentColors['text-secondary']}
             className="bg-bg-card border border-border rounded-xl px-4 py-3 text-text-primary mb-4"
-            style={{ color: '#F0F4FF' }}
+            style={{ color: currentColors['text-primary'] }}
             maxLength={10}
           />
 
@@ -686,7 +695,7 @@ export default function ReportSubmitSheet({
                 <Star
                   size={36}
                   weight={i <= conditionRating ? 'fill' : 'regular'}
-                  color={i <= conditionRating ? '#00A859' : '#1E2E42'}
+                  color={i <= conditionRating ? currentColors.primary : currentColors.border}
                 />
               </TouchableOpacity>
             ))}
@@ -705,11 +714,11 @@ export default function ReportSubmitSheet({
             value={conditionNote}
             onChangeText={(v) => setConditionNote(v.slice(0, 120))}
             placeholder={t('community.note_placeholder')}
-            placeholderTextColor="#8FA3C0"
+            placeholderTextColor={currentColors['text-secondary']}
             multiline
             numberOfLines={3}
             className="bg-bg-card border border-border rounded-xl px-4 py-3 text-text-primary mb-4"
-            style={{ color: '#F0F4FF', textAlignVertical: 'top', minHeight: 80 }}
+            style={{ color: currentColors['text-primary'], textAlignVertical: 'top', minHeight: 80 }}
           />
 
           <Typography variant="caption" className="text-text-secondary mb-2">
@@ -738,7 +747,7 @@ export default function ReportSubmitSheet({
     return (
       <View className="flex-1 items-center justify-center gap-5 px-6">
         <Animated.View style={{ transform: [{ scale: successScale }] }}>
-          <CheckCircle size={80} color="#00A859" weight="fill" />
+          <CheckCircle size={80} color={currentColors.primary} weight="fill" />
         </Animated.View>
         <Typography
           variant="h2"
@@ -748,7 +757,7 @@ export default function ReportSubmitSheet({
           {t('community.success')}
         </Typography>
         <Typography
-          variant="body2"
+          variant="body-sm"
           className="text-text-secondary text-center"
           isBengali={isBengali}
         >
@@ -824,7 +833,7 @@ export default function ReportSubmitSheet({
                 onPress={() => setStep('TYPE_SELECT')}
                 className="mr-3 w-9 h-9 rounded-full bg-bg-card items-center justify-center"
               >
-                <X size={18} color="#F0F4FF" />
+                <X size={18} color={currentColors['text-primary']} />
               </TouchableOpacity>
             ) : (
               <View className="w-9 mr-3" />
@@ -836,7 +845,7 @@ export default function ReportSubmitSheet({
               onPress={handleClose}
               className="w-9 h-9 rounded-full bg-bg-card items-center justify-center"
             >
-              <X size={18} color="#F0F4FF" />
+              <X size={18} color={currentColors['text-primary']} />
             </TouchableOpacity>
           </View>
         )}
@@ -873,6 +882,8 @@ function SubmitButton({
   label: string;
   onPress: () => void;
 }) {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const disabled = !canSubmit || isUploading;
   return (
     <TouchableOpacity

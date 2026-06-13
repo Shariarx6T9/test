@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, User as UserIcon } from 'phosphor-react-native';
-import ScreenWrapper from '../../components/layout/ScreenWrapper';
+import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Typography } from '../../components/ui/Typography/Typography';
 import { Button } from '../../components/ui/Button/Button';
 import { Input } from '../../components/ui/Input/Input';

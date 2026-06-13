@@ -13,7 +13,7 @@ import {
   uploadReportPhoto,
   voteOnReport,
 } from '../api/community';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '../stores/authStore';
 import type {
   CommunityReport,
   ReportFilter,

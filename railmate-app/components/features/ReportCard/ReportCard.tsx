@@ -15,8 +15,10 @@ import {
   Star,
   X,
 } from 'phosphor-react-native';
+import { useColorScheme } from 'nativewind';
+import { Colors } from '../../../constants/colors';
 import { useTranslation } from '../../../i18n';
-import Typography from '../../ui/Typography';
+import { Typography } from '../../ui/Typography/Typography';
 import { timeAgo } from '../../../utils/timeAgo';
 import type { CommunityReport, VoteType } from '../../../types/report.types';
 
@@ -43,6 +45,9 @@ function getAccentClass(type: CommunityReport['report_type']): string {
 }
 
 function StarRating({ rating }: { rating: number }) {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
+
   return (
     <View className="flex-row">
       {[1, 2, 3, 4, 5].map((i) => (
@@ -50,7 +55,7 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           size={14}
           weight={i <= rating ? 'fill' : 'regular'}
-          color={i <= rating ? '#00A859' : '#8FA3C0'}
+          color={i <= rating ? currentColors.primary : currentColors['text-secondary']}
         />
       ))}
     </View>
@@ -65,6 +70,8 @@ export default function ReportCard({
   onVote,
   currentUserId,
 }: ReportCardProps) {
+  const { colorScheme } = useColorScheme();
+  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { t } = useTranslation();
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
 
@@ -85,14 +92,14 @@ export default function ReportCard({
     switch (report.report_type) {
       case 'DELAY':
         return (
-          <Typography variant="body2" className="text-text-primary">
+          <Typography variant="body-sm" className="text-text-primary">
             {t('community.delay_report', { minutes: report.delay_minutes })}
           </Typography>
         );
       case 'CROWDING': {
         const levelKey = `community.crowd_${report.crowd_level?.toLowerCase()}`;
         return (
-          <Typography variant="body2" className="text-text-primary">
+          <Typography variant="body-sm" className="text-text-primary">
             {t('community.crowding_report', { level: t(levelKey) })}
           </Typography>
         );
@@ -123,11 +130,11 @@ export default function ReportCard({
     const props = { size: 18, weight: 'fill' as const };
     switch (report.report_type) {
       case 'DELAY':
-        return <Warning {...props} color="#E8394B" />;
+        return <Warning {...props} color={currentColors.danger} />;
       case 'CROWDING':
-        return <Users {...props} color="#F5A623" />;
+        return <Users {...props} color={currentColors.accent} />;
       case 'COACH_CONDITION':
-        return <Star {...props} color="#4EA8E0" />;
+        return <Star {...props} color={currentColors.info} />;
     }
   }
 
@@ -157,7 +164,7 @@ export default function ReportCard({
 
             {isVerified && (
               <View className="flex-row items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
-                <CheckCircle size={12} color="#00A859" weight="fill" />
+                <CheckCircle size={12} color={currentColors.primary} weight="fill" />
                 <Typography variant="caption" className="text-primary">
                   {t('community.verified')}
                 </Typography>
@@ -231,7 +238,7 @@ export default function ReportCard({
               >
                 <CheckCircle
                   size={14}
-                  color={userConfirmed ? '#00A859' : '#8FA3C0'}
+                  color={userConfirmed ? currentColors.primary : currentColors['text-secondary']}
                   weight={userConfirmed ? 'fill' : 'regular'}
                 />
                 <Typography
@@ -253,7 +260,7 @@ export default function ReportCard({
               >
                 <X
                   size={14}
-                  color={userDisputed ? '#E8394B' : '#8FA3C0'}
+                  color={userDisputed ? currentColors.danger : currentColors['text-secondary']}
                   weight={userDisputed ? 'bold' : 'regular'}
                 />
                 <Typography
@@ -290,7 +297,7 @@ export default function ReportCard({
               onPress={() => setPhotoModalVisible(false)}
               className="absolute top-14 right-5 w-10 h-10 rounded-full bg-white/10 items-center justify-center"
             >
-              <X size={20} color="#F0F4FF" />
+              <X size={20} color={currentColors['text-primary']} />
             </TouchableOpacity>
           </Pressable>
         </Modal>
