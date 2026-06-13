@@ -36,6 +36,7 @@
   "profile.title": "Profile",
   "profile.guest_user": "Guest User",
   "profile.guest_hint": "Sign in to sync your data",
+  "profile.sign_out": "Sign Out"
   "profile.saved_routes": "Saved Routes",
   "profile.settings": "Settings",
   "profile.language": "Language",
