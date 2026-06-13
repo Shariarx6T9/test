@@ -60,12 +60,14 @@ export default function HeroSection() {
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3">
               <DownloadButton
                 platform="google-play"
-                href={process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL!}
+                href={process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL || "#"}
+                status={!process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL || process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL === "#" ? "coming-soon" : "available"}
                 className="w-full sm:w-auto justify-center"
               />
               <DownloadButton
-                platform="apk"
-                href={process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL!}
+                platform="app-store"
+                href={process.env.NEXT_PUBLIC_APP_STORE_URL || "#"}
+                status={!process.env.NEXT_PUBLIC_APP_STORE_URL || process.env.NEXT_PUBLIC_APP_STORE_URL === "#" ? "coming-soon" : "available"}
                 className="w-full sm:w-auto justify-center"
               />
             </div>

@@ -1,7 +1,8 @@
 'use client'
 
 import { useI18n } from '@/lib/i18n'
-import { FacebookLogo, TwitterLogo, Train, EnvelopeSimple } from '@phosphor-icons/react'
+import Image from 'next/image'
+import { FacebookLogo, TwitterLogo, EnvelopeSimple } from '@phosphor-icons/react'
 import { Link } from '@/lib/i18n/navigation'
 
 export default function Footer() {
@@ -42,17 +43,26 @@ export default function Footer() {
 
           {/* Col 1: Brand */}
           <div className="sm:col-span-2 lg:col-span-1 space-y-5">
-            <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Train size={16} weight="fill" className="text-primary" />
-              </div>
+            <Link href="/" className="flex items-center gap-3 group w-fit">
+              <Image 
+                src="/logo.png" 
+                alt="RailMate Logo" 
+                width={32} 
+                height={32} 
+                className="rounded-lg"
+              />
               <span className="text-text-primary font-bold text-base font-jakarta">
                 {t.common.brand}
               </span>
             </Link>
-            <p className="text-text-secondary text-sm leading-relaxed font-inter max-w-xs">
-              {t.footer.brand_desc}
-            </p>
+            <div className="space-y-1">
+               <p className="text-text-secondary text-sm leading-relaxed font-inter max-w-xs">
+                 {t.footer.brand_desc}
+               </p>
+               <p className="text-text-tertiary text-[13px] font-inter">
+                 স্মার্ট যাত্রা। RailMate যাত্রা।
+               </p>
+            </div>
             <div className="flex gap-3">
               {socialLinks.map((s) => (
                 <a
@@ -149,7 +159,7 @@ export default function Footer() {
             {t.footer.data_notice_short}
           </p>
           <p className="text-text-tertiary text-xs font-inter">
-            {t.footer.built_in_bangladesh}
+            Built with ❤️ in Bangladesh
           </p>
         </div>
       </div>

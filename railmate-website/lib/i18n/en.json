@@ -13,9 +13,9 @@
   },
   "hero": {
     "overline": "Built for Bangladeshi Railway Travelers",
-    "headline1": "Travel Smarter.",
-    "headline2": "Travel RailMate",
-    "subtitle": "Stop using 3 different apps just to catch one train. RailMate gives you real schedules, real fares, and live delay reports from fellow travelers — all in one place. Free.",
+    "headline1": "RailMate Bangladesh",
+    "headline2": "Travel Smarter. Travel RailMate.",
+    "subtitle": "স্মার্ট যাত্রা। RailMate যাত্রা।",
     "cta": "Get RailMate Now",
     "badge1": "Free Forever",
     "badge2": "Bengali + English",
@@ -208,16 +208,32 @@
     "headline": "See it before you download it.",
     "subheadline": "A quick look at every screen you'll use.",
     "screens": [
-      { "id": "search", "label": "Train Search" },
-      { "id": "results", "label": "Search Results" },
-      { "id": "fare", "label": "Fare Calculator" },
-      { "id": "alerts", "label": "Departure Alerts" }
+      { 
+        "id": "search", 
+        "label": "Find Trains Instantly",
+        "description": "Search Bangladesh Railway schedules in seconds."
+      },
+      { 
+        "id": "results", 
+        "label": "Smart Journey Results",
+        "description": "Compare timings and choose the best train."
+      },
+      { 
+        "id": "fare", 
+        "label": "Know Fares Before You Travel",
+        "description": "Transparent fare information across classes."
+      },
+      { 
+        "id": "alerts", 
+        "label": "Never Miss Your Train",
+        "description": "Receive reminders and important travel alerts."
+      }
     ]
   },
   "community_section": {
     "badge": "Community Driven",
-    "headline": "Real Reports. <br /> <span class='text-primary'>Real Travelers.</span>",
-    "subheadline": "RailMate relies on real travelers sharing real-time updates. Know about delays, crowding, and coach conditions before you even reach the station.",
+    "headline": "Built for Modern <br /> <span class='text-primary'>Rail Travelers</span>",
+    "subheadline": "Schedules, fares, journey planning, and community-powered intelligence — all in one experience.",
     "delay_reporting_title": "Delay Reporting",
     "delay_reporting_desc": "Crowdsourced delay times updated by passengers on the train.",
     "crowd_status_title": "Crowd Status",
@@ -370,7 +386,7 @@
     }
   },
   "metadata": {
-    "title": "RailMate Bangladesh — Travel Smarter. Travel RailMate.",
+    "title": "রেলমেট বাংলাদেশ — স্মার্ট যাত্রা। RailMate যাত্রা।",
     "description": "Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline."
   },
   "features_page": {

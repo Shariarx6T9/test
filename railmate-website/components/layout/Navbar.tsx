@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import { useI18n } from '@/lib/i18n'
-import { Sun, Moon, Translate, List, X, Train } from '@phosphor-icons/react'
+import { Sun, Moon, Translate, List, X } from '@phosphor-icons/react'
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation'
 
 export default function Navbar() {
@@ -59,9 +59,13 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0" aria-label="RailMate Bangladesh — Home">
               <div className="flex-shrink-0 transition-transform group-hover:scale-105">
-                <div className="w-8 h-8 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
-                  <Train size={18} weight="fill" className="text-primary" />
-                </div>
+                <Image 
+                  src="/logo.png" 
+                  alt="RailMate Logo" 
+                  width={32} 
+                  height={32} 
+                  className="rounded-lg"
+                />
               </div>
               <div className="flex flex-col leading-none">
                 <span className="text-text-primary font-bold text-[17px] leading-tight font-jakarta">
@@ -169,9 +173,13 @@ export default function Navbar() {
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-5 border-b border-border-subtle">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
-                <Train size={16} weight="fill" className="text-primary" />
-              </div>
+              <Image 
+                src="/logo.png" 
+                alt="RailMate Logo" 
+                width={28} 
+                height={28} 
+                className="rounded-lg"
+              />
               <span className="text-text-primary font-bold text-base font-jakarta">{t.common.brand}</span>
             </div>
             <button

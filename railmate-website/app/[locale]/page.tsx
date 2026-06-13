@@ -1,6 +1,7 @@
 import HeroSection from '@/components/sections/HeroSection'
 import AboutSection from '@/components/sections/AboutSection'
 import FeaturesSection from '@/components/sections/FeaturesSection'
+import ScreenshotsCarousel from '@/components/sections/ScreenshotsCarousel'
 import CommunitySection from '@/components/sections/CommunitySection'
 import PricingSection from '@/components/sections/PricingSection'
 import BusinessSection from '@/components/sections/BusinessSection'
@@ -20,6 +21,9 @@ export default function Home() {
 
       {/* 3. Features: Key benefits */}
       <FeaturesSection />
+
+      {/* 3.5 App Screenshots */}
+      <ScreenshotsCarousel />
 
       {/* 4. Community: Live intelligence layer */}
       <CommunitySection />

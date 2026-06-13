@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Users, Warning, Clock, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import Button from "../ui/Button";
 import { useI18n } from "@/lib/i18n";
@@ -91,33 +92,20 @@ export default function CommunitySection() {
               <Button size="lg">{t.community_section.cta}</Button>
             </div>
 
-            <div className="space-y-4">
-              {reports.map((report) => (
-                <div 
-                  key={report.id}
-                  className="p-6 bg-bg-card border border-border rounded-lg hover:border-border-strong transition-colors group"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${report.bgColor} ${report.color} border ${report.borderColor}`}>
-                      {report.status}
-                    </span>
-                    <span className="text-text-tertiary text-xs flex items-center gap-1">
-                       <Clock size={14} />
-                       {report.time}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-text-primary">{report.title}</h3>
-                    <div className="flex items-center gap-2 text-text-secondary text-sm">
-                       <CheckCircle size={18} className="text-success" />
-                       {report.count}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden border border-border shadow-2xl">
+                <Image
+                  src="/website feature showcase section.png"
+                  alt="RailMate Feature Showcase"
+                  width={800}
+                  height={600}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
               
-              {/* Decorative Card Offset */}
-              <div className="p-4 bg-bg-card/50 border border-border/50 rounded-lg blur-[1px] scale-95 origin-top opacity-50" />
+              {/* Decorative elements */}
+              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/20 blur-3xl rounded-full z-0" />
+              <div className="absolute -top-6 -left-6 w-32 h-32 bg-accent/10 blur-3xl rounded-full z-0" />
             </div>
           </div>
         </div>
