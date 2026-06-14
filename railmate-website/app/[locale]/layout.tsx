@@ -87,7 +87,7 @@ export default async function RootLayout({
             lib/i18n/navigation.ts).  I18nProvider sits inside it so that
             useParams is available for locale detection.
           */}
-          <NextIntlClientProvider messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <I18nProvider>
               <div className="flex flex-col min-h-screen">
                 <Navbar />
