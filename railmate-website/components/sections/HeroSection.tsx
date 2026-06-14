@@ -35,7 +35,7 @@ export default function HeroSection() {
             <h1 className="text-text-primary font-extrabold leading-[1.12] text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-jakarta">
               {t.hero.headline1}
               <br />
-              <span className="text-primary">{t.hero.headline2}.</span>
+              <span className="text-primary">{t.hero.headline2}</span>
             </h1>
 
             {/* Subtitle */}

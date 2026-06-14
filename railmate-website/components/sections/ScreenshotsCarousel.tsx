@@ -18,10 +18,20 @@ export default function ScreenshotsCarousel() {
   const { t } = useI18n();
   const [active, setActive] = useState(0);
 
-  const SCREENS = t.screenshots.screens as { id: string; label: string; description: string }[];
+  const SCREENS = t.screenshots.screens as {
+    id: string;
+    label: string;
+    description: string;
+  }[];
 
-  const next = useCallback(() => setActive((i) => (i + 1) % SCREENS.length), [SCREENS.length]);
-  const prev = useCallback(() => setActive((i) => (i - 1 + SCREENS.length) % SCREENS.length), [SCREENS.length]);
+  const next = useCallback(
+    () => setActive((i) => (i + 1) % SCREENS.length),
+    [SCREENS.length]
+  );
+  const prev = useCallback(
+    () => setActive((i) => (i - 1 + SCREENS.length) % SCREENS.length),
+    [SCREENS.length]
+  );
 
   useEffect(() => {
     const timer = setInterval(next, 4000);
@@ -40,10 +50,20 @@ export default function ScreenshotsCarousel() {
         />
 
         <div className="mt-12 flex flex-col items-center gap-8">
-          <div className="relative w-[280px] h-[580px] rounded-[36px] border-[8px] border-border-strong bg-bg-card overflow-hidden shadow-2xl transition-all duration-300">
-            {/* Camera Notch */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-border-strong rounded-b-2xl z-20" />
 
+          {/* Phone Frame — aspect ratio locked to iPhone 390:844 */}
+          <div
+            className="relative rounded-[44px] border-[10px] border-border-strong bg-[#080D17] overflow-hidden"
+            style={{
+              width: 270,
+              height: Math.round(270 * (844 / 390)),
+              boxShadow: '0 0 0 1px rgba(0,168,89,0.15), 0 8px 32px rgba(0,0,0,0.7), 0 0 40px rgba(0,168,89,0.12)',
+            }}
+          >
+            {/* Dynamic island / notch */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-6 bg-[#0a0a0a] rounded-full z-20" />
+
+            {/* Screenshots — fill the entire phone frame, no caption overlap */}
             {SCREENS.map((screen, i) => (
               <div
                 key={screen.id}
@@ -56,47 +76,52 @@ export default function ScreenshotsCarousel() {
                   src={MOCKUP_IMAGES[screen.id]}
                   alt={screen.label}
                   fill
-                  className="object-cover"
+                  className="object-cover object-top"
                   priority={i === 0}
                 />
               </div>
             ))}
-
-            {/* Content Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-bg-base via-bg-base/90 to-transparent z-10 text-center">
-              <div className="text-primary text-xs font-bold uppercase tracking-widest mb-2 font-inter">
-                {activeScreen.label}
-              </div>
-              <p className="text-text-secondary text-sm font-inter leading-relaxed">
-                {activeScreen.description}
-              </p>
-            </div>
           </div>
 
+          {/* Caption — outside the phone, below it. Never overlaps. */}
+          <div className="text-center min-h-[64px] px-4 transition-all duration-300">
+            <p className="text-primary text-xs font-bold uppercase tracking-widest mb-2 font-inter">
+              {activeScreen.label}
+            </p>
+            <p className="text-text-secondary text-sm font-inter leading-relaxed max-w-xs mx-auto">
+              {activeScreen.description}
+            </p>
+          </div>
+
+          {/* Navigation controls */}
           <div className="flex items-center gap-4">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-border-subtle text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors bg-bg-card/50"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-border-strong text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors bg-bg-card"
               aria-label="Previous screenshot"
             >
               &larr;
             </button>
+
             <div className="flex items-center gap-2">
               {SCREENS.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActive(i)}
                   className={clsx(
-                    "h-2 w-6 rounded-full transition-all duration-300",
-                    i === active ? "bg-primary w-10" : "bg-border-subtle hover:bg-bg-elevated"
+                    "h-2 rounded-full transition-all duration-300",
+                    i === active
+                      ? "bg-primary w-8"
+                      : "bg-border-strong hover:bg-text-tertiary w-2"
                   )}
                   aria-label={`Go to screenshot ${i + 1}`}
                 />
               ))}
             </div>
+
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-border-subtle text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors bg-bg-card/50"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-border-strong text-text-secondary hover:text-text-primary transition-colors bg-bg-card"
               aria-label="Next screenshot"
             >
               &rarr;
@@ -107,4 +132,3 @@ export default function ScreenshotsCarousel() {
     </section>
   );
 }
-

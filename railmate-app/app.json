@@ -10,14 +10,27 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.railmate.bd",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "RailMate needs your location to show nearby stations.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RailMate needs your location to show nearby stations.",
+        "NSPhotoLibraryUsageDescription": "RailMate needs photo access to let you upload report photos.",
+        "NSCameraUsageDescription": "RailMate needs camera access to let you take report photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#00A859"
       },
-      "package": "com.railmate.bd"
+      "package": "com.railmate.bd",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png",
@@ -43,6 +56,20 @@
             "resizeMode": "cover",
             "backgroundColor": "#080D17"
           }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "RailMate needs photo access to let you upload report photos.",
+          "cameraPermission": "RailMate needs camera access to let you take report photos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "RailMate needs your location to show nearby stations.",
+          "locationWhenInUsePermission": "RailMate needs your location to show nearby stations."
         }
       ]
     ],

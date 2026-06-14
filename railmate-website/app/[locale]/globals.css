@@ -9,6 +9,8 @@
   --bg-overlay: rgba(255, 255, 255, 0.8);
   --primary: #00A859;
   --primary-dim: #007A40;
+  /* --border is the default border token (between subtle and strong) */
+  --border: #E1E9F0;
   --border-subtle: #E2E8F0;
   --border-strong: #CBD5E1;
   --text-primary: #0F172A;
@@ -24,6 +26,8 @@
   --bg-overlay: rgba(8, 13, 23, 0.8);
   --primary: #00A859;
   --primary-dim: #007A40;
+  /* --border is the default border token (between subtle and strong) */
+  --border: #1E2E42;
   --border-subtle: #1E2E42;
   --border-strong: #2A3F57;
   --text-primary: #F0F4FF;

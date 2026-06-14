@@ -13,13 +13,13 @@
   },
   "hero": {
     "overline": "Built for Bangladeshi Railway Travelers",
-    "headline1": "RailMate Bangladesh",
-    "headline2": "Travel Smarter. Travel RailMate.",
+    "headline1": "Travel Smarter.",
+    "headline2": "Travel RailMate.",
     "subtitle": "Plan better journeys with schedules, smart tools, and community-powered railway updates from travelers across Bangladesh.",
     "cta": "Get RailMate Now",
-    "badge1": "Free Forever",
+    "badge1": "Free to Download",
     "badge2": "Bengali + English",
-    "badge3": "Works Offline"
+    "badge3": "Community Powered"
   },
   "common": {
     "brand": "RailMate",
@@ -67,15 +67,15 @@
   "about_section": {
     "overline": "OUR STORY",
     "headline": "Created by travelers, for travelers.",
-    "para1": "RailMate was born out of a simple frustration: it shouldn't be this hard to find a train. We started as a small side project to help friends find schedules on their phones, and it grew into a community platform serving thousands of passengers across Bangladesh.",
+    "para1": "RailMate was born out of a simple frustration: it shouldn't be this hard to find a train. We started as a small side project to help friends find schedules on their phones, and we're building it into a community platform for travelers across Bangladesh.",
     "para2": "We believe that access to public transport information is a right, not a luxury. That's why RailMate is independent, community-driven, and free for the core features that matter most.",
     "legal_note": "RailMate is an independent platform and is not affiliated with Bangladesh Railway or any government entity.",
-    "stat1_num": "100K+",
-    "stat1_label": "Active Users",
+    "stat1_num": "100+",
+    "stat1_label": "Train Routes Covered",
     "stat2_num": "500+",
     "stat2_label": "Stations Covered",
-    "stat3_num": "24/7",
-    "stat3_label": "Live Updates",
+    "stat3_num": "8",
+    "stat3_label": "Coach Classes Supported",
     "beta_badge": "Currently in Open Beta"
   },
   "business_section": {
@@ -208,23 +208,23 @@
     "headline": "See it before you download it.",
     "subheadline": "A quick look at every screen you'll use.",
     "screens": [
-      { 
-        "id": "search", 
+      {
+        "id": "search",
         "label": "Find Trains Instantly",
         "description": "Search Bangladesh Railway schedules in seconds."
       },
-      { 
-        "id": "results", 
+      {
+        "id": "results",
         "label": "Smart Journey Results",
         "description": "Compare timings and choose the best train."
       },
-      { 
-        "id": "fare", 
+      {
+        "id": "fare",
         "label": "Know Fares Before You Travel",
         "description": "Transparent fare information across classes."
       },
-      { 
-        "id": "alerts", 
+      {
+        "id": "alerts",
         "label": "Never Miss Your Train",
         "description": "Receive reminders and important travel alerts."
       }
@@ -387,7 +387,7 @@
     }
   },
   "metadata": {
-    "title": "রেলমেট বাংলাদেশ — স্মার্ট যাত্রা। RailMate যাত্রা।",
+    "title": "RailMate Bangladesh — Travel Smarter. Travel RailMate.",
     "description": "Real train schedules, live delay reports, and fare calculator for Bangladesh Railway. Free. Bengali & English. Works offline."
   },
   "features_page": {
@@ -463,17 +463,35 @@
       {
         "label": "BR Official Website",
         "highlight": false,
-        "details": ["Schedule data ✓", "Fare info ✗", "Delay reports ✗", "Works offline ✗", "Bengali UI ✗"]
+        "details": [
+          "Schedule data ✓",
+          "Fare info ✗",
+          "Delay reports ✗",
+          "Works offline ✗",
+          "Bengali UI ✗"
+        ]
       },
       {
         "label": "RailMate",
         "highlight": true,
-        "details": ["Schedule data ✓", "Fare info ✓", "Delay reports ✓", "Works offline ✓", "Bengali UI ✓"]
+        "details": [
+          "Schedule data ✓",
+          "Fare info ✓",
+          "Delay reports ✓",
+          "Works offline ✓",
+          "Bengali UI ✓"
+        ]
       },
       {
         "label": "Other Rail Apps",
         "highlight": false,
-        "details": ["Schedule data ✓", "Fare info partial", "Delay reports ✗", "Works offline ✗", "Bengali UI ✗"]
+        "details": [
+          "Schedule data ✓",
+          "Fare info partial",
+          "Delay reports ✗",
+          "Works offline ✗",
+          "Bengali UI ✗"
+        ]
       }
     ],
     "differentiators": [
@@ -502,10 +520,22 @@
   "stats_section": {
     "notice": "Schedule data is sourced from Bangladesh Railway official publications (railway.gov.bd) and community-verified. Always confirm critical journeys with official sources. Live delay data is community-reported.",
     "stats": [
-      { "num": "100+", "label": "Train Routes Covered" },
-      { "num": "500+", "label": "Stations Searchable" },
-      { "num": "8", "label": "Coach Classes Supported" },
-      { "num": "Free", "label": "Core Features, Always" }
+      {
+        "num": "100+",
+        "label": "Train Routes Covered"
+      },
+      {
+        "num": "500+",
+        "label": "Stations Searchable"
+      },
+      {
+        "num": "8",
+        "label": "Coach Classes Supported"
+      },
+      {
+        "num": "Free",
+        "label": "Core Features, Always"
+      }
     ]
   },
   "user_benefits": {
@@ -513,18 +543,48 @@
     "headline2": "Bangladeshi Traveler",
     "callout": "Built for Bangladeshi railway travelers.",
     "benefits": [
-      { "title": "Bengali & English", "desc": "Native support for both languages across the entire app." },
-      { "title": "Works Offline", "desc": "Access full train schedules even without an internet connection." },
-      { "title": "Free to Use", "desc": "Core features like schedules and fares are free forever." },
-      { "title": "Community Verified", "desc": "Reports are validated by other travelers in real-time." },
-      { "title": "Regular Updates", "desc": "Timetables and features updated frequently." },
-      { "title": "Privacy First", "desc": "We collect minimal data and never sell your personal info." }
+      {
+        "title": "Bengali & English",
+        "desc": "Native support for both languages across the entire app."
+      },
+      {
+        "title": "Fare Calculator",
+        "desc": "Exact fares across all 8 coach classes — Shovon to AC Berth — for any route."
+      },
+      {
+        "title": "Free to Use",
+        "desc": "Core features like schedules and fares are free forever."
+      },
+      {
+        "title": "Community Verified",
+        "desc": "Reports are validated by other travelers in real-time."
+      },
+      {
+        "title": "Regular Updates",
+        "desc": "Timetables and features updated frequently."
+      },
+      {
+        "title": "Privacy First",
+        "desc": "We collect minimal data and never sell your personal info."
+      }
     ],
     "stats": [
-      { "label": "Train Routes", "value": "10+" },
-      { "label": "Stations", "value": "100+" },
-      { "label": "Powered By", "value": "Community" },
-      { "label": "Core App", "value": "Free Forever" }
+      {
+        "label": "Train Routes",
+        "value": "100+"
+      },
+      {
+        "label": "Stations",
+        "value": "500+"
+      },
+      {
+        "label": "Powered By",
+        "value": "Community"
+      },
+      {
+        "label": "Core App",
+        "value": "Free Forever"
+      }
     ]
   }
 }

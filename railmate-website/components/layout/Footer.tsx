@@ -59,9 +59,6 @@ export default function Footer() {
                <p className="text-text-secondary text-sm leading-relaxed font-inter max-w-xs">
                  {t.footer.brand_desc}
                </p>
-               <p className="text-text-tertiary text-[13px] font-inter">
-                 স্মার্ট যাত্রা। RailMate যাত্রা।
-               </p>
             </div>
             <div className="flex gap-3">
               {socialLinks.map((s) => (
@@ -157,9 +154,6 @@ export default function Footer() {
           </p>
           <p className="text-text-tertiary text-xs font-inter text-center">
             {t.footer.data_notice_short}
-          </p>
-          <p className="text-text-tertiary text-xs font-inter">
-            Built with ❤️ in Bangladesh
           </p>
         </div>
       </div>
