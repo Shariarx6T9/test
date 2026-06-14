@@ -39,10 +39,7 @@ export default function Navbar() {
 
   const toggleLanguage = () => {
     const newLocale = locale === 'en' ? 'bn' : 'en'
-    router.replace(
-	  { pathname },
-	  { locale: newLocale }
-	)  
+    router.replace(pathname, { locale: newLocale })
   }
 
   if (!mounted) return null
