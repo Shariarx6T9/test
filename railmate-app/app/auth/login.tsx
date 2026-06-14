@@ -160,7 +160,19 @@ export default function LoginScreen() {
           )}
 
           {!!error && (
-            <Text style={[s.errorText, { fontFamily: 'Inter_400Regular' }]}>{error}</Text>
+            <View style={{ marginTop: 8 }}>
+              <Text style={[s.errorText, { fontFamily: 'Inter_400Regular' }]}>{error}</Text>
+              {(error.includes('Network') || error.includes('Backend not configured')) && (
+                <Pressable
+                  onPress={handleGuest}
+                  style={{ marginTop: 12, backgroundColor: '#00A859', borderRadius: 12, paddingVertical: 14, alignItems: 'center' }}
+                >
+                  <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 15, color: '#fff' }}>
+                    Continue as Guest →
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           )}
 
           {/* Actions */}

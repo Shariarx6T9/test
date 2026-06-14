@@ -50,46 +50,54 @@ export default function ProfileScreen() {
   if (!isAuthenticated) {
     return (
       <ScreenWrapper className="bg-bg-base">
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
           <View className="flex-1 px-6 pt-16 items-center">
             <View className="w-24 h-24 rounded-full bg-bg-elevated border border-border items-center justify-center mb-4">
               <UserIcon size={40} color={currentColors['text-tertiary']} />
             </View>
-
-            <Typography
-              variant="h3"
-              className="text-text-primary mb-1"
-              isBengali={isBengali}
-            >
+            <Typography variant="h3" className="text-text-primary mb-1" isBengali={isBengali}>
               {t('auth.guest_user') || 'Guest User'}
             </Typography>
-
-            <Typography
-              variant="body"
-              className="text-text-secondary mb-8 text-center"
-              isBengali={isBengali}
-            >
-              {t('auth.guest_subtitle') ||
-                'Sign in to save routes and get personalized alerts'}
+            <Typography variant="body" className="text-text-secondary mb-8 text-center" isBengali={isBengali}>
+              {t('auth.guest_subtitle') || 'Sign in to save routes and get personalized alerts'}
             </Typography>
+            <Button label={t('auth.create_account')} onPress={() => router.push('/auth/login' as any)} className="w-full mb-3" isBengali={isBengali} />
+            <Button label={t('auth.sign_in')} onPress={() => router.push('/auth/login' as any)} variant="ghost" className="w-full mb-10" isBengali={isBengali} />
 
-            <Button
-              label={t('auth.create_account')}
-              onPress={() => router.push('/auth/login' as any)}
-              className="w-full mb-3"
-              isBengali={isBengali}
-            />
+            {/* Theme selector — available even for guests */}
+            <View style={{ width: '100%', marginBottom: 24 }}>
+              <Typography variant="label" className="text-text-tertiary mb-3 ml-1" isBengali={isBengali}>
+                {t('profile.theme') || 'Theme'}
+              </Typography>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['light', 'dark', 'system'] as const).map((opt) => {
+                  const active = theme === opt;
+                  return (
+                    <Pressable
+                      key={opt}
+                      onPress={() => setTheme(opt)}
+                      style={{
+                        flex: 1, paddingVertical: 10, borderRadius: 20, alignItems: 'center',
+                        backgroundColor: active ? '#00A859' : 'transparent',
+                        borderWidth: 1.5, borderColor: active ? '#00A859' : currentColors['border'],
+                      }}
+                    >
+                      <Typography variant="caption" style={{ color: active ? '#fff' : currentColors['text-secondary'], fontFamily: 'Inter_500Medium' }}>
+                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      </Typography>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
 
-            <Button
-              label={t('auth.sign_in')}
-              onPress={() => router.push('/auth/login' as any)}
-              variant="ghost"
-              className="w-full"
-              isBengali={isBengali}
-            />
+            {/* Language toggle */}
+            <Pressable onPress={toggleLanguage} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', backgroundColor: currentColors['bg-card'], borderWidth: 1, borderColor: currentColors['border'], borderRadius: 14, padding: 16 }}>
+              <Globe size={20} color={currentColors['text-secondary']} />
+              <Typography variant="body" className="text-text-primary flex-1" isBengali={isBengali}>{t('profile.language') || 'Language'}</Typography>
+              <Typography variant="caption" className="text-text-secondary">{locale === 'bn' ? 'বাংলা' : 'English'}</Typography>
+              <CaretRight size={16} color={currentColors['text-tertiary']} />
+            </Pressable>
           </View>
         </ScrollView>
       </ScreenWrapper>

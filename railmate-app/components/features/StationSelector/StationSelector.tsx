@@ -19,7 +19,7 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
   isBengali = false,
 }) => {
   const { t } = useTranslation();
-  const { data: stations, isLoading, error } = useStations();
+  const { data: stations } = useStations();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredStations = useMemo(() => {

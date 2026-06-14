@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { View, FlatList, Pressable } from 'react-native';
 import { 
   ArrowsDownUp, 
   CalendarBlank, 
@@ -39,7 +39,8 @@ function SearchScreenInner() {
     swapStations 
   } = useSearchStore();
 
-  const { data: stations, isLoading } = useStations();
+  const { data: stations } = useStations();
+  // stations always resolves (fallback built into hook), no need to show loading
   const [searchQuery, setSearchQuery] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -193,12 +194,7 @@ function SearchScreenInner() {
             className="mb-4"
           />
 
-          {isLoading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator color="#00A859" size="large" />
-            </View>
-          ) : (
-            <FlatList
+          <FlatList
               data={filteredStations}
               keyExtractor={(item) => item.id}
               renderItem={renderStationItem}
@@ -211,7 +207,6 @@ function SearchScreenInner() {
                 </View>
               }
             />
-          )}
         </View>
       </View>
 
