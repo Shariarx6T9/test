@@ -22,23 +22,23 @@ export const Button: React.FC<ButtonProps> = ({
   const currentColors = Colors[theme];
 
   const sizeClasses = {
-    sm: "h-[36px] px-3",
-    md: "h-[48px] px-6",
-    lg: "h-[56px] px-8",
+    sm: 'h-[38px] px-4',
+    md: 'h-[52px] px-6',
+    lg: 'h-[58px] px-8',
   };
 
-  const baseClasses = "flex-row items-center justify-center rounded-sm active:scale-[0.97]";
-  
+  const baseClasses = 'flex-row items-center justify-center active:scale-[0.97]';
+
   const variantClasses = {
-    primary: "bg-primary active:bg-primary-dim",
-    secondary: "bg-transparent border-[1.5px] border-primary",
-    ghost: "bg-transparent active:bg-bg-overlay",
+    primary: 'bg-primary rounded-xl active:bg-primary-dim',
+    secondary: 'bg-transparent rounded-xl border-[1.5px] border-primary',
+    ghost: 'bg-transparent rounded-xl active:bg-bg-overlay',
   };
 
   const textClasses = {
-    primary: "text-text-inverse",
-    secondary: "text-primary",
-    ghost: "text-text-secondary",
+    primary: 'text-text-inverse',
+    secondary: 'text-primary',
+    ghost: 'text-text-secondary',
   };
 
   const iconColor = {
@@ -51,7 +51,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <Pressable
-      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${isDisabled ? "opacity-40" : ""} ${className}`}
+      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${isDisabled ? 'opacity-40' : ''} ${className}`}
       disabled={isDisabled}
       {...props}
     >
@@ -60,24 +60,20 @@ export const Button: React.FC<ButtonProps> = ({
       ) : (
         <View className="flex-row items-center justify-center">
           {Icon && iconPosition === 'left' && (
-            <Icon 
-                size={20} 
-                color={variant === 'primary' ? iconColor.primary : (variant === 'secondary' ? iconColor.secondary : iconColor.ghost)} 
-                style={{ marginRight: 8 }}
+            <Icon
+              size={20}
+              color={variant === 'primary' ? iconColor.primary : variant === 'secondary' ? iconColor.secondary : iconColor.ghost}
+              style={{ marginRight: 8 }}
             />
           )}
-          <Typography
-            variant="label-lg"
-            isBengali={isBengali}
-            className={textClasses[variant]}
-          >
+          <Typography variant="label-lg" isBengali={isBengali} className={textClasses[variant]}>
             {label}
           </Typography>
           {Icon && iconPosition === 'right' && (
-            <Icon 
-                size={20} 
-                color={variant === 'primary' ? iconColor.primary : (variant === 'secondary' ? iconColor.secondary : iconColor.ghost)} 
-                style={{ marginLeft: 8 }}
+            <Icon
+              size={20}
+              color={variant === 'primary' ? iconColor.primary : variant === 'secondary' ? iconColor.secondary : iconColor.ghost}
+              style={{ marginLeft: 8 }}
             />
           )}
         </View>

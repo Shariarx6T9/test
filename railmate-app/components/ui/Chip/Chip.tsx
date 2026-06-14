@@ -8,6 +8,7 @@ interface ChipProps {
   isActive?: boolean;
   className?: string;
   isBengali?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const Chip: React.FC<ChipProps> = ({
@@ -16,33 +17,37 @@ export const Chip: React.FC<ChipProps> = ({
   isActive = false,
   className = '',
   isBengali = false,
+  icon,
 }) => {
-  const containerClasses = isActive 
-    ? "bg-primary border-primary"
-    : "bg-primary-subtle border-transparent";
-  
-  const textClasses = isActive
-    ? "text-text-inverse"
-    : "text-primary";
+  const containerClasses = isActive
+    ? 'bg-primary border-primary'
+    : 'bg-bg-elevated border-border-strong';
+
+  const textClasses = isActive ? 'text-text-inverse' : 'text-text-secondary';
+
+  const content = (
+    <View className="flex-row items-center gap-1">
+      {icon}
+      <Typography variant="label" className={textClasses} isBengali={isBengali}>
+        {label}
+      </Typography>
+    </View>
+  );
 
   if (onPress) {
     return (
-      <Pressable 
+      <Pressable
         onPress={onPress}
-        className={`px-3 py-1 rounded-full border-[1px] items-center justify-center ${containerClasses} ${className}`}
+        className={`px-3 py-1.5 rounded-lg border items-center justify-center ${containerClasses} ${className}`}
       >
-        <Typography variant="label" className={textClasses} isBengali={isBengali}>
-          {label}
-        </Typography>
+        {content}
       </Pressable>
     );
   }
 
   return (
-    <View className={`px-3 py-1 rounded-full border-[1px] items-center justify-center ${containerClasses} ${className}`}>
-      <Typography variant="label" className={textClasses} isBengali={isBengali}>
-        {label}
-      </Typography>
+    <View className={`px-3 py-1.5 rounded-lg border items-center justify-center ${containerClasses} ${className}`}>
+      {content}
     </View>
   );
 };
