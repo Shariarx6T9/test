@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CaretLeft } from 'phosphor-react-native';
-import { Typography } from '../ui/Typography/Typography';
 
 interface HeaderProps {
   title: string;
@@ -12,48 +11,33 @@ interface HeaderProps {
   isBengali?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  title,
-  subtitle,
-  showBack = true,
-  rightElement,
-  isBengali = false,
-}) => {
+export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = true, rightElement, isBengali = false }) => {
   const router = useRouter();
+  const titleFont  = isBengali ? 'NotoSansBengali_600SemiBold' : 'Inter_600SemiBold';
+  const subFont    = isBengali ? 'NotoSansBengali_400Regular'  : 'Inter_400Regular';
 
   return (
-    <View className="flex-row items-center justify-between py-4 min-h-[64px]">
-      <View className="flex-row items-center flex-1">
+    <View style={s.row}>
+      <View style={s.left}>
         {showBack && (
-          <Pressable
-            onPress={() => router.back()}
-            className="mr-3 w-9 h-9 rounded-xl bg-bg-card border border-border items-center justify-center active:scale-95"
-          >
+          <Pressable onPress={() => router.back()} style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.7 }]}>
             <CaretLeft size={20} color="#00A859" weight="bold" />
           </Pressable>
         )}
-        <View className="flex-1">
-          <Typography
-            variant="h3"
-            className="text-text-primary"
-            isBengali={isBengali}
-            numberOfLines={1}
-          >
-            {title}
-          </Typography>
-          {subtitle && (
-            <Typography variant="caption" className="text-text-secondary" isBengali={isBengali}>
-              {subtitle}
-            </Typography>
-          )}
+        <View style={{ flex: 1 }}>
+          <Text style={[s.title, { fontFamily: titleFont }]} numberOfLines={1}>{title}</Text>
+          {subtitle && <Text style={[s.subtitle, { fontFamily: subFont }]} numberOfLines={1}>{subtitle}</Text>}
         </View>
       </View>
-
-      {rightElement && (
-        <View className="ml-3">
-          {rightElement}
-        </View>
-      )}
+      {rightElement && <View style={{ marginLeft: 12 }}>{rightElement}</View>}
     </View>
   );
 };
+
+const s = StyleSheet.create({
+  row:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, minHeight: 64 },
+  left:    { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#162035', borderWidth: 1, borderColor: '#1E2E42', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  title:   { fontSize: 20, color: '#F0F4FF', lineHeight: 28 },
+  subtitle:{ fontSize: 13, color: '#8FA3C0', lineHeight: 18, marginTop: 1 },
+});

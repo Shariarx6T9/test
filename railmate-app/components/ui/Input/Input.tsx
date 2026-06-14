@@ -1,66 +1,70 @@
 import React, { useState } from 'react';
-import { TextInput, TextInputProps, View } from 'react-native';
+import { TextInput, TextInputProps, View, StyleSheet } from 'react-native';
 import { Typography } from '../Typography/Typography';
-import { useColorScheme } from 'nativewind';
-import { Colors } from '../../../constants/colors';
+
+const C = {
+  bgCard:      '#162035',
+  border:      '#1E2E42',
+  borderFocus: '#00A859',
+  borderDanger:'#E8394B',
+  textPrimary: '#F0F4FF',
+  textTertiary:'#4E6480',
+  danger:      '#E8394B',
+};
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
-  containerClassName?: string;
+  containerStyle?: object;
   isBengali?: boolean;
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
   error,
-  containerClassName = '',
+  containerStyle,
   isBengali = false,
   onFocus,
   onBlur,
+  style,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const { colorScheme } = useColorScheme();
-  const theme = colorScheme === 'light' ? 'light' : 'dark';
-  const currentColors = Colors[theme];
-
-  const handleFocus = (e: any) => {
-    setIsFocused(true);
-    onFocus?.(e);
-  };
-
-  const handleBlur = (e: any) => {
-    setIsFocused(false);
-    onBlur?.(e);
-  };
 
   return (
-    <View className={`w-full ${containerClassName}`}>
+    <View style={[styles.container, containerStyle]}>
       {label && (
-        <Typography variant="label" className="mb-1.5 ml-1 text-text-secondary" isBengali={isBengali}>
+        <Typography variant="label" isBengali={isBengali} style={{ color: C.textTertiary, marginBottom: 6, marginLeft: 2 }}>
           {label}
         </Typography>
       )}
-      <View
-        className={`h-[48px] px-4 bg-bg-card border-[1.5px] rounded-sm flex-row items-center ${
-          error ? 'border-danger' : isFocused ? 'border-border-focus' : 'border-border'
-        }`}
-      >
+      <View style={[
+        styles.inputBox,
+        isFocused && styles.inputFocused,
+        !!error && styles.inputError,
+      ]}>
         <TextInput
-          className="flex-1 text-text-primary font-inter text-[14px]"
-          placeholderTextColor={currentColors['text-tertiary']}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          selectionColor={currentColors['primary']}
+          style={[styles.input, style]}
+          placeholderTextColor={C.textTertiary}
+          selectionColor={C.borderFocus}
+          onFocus={(e) => { setIsFocused(true); onFocus?.(e); }}
+          onBlur={(e)  => { setIsFocused(false); onBlur?.(e); }}
           {...props}
         />
       </View>
-      {error && (
-        <Typography variant="caption" className="mt-1 ml-1 text-danger" isBengali={isBengali}>
+      {!!error && (
+        <Typography variant="caption" style={{ color: C.danger, marginTop: 4, marginLeft: 2 }} isBengali={isBengali}>
           {error}
         </Typography>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container:    { width: '100%' },
+  inputBox:     { height: 48, paddingHorizontal: 16, backgroundColor: '#162035', borderWidth: 1.5, borderColor: '#1E2E42', borderRadius: 10, flexDirection: 'row', alignItems: 'center' },
+  inputFocused: { borderColor: '#00A859' },
+  inputError:   { borderColor: '#E8394B' },
+  input:        { flex: 1, color: '#F0F4FF', fontFamily: 'Inter_400Regular', fontSize: 14 },
+});

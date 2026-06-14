@@ -1,72 +1,51 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Fare } from '../../../types/fare.types';
 import { useTranslation, TranslationKey } from '../../../i18n';
 import { formatFare } from '../../../utils/formatFare';
-import { Typography } from '../../ui/Typography/Typography';
-import { Card } from '../../ui/Card/Card';
-import { Armchair, Bed, Snowflake, SeatBelt } from 'phosphor-react-native';
-import { Colors } from '../../../constants/colors';
+import { Armchair, Bed, Snowflake } from 'phosphor-react-native';
 
-interface FareTableProps {
-  fares: Fare[];
-  isBengali?: boolean;
-}
+const C = { primary:'#00A859', textPri:'#F0F4FF', textSec:'#8FA3C0', bgCard:'#162035', border:'#1E2E42', bgOverlay:'#1A2840' };
 
 const CLASS_ICONS: Record<string, any> = {
-  S_CHAIR: Armchair,
-  SNIGDHA: Bed,
-  AC_S: Snowflake,
-  AC_B: Bed,
-  F_SEAT: SeatBelt,
-  F_BERTH: Bed,
+  S_CHAIR: Armchair, SNIGDHA: Bed, AC_S: Snowflake, AC_B: Bed, F_SEAT: Armchair, F_BERTH: Bed,
 };
+
+interface FareTableProps { fares: Fare[]; isBengali?: boolean; }
 
 export const FareTable: React.FC<FareTableProps> = ({ fares, isBengali = false }) => {
   const { t } = useTranslation();
-  const c = Colors.dark;
+  const fontFamily = isBengali ? 'NotoSansBengali_400Regular' : 'Inter_400Regular';
 
-  if (!fares || fares.length === 0) {
-    return (
-      <View className="py-4 items-center">
-        <Typography variant="body" className="text-text-secondary" isBengali={isBengali}>
-          {t('train.no_fares')}
-        </Typography>
-      </View>
-    );
-  }
+  if (!fares?.length) return (
+    <View style={s.empty}>
+      <Text style={[s.emptyText, { fontFamily }]}>No fare data available</Text>
+    </View>
+  );
 
   return (
-    <Card className="p-0 overflow-hidden">
-      {fares.map((fare, index) => {
-        const IconComponent = CLASS_ICONS[fare.class] || Armchair;
+    <View style={s.table}>
+      {fares.map((fare, i) => {
+        const Icon = CLASS_ICONS[fare.class] || Armchair;
         return (
-          <View
-            key={fare.id}
-            className={`flex-row items-center px-4 py-3.5 ${
-              index !== fares.length - 1 ? 'border-b border-border' : ''
-            }`}
-          >
-            <View className="w-9 h-9 rounded-lg bg-primary-subtle items-center justify-center mr-3">
-              <IconComponent size={18} color={c.primary} weight="duotone" />
-            </View>
-            <Typography variant="body-lg" className="text-text-primary flex-1" isBengali={isBengali}>
-              {t(`fare.class.${fare.class}` as TranslationKey)}
-            </Typography>
-            <Typography
-              style={{
-                fontFamily: 'JetBrainsMono_500Medium',
-                fontSize: 16,
-                color: c.primary,
-                letterSpacing: -0.3,
-              }}
-              isBengali={isBengali}
-            >
-              {formatFare(fare.price_bdt)}
-            </Typography>
+          <View key={fare.id} style={[s.row, i !== fares.length - 1 && s.rowBorder]}>
+            <View style={s.iconBox}><Icon size={18} color={C.primary} weight="duotone" /></View>
+            <Text style={[s.className, { fontFamily }]}>{t(`fare.class.${fare.class}` as TranslationKey)}</Text>
+            <Text style={s.price}>{formatFare(fare.price_bdt)}</Text>
           </View>
         );
       })}
-    </Card>
+    </View>
   );
 };
+
+const s = StyleSheet.create({
+  table:     { backgroundColor: C.bgCard, borderRadius: 14, borderWidth: 1, borderColor: C.border, overflow: 'hidden' },
+  row:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: C.border },
+  iconBox:   { width: 36, height: 36, borderRadius: 8, backgroundColor: C.bgOverlay, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  className: { flex: 1, fontSize: 14, color: C.textPri, lineHeight: 20 },
+  price:     { fontFamily: 'JetBrainsMono_500Medium', fontSize: 16, color: C.primary, letterSpacing: -0.3 },
+  empty:     { padding: 24, alignItems: 'center' },
+  emptyText: { fontSize: 14, color: C.textSec },
+});

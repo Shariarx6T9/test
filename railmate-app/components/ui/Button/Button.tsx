@@ -1,9 +1,15 @@
 import React from 'react';
-import { Pressable, ActivityIndicator, View } from 'react-native';
-import { Typography } from '../Typography/Typography';
+import { Pressable, ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 import { ButtonProps } from './Button.types';
-import { useColorScheme } from 'nativewind';
-import { Colors } from '../../../constants/colors';
+
+const C = {
+  primary:     '#00A859',
+  primaryDim:  '#007A40',
+  border:      '#1E2E42',
+  textInverse: '#080D17',
+  textPrimary: '#F0F4FF',
+  textSecond:  '#8FA3C0',
+};
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
@@ -15,69 +21,79 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   isBengali = false,
   disabled,
+  style,
   ...props
 }) => {
-  const { colorScheme } = useColorScheme();
-  const theme = colorScheme === 'light' ? 'light' : 'dark';
-  const currentColors = Colors[theme];
+  const isDisabled = disabled || isLoading;
 
-  const sizeClasses = {
-    sm: 'h-[38px] px-4',
-    md: 'h-[52px] px-6',
-    lg: 'h-[58px] px-8',
-  };
+  const sizeStyle = {
+    sm: styles.sizeSm,
+    md: styles.sizeMd,
+    lg: styles.sizeLg,
+  }[size];
 
-  const baseClasses = 'flex-row items-center justify-center active:scale-[0.97]';
-
-  const variantClasses = {
-    primary: 'bg-primary rounded-xl active:bg-primary-dim',
-    secondary: 'bg-transparent rounded-xl border-[1.5px] border-primary',
-    ghost: 'bg-transparent rounded-xl active:bg-bg-overlay',
-  };
-
-  const textClasses = {
-    primary: 'text-text-inverse',
-    secondary: 'text-primary',
-    ghost: 'text-text-secondary',
-  };
+  const variantStyle = {
+    primary: styles.primary,
+    secondary: styles.secondary,
+    ghost: styles.ghost,
+  }[variant];
 
   const iconColor = {
-    primary: currentColors['text-inverse'],
-    secondary: currentColors['primary'],
-    ghost: currentColors['text-secondary'],
-  };
+    primary: C.textInverse,
+    secondary: C.primary,
+    ghost: C.textSecond,
+  }[variant];
 
-  const isDisabled = disabled || isLoading;
+  const textColor = {
+    primary: C.textInverse,
+    secondary: C.primary,
+    ghost: C.textSecond,
+  }[variant];
+
+  const fontFamily = isBengali ? 'NotoSansBengali_600SemiBold' : 'Inter_500Medium';
 
   return (
     <Pressable
-      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${isDisabled ? 'opacity-40' : ''} ${className}`}
+      style={({ pressed }) => [
+        styles.base,
+        sizeStyle,
+        variantStyle,
+        isDisabled && styles.disabled,
+        pressed && styles.pressed,
+        style,
+      ]}
       disabled={isDisabled}
       {...props}
     >
       {isLoading ? (
-        <ActivityIndicator color={variant === 'primary' ? iconColor.primary : iconColor.secondary} />
+        <ActivityIndicator color={iconColor} />
       ) : (
-        <View className="flex-row items-center justify-center">
+        <View style={styles.inner}>
           {Icon && iconPosition === 'left' && (
-            <Icon
-              size={20}
-              color={variant === 'primary' ? iconColor.primary : variant === 'secondary' ? iconColor.secondary : iconColor.ghost}
-              style={{ marginRight: 8 }}
-            />
+            <Icon size={20} color={iconColor} style={{ marginRight: 8 }} />
           )}
-          <Typography variant="label-lg" isBengali={isBengali} className={textClasses[variant]}>
+          <Text style={[styles.label, { color: textColor, fontFamily }]}>
             {label}
-          </Typography>
+          </Text>
           {Icon && iconPosition === 'right' && (
-            <Icon
-              size={20}
-              color={variant === 'primary' ? iconColor.primary : variant === 'secondary' ? iconColor.secondary : iconColor.ghost}
-              style={{ marginLeft: 8 }}
-            />
+            <Icon size={20} color={iconColor} style={{ marginLeft: 8 }} />
           )}
         </View>
       )}
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  base:      { borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  inner:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  label:     { fontSize: 15, letterSpacing: 0.1 },
+  sizeSm:    { height: 38, paddingHorizontal: 16 },
+  sizeMd:    { height: 52, paddingHorizontal: 24 },
+  sizeLg:    { height: 56, paddingHorizontal: 32 },
+  primary:   { backgroundColor: '#00A859' },
+  secondary: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#00A859' },
+  ghost:     { backgroundColor: 'transparent' },
+  disabled:  { opacity: 0.4 },
+  pressed:   { opacity: 0.85, transform: [{ scale: 0.97 }] },
+});

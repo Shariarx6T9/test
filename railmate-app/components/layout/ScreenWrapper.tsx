@@ -1,36 +1,31 @@
 import React from 'react';
-import { View, ViewProps } from 'react-native';
+import { View, ViewProps, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { cssInterop } from 'nativewind';
-
-cssInterop(SafeAreaView, { className: 'style' });
 
 interface ScreenWrapperProps extends ViewProps {
   children: React.ReactNode;
   withPadding?: boolean;
-  /**
-   * Background class applied to BOTH the SafeAreaView and the inner View.
-   * Defaults to 'bg-bg-base'. Pass a different token to override, e.g. 'bg-bg-elevated'.
-   */
-  bgClass?: string;
+  bgColor?: string;
 }
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   withPadding = true,
-  bgClass = 'bg-bg-base',
-  className = '',
+  bgColor = '#080D17',
+  style,
   ...props
 }) => {
   return (
-    <SafeAreaView
-      className={`flex-1 ${bgClass}`}
-      edges={['top', 'left', 'right']}
-    >
-      <StatusBar style="auto" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: bgColor }]} edges={['top', 'left', 'right']}>
+      <StatusBar style="light" backgroundColor={bgColor} />
       <View
-        className={`flex-1 w-full ${withPadding ? 'px-5' : ''} ${bgClass} ${className}`}
+        style={[
+          styles.inner,
+          { backgroundColor: bgColor },
+          withPadding && styles.padding,
+          style,
+        ]}
         {...props}
       >
         {children}
@@ -38,3 +33,9 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safe:    { flex: 1 },
+  inner:   { flex: 1, width: '100%' },
+  padding: { paddingHorizontal: 20 },
+});

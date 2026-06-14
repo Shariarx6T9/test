@@ -1,28 +1,16 @@
 import React from 'react';
-import { View, ViewProps, Pressable } from 'react-native';
+import { View, Pressable, StyleSheet, ViewProps } from 'react-native';
 
 interface CardProps extends ViewProps {
   onPress?: () => void;
-  className?: string;
-  accentColor?: string; // left border accent
+  accentColor?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ children, onPress, className = '', accentColor, ...props }) => {
-  const containerClasses = "bg-bg-card border border-border rounded-xl p-4";
-
-  const inner = (
+export const Card: React.FC<CardProps> = ({ children, onPress, accentColor, style, ...props }) => {
+  const content = (
     <>
       {accentColor && (
-        <View
-          style={{
-            position: 'absolute',
-            left: 0, top: 0, bottom: 0,
-            width: 3,
-            backgroundColor: accentColor,
-            borderTopLeftRadius: 12,
-            borderBottomLeftRadius: 12,
-          }}
-        />
+        <View style={[styles.accent, { backgroundColor: accentColor }]} />
       )}
       {children}
     </>
@@ -32,17 +20,24 @@ export const Card: React.FC<CardProps> = ({ children, onPress, className = '', a
     return (
       <Pressable
         onPress={onPress}
-        className={`${containerClasses} active:scale-[0.985] active:opacity-90 overflow-hidden relative ${className}`}
+        style={({ pressed }) => [styles.card, accentColor && styles.cardWithAccent, pressed && styles.pressed, style]}
         {...props}
       >
-        {inner}
+        {content}
       </Pressable>
     );
   }
 
   return (
-    <View className={`${containerClasses} overflow-hidden relative ${className}`} {...props}>
-      {inner}
+    <View style={[styles.card, accentColor && styles.cardWithAccent, style]} {...props}>
+      {content}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card:           { backgroundColor: '#162035', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#1E2E42', overflow: 'hidden', position: 'relative' },
+  cardWithAccent: { paddingLeft: 20 },
+  accent:         { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+  pressed:        { opacity: 0.9, transform: [{ scale: 0.985 }] },
+});

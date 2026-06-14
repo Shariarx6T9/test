@@ -1,112 +1,67 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Pressable, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
-import { Card } from '../../ui/Card/Card';
-import { Typography } from '../../ui/Typography/Typography';
-import { Chip } from '../../ui/Chip/Chip';
+import { Clock, Warning, CheckCircle, Users } from 'phosphor-react-native';
 import { TrainSearchResult } from '../../../types/train.types';
 import { formatTime } from '../../../utils/formatTime';
 import { formatDuration } from '../../../utils/formatDuration';
 import { useTranslation } from '../../../i18n';
-import { Clock, Warning, Star, CheckCircle, Users } from 'phosphor-react-native';
-import { Colors } from '../../../constants/colors';
+import { Chip } from '../../ui/Chip/Chip';
 
-interface TrainCardProps {
-  train: TrainSearchResult;
-  fromId?: string;
-  toId?: string;
-}
+const C = { primary:'#00A859', accent:'#F5A623', danger:'#E8394B', success:'#00C977', textPri:'#F0F4FF', textSec:'#8FA3C0', textTer:'#4E6480', bgCard:'#162035', border:'#1E2E42' };
+
+interface TrainCardProps { train: TrainSearchResult; fromId?: string; toId?: string; }
 
 export const TrainCard: React.FC<TrainCardProps> = ({ train, fromId, toId }) => {
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
-  const c = Colors.dark;
 
-  const handlePress = () => {
-    router.push({
-      pathname: '/train/[id]',
-      params: { id: train.train_id, fromId, toId },
-    });
-  };
-
-  // Mock status for demo — replace with real community data when available
-  const statusType: 'ontime' | 'delay' | 'crowded' | null = null;
+  const handlePress = () => router.push({ pathname: '/train/[id]', params: { id: train.train_id, fromId, toId } });
 
   return (
-    <Card
-      onPress={handlePress}
-      className="pl-5 mb-3"
-      accentColor={c.primary}
-    >
-      {/* Train Name Row */}
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1 pr-3">
-          <Typography variant="h4" className="text-text-primary">
-            {train.train_name_en}
-          </Typography>
-          <Typography variant="caption" className="text-text-secondary mt-0.5" isBengali={true}>
-            {train.train_name_bn}
-          </Typography>
+    <Pressable onPress={handlePress} style={({ pressed }) => [s.card, pressed && s.pressed]}>
+      <View style={s.accent} />
+
+      {/* Train name */}
+      <View style={s.nameRow}>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={s.trainName}>{train.train_name_en}</Text>
+          <Text style={s.trainNameBn}>{train.train_name_bn}</Text>
         </View>
-        <View className="flex-row items-center gap-1">
-          <Star size={14} color={c.accent} weight="fill" />
-          <Typography variant="caption" className="text-text-tertiary">
-            #{train.train_number}
-          </Typography>
-        </View>
+        <Text style={s.trainNum}>#{train.train_number}</Text>
       </View>
 
-      {/* Time Row */}
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center gap-2">
-          <Typography style={{ fontFamily: 'JetBrainsMono_500Medium', fontSize: 22, color: c['text-primary'], letterSpacing: -0.5 }}>
-            {formatTime(train.departure_time)}
-          </Typography>
-          <View className="items-center px-2">
-            <View style={{ width: 32, height: 1, backgroundColor: c['border-strong'] }} />
-            <View className="bg-bg-overlay rounded-full px-2 py-0.5 mt-1 flex-row items-center gap-1">
-              <Clock size={11} color={c['text-tertiary']} />
-              <Typography style={{ fontFamily: 'JetBrainsMono_400Regular', fontSize: 11, color: c['text-secondary'] }}>
-                {formatDuration(train.duration_minutes)}
-              </Typography>
-            </View>
-          </View>
-          <Typography style={{ fontFamily: 'JetBrainsMono_500Medium', fontSize: 22, color: c['text-primary'], letterSpacing: -0.5 }}>
-            {formatTime(train.arrival_time)}
-          </Typography>
+      {/* Time row */}
+      <View style={s.timeRow}>
+        <Text style={s.time}>{formatTime(train.departure_time)}</Text>
+        <View style={s.durationPill}>
+          <Clock size={11} color={C.textTer} />
+          <Text style={s.durationText}>{formatDuration(train.duration_minutes)}</Text>
         </View>
+        <Text style={s.time}>{formatTime(train.arrival_time)}</Text>
       </View>
 
-      {/* Status Badge */}
-      {statusType === 'delay' && (
-        <View className="flex-row items-center gap-1.5 mb-3">
-          <Warning size={14} color={c.accent} weight="fill" />
-          <Typography variant="caption" style={{ color: c.accent }}>15 min delay reported</Typography>
-        </View>
-      )}
-      {statusType === 'ontime' && (
-        <View className="flex-row items-center gap-1.5 mb-3">
-          <CheckCircle size={14} color={c.success} weight="fill" />
-          <Typography variant="caption" style={{ color: c.success }}>On Time</Typography>
-        </View>
-      )}
-      {statusType === 'crowded' && (
-        <View className="flex-row items-center gap-1.5 mb-3">
-          <Users size={14} color={c.danger} weight="fill" />
-          <Typography variant="caption" style={{ color: c.danger }}>Crowding: High</Typography>
-        </View>
-      )}
-
-      {/* Class Chips */}
-      <View className="flex-row flex-wrap gap-2">
+      {/* Class chips */}
+      <View style={s.chips}>
         {train.available_classes.map((cls) => (
-          <Chip
-            key={cls}
-            label={t(`fare.class.${cls}` as any)}
-            isBengali={isBengali}
-          />
+          <Chip key={cls} label={t(`fare.class.${cls}` as any)} isBengali={isBengali} />
         ))}
       </View>
-    </Card>
+    </Pressable>
   );
 };
+
+const s = StyleSheet.create({
+  card:        { backgroundColor: C.bgCard, borderRadius: 14, padding: 16, paddingLeft: 20, borderWidth: 1, borderColor: C.border, marginBottom: 12, overflow: 'hidden', position: 'relative' },
+  accent:      { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: C.primary, borderTopLeftRadius: 14, borderBottomLeftRadius: 14 },
+  pressed:     { opacity: 0.9, transform: [{ scale: 0.985 }] },
+  nameRow:     { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
+  trainName:   { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: C.textPri, lineHeight: 24 },
+  trainNameBn: { fontFamily: 'NotoSansBengali_400Regular', fontSize: 13, color: C.textSec, marginTop: 2 },
+  trainNum:    { fontFamily: 'Inter_400Regular', fontSize: 12, color: C.textTer },
+  timeRow:     { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+  time:        { fontFamily: 'JetBrainsMono_500Medium', fontSize: 22, color: C.textPri, letterSpacing: -0.5 },
+  durationPill:{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: '#1A2840', borderRadius: 20, paddingVertical: 4, paddingHorizontal: 8, marginHorizontal: 12 },
+  durationText:{ fontFamily: 'JetBrainsMono_400Regular', fontSize: 11, color: C.textSec },
+  chips:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+});
