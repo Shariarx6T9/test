@@ -19,6 +19,7 @@ import { Typography } from '../../components/ui/Typography/Typography';
 import ReportCard from '../../components/features/ReportCard/ReportCard';
 import ReportCardSkeleton from '../../components/features/ReportCard/ReportCardSkeleton';
 import ReportSubmitSheet from '../../components/features/ReportSubmitSheet/ReportSubmitSheet';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useAuthStore } from '../../stores/authStore';
 import {
   useCommunityReports,
@@ -43,6 +44,10 @@ const FILTER_CHIPS: FilterChip[] = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function CommunityScreen() {
+  return <ErrorBoundary name="Community"><CommunityScreenInner /></ErrorBoundary>;
+}
+
+function CommunityScreenInner() {
   const { colorScheme } = useColorScheme();
   const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const { t, locale } = useTranslation();

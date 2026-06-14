@@ -14,12 +14,17 @@ import { Typography } from '../../components/ui/Typography/Typography';
 import { Button } from '../../components/ui/Button/Button';
 import { Card } from '../../components/ui/Card/Card';
 import { Input } from '../../components/ui/Input/Input';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useSearchStore } from '../../stores/searchStore';
 import { useStations } from '../../hooks/useStations';
 import { useTranslation } from '../../i18n';
 import { Station } from '../../types/station.types';
 
 export default function SearchScreen() {
+  return <ErrorBoundary name="Search"><SearchScreenInner /></ErrorBoundary>;
+}
+
+function SearchScreenInner() {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import '../global.css';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../lib/queryClient';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/authStore';
 
@@ -31,13 +33,19 @@ export default function RootLayout() {
 
   if (!initialized || isLoading) {
     return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#00A859" />
-      </View>
+      <QueryClientProvider client={queryClient}>
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#00A859" />
+        </View>
+      </QueryClientProvider>
     );
   }
 
-  return <Slot />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Slot />
+    </QueryClientProvider>
+  );
 }
 
 const styles = StyleSheet.create({

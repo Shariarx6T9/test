@@ -41,6 +41,15 @@ export default function LoginScreen() {
 
   const handleContinue = async () => {
     setError(null);
+
+    // Detect unconfigured backend
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const isConfigured = supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co' && supabaseUrl.trim() !== '';
+    if (!isConfigured) {
+      setError('Backend not configured. Please continue as guest for now.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (mode === 'phone') {
@@ -55,7 +64,14 @@ export default function LoginScreen() {
         if (e) { setError(e); setSubmitting(false); return; }
         router.push({ pathname: '/auth/otp' as any, params: { contact: email, type: 'email' } });
       }
-    } catch (ex) { setError(String(ex)); }
+    } catch (ex) {
+      const msg = ex instanceof Error ? ex.message : String(ex);
+      if (msg.includes('Network') || msg.includes('fetch')) {
+        setError('Network error. Check your connection or continue as guest.');
+      } else {
+        setError(msg);
+      }
+    }
     finally { setSubmitting(false); }
   };
 

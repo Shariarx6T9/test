@@ -4,6 +4,8 @@
 
   "home.title": "হোম",
   "home.greeting": "শুভ সকাল",
+  "home.find_journey": "আপনার যাত্রা খুঁজুন",
+  "home.tagline": "ট্রেন খুঁজুন। ভালো পরিকল্পনা করুন। বাংলাদেশ ভ্রমণ করুন।",
   "home.saved_routes": "সংরক্ষিত রুট",
   "home.no_saved_routes": "কোনো সংরক্ষিত রুট নেই",
   "home.no_saved_routes_hint": "দ্রুত অ্যাক্সেসের জন্য আপনার ঘন ঘন রুটগুলি সংরক্ষণ করুন।",
