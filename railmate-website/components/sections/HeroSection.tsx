@@ -17,10 +17,10 @@ export default function HeroSection() {
       id="hero"
     >
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
 
           {/* LEFT CONTENT */}
-          <div className="flex-1 text-center lg:text-left space-y-6 lg:space-y-7 w-full lg:max-w-[480px]">
+          <div className="flex-1 text-center lg:text-left space-y-6 lg:space-y-7 w-full lg:max-w-[460px] lg:flex-none lg:w-[42%]">
 
             {/* Overline pill */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest font-inter">
@@ -74,15 +74,20 @@ export default function HeroSection() {
           </div>
 
           {/* RIGHT Hero Visual */}
-          <div className="w-full max-w-[460px] sm:max-w-[560px] lg:max-w-[640px] lg:flex-1 mx-auto">
+          <div className="relative w-full max-w-[560px] sm:max-w-full mx-auto lg:mx-0 lg:flex-none lg:w-[55%]">
+            {/* Premium glow backdrop */}
+            <div
+              aria-hidden="true"
+              className="absolute -inset-6 rounded-3xl bg-primary/10 blur-3xl -z-10 pointer-events-none"
+            />
             <Image
               src="/hero-mockup.png"
               alt="RailMate app overview — train schedules, fares, journey planner, live alerts and the national rail network map"
               width={1672}
               height={941}
               priority
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 640px"
-              className="w-full h-auto rounded-2xl border border-border-subtle shadow-2xl shadow-primary/10"
+              sizes="(max-width: 640px) 95vw, (max-width: 1024px) 80vw, 55vw"
+              className="w-full h-auto rounded-2xl border border-border-subtle shadow-[0_28px_72px_-8px_rgba(0,0,0,0.32),0_0_0_1px_rgba(0,168,89,0.08)]"
             />
           </div>
 
