@@ -8,49 +8,50 @@
     "icon": "./assets/images/icon.png",
     "scheme": "railmatebd",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F5F7FA"
-    },
     "ios": {
       "bundleIdentifier": "com.railmate.bd",
-      "supportsTablet": false,
-      "splash": {
-        "image": "./assets/images/splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#F5F7FA",
-        "dark": {
-          "image": "./assets/images/splash.png",
-          "backgroundColor": "#080D17"
-        }
-      }
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#00A859"
       },
-      "package": "com.railmate.bd",
-      "splash": {
-        "image": "./assets/images/splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#F5F7FA",
-        "dark": {
-          "image": "./assets/images/splash.png",
-          "backgroundColor": "#080D17"
-        }
-      }
+      "package": "com.railmate.bd"
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "RailMate Bangladesh",
+      "shortName": "RailMate",
+      "backgroundColor": "#F5F7FA"
     },
     "plugins": [
       "expo-router",
       "expo-font",
       "@react-native-community/datetimepicker",
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F5F7FA",
+          "dark": {
+            "image": "./assets/images/splash.png",
+            "backgroundColor": "#080D17"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
         "projectId": "9ed4b0fb-a16c-423e-9f6f-0f0eb526e57f"
+      },
+      "router": {
+        "origin": false
       }
     },
     "experiments": {
