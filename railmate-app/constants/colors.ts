@@ -1,57 +1,63 @@
 export const Colors = {
   dark: {
-    // BACKGROUNDS
-    'bg-base': '#080D17', // App base — near-black navy
-    'bg-elevated': '#0F1929', // Cards, bottom sheets
-    'bg-card': '#162035', // List items, input backgrounds
-    'bg-overlay': '#1A2840', // Modal overlays, tooltips
+    'bg-base':        '#080D17',
+    'bg-elevated':    '#0F1929',
+    'bg-card':        '#162035',
+    'bg-overlay':     '#1A2840',
 
-    // BRAND
-    'primary': '#00A859', // Bangladesh green — CTA, active states
-    'primary-dim': '#007A40', // Pressed / hover primary
-    'primary-subtle': '#00A85918', // 10% opacity — chip backgrounds
+    'primary':        '#00A859',
+    'primary-dim':    '#007A40',
+    'primary-subtle': 'rgba(0,168,89,0.1)',
 
-    'accent': '#F5A623', // Amber gold — premium, warnings
-    'accent-dim': '#C4830A',
-    'accent-subtle': '#F5A62318',
+    'accent':         '#F5A623',
+    'accent-dim':     '#C4830A',
+    'accent-subtle':  'rgba(245,166,35,0.1)',
 
-    // SEMANTIC
-    'danger': '#E8394B',
-    'danger-subtle': '#E8394B1A',
-    'success': '#00C977',
-    'success-subtle': '#00C9771A',
-    'info': '#4EA8E0',
+    'danger':         '#E8394B',
+    'danger-subtle':  'rgba(232,57,75,0.1)',
+    'success':        '#00C977',
+    'success-subtle': 'rgba(0,201,119,0.1)',
+    'info':           '#4EA8E0',
+    'info-subtle':    'rgba(78,168,224,0.1)',
 
-    // TEXT
-    'text-primary': '#F0F4FF', // Main text
-    'text-secondary': '#8FA3C0', // Subtext, metadata
-    'text-tertiary': '#4E6480', // Disabled, placeholder
-    'text-inverse': '#080D17', // Text on green backgrounds
+    'text-primary':   '#F0F4FF',
+    'text-secondary': '#8FA3C0',
+    'text-tertiary':  '#4E6480',
+    'text-inverse':   '#080D17',
 
-    // BORDERS
-    'border': '#1E2E42',
-    'border-strong': '#2A3F57',
-    'border-focus': '#00A859',
+    'border':         '#1E2E42',
+    'border-strong':  '#2A3F57',
+    'border-focus':   '#00A859',
   },
   light: {
-    'bg-base': '#F5F7FA',
-    'bg-elevated': '#FFFFFF',
-    'bg-card': '#FFFFFF',
-    'bg-overlay': '#F0F4F8',
-    'primary': '#006B3C',
-    'primary-dim': '#004D2B',
-    'primary-subtle': '#006B3C12',
-    'accent': '#D4860A',
-    'accent-subtle': '#D4860A12',
-    'danger': '#D42B3A',
-    'success': '#00975A',
-    'info': '#4EA8E0',
-    'text-primary': '#0A1628',
+    'bg-base':        '#F5F7FA',
+    'bg-elevated':    '#FFFFFF',
+    'bg-card':        '#FFFFFF',
+    'bg-overlay':     '#F0F4F8',
+
+    'primary':        '#006B3C',
+    'primary-dim':    '#004D2B',
+    'primary-subtle': 'rgba(0,107,60,0.07)',
+
+    'accent':         '#D4860A',
+    'accent-dim':     '#C4830A',
+    'accent-subtle':  'rgba(212,134,10,0.07)',
+
+    'danger':         '#D42B3A',
+    'danger-subtle':  'rgba(212,43,58,0.1)',
+    'success':        '#00975A',
+    'success-subtle': 'rgba(0,151,90,0.1)',
+    'info':           '#4EA8E0',
+    'info-subtle':    'rgba(78,168,224,0.1)',
+
+    'text-primary':   '#0A1628',
     'text-secondary': '#4A5C72',
-    'text-tertiary': '#8FA3C0',
-    'text-inverse': '#F0F4FF',
-    'border': '#E1E9F0',
-    'border-strong': '#C8D6E3',
+    'text-tertiary':  '#8FA3C0',
+    'text-inverse':   '#F0F4FF',
+
+    'border':         '#E1E9F0',
+    'border-strong':  '#C8D6E3',
+    'border-focus':   '#00A859',
   },
 };
 
