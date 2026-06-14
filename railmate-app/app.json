@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "railmatebd",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "bundleIdentifier": "com.railmate.bd",
       "supportsTablet": false,
@@ -63,11 +63,11 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash.png",
-          "resizeMode": "cover",
+          "imageWidth": 400,
+          "resizeMode": "contain",
           "backgroundColor": "#080D17",
           "dark": {
             "image": "./assets/images/splash.png",
-            "resizeMode": "cover",
             "backgroundColor": "#080D17"
           }
         }
