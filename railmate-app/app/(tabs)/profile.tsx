@@ -17,6 +17,7 @@ import { useTranslation } from '../../i18n';
 import { useAuth } from '../../hooks/useAuth';
 import { useColorScheme } from 'nativewind';
 import { Colors } from '../../constants/colors';
+import { usePrefsStore } from '../../stores/prefsStore';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
@@ -32,6 +33,7 @@ export default function ProfileScreen() {
   const isBengali = locale === 'bn';
   const router = useRouter();
   const { user, isAuthenticated, signOut } = useAuth();
+  const { theme, setTheme } = usePrefsStore();
 
   const handleSignOut = async () => {
     await signOut();
@@ -172,32 +174,37 @@ export default function ProfileScreen() {
               </View>
             </Pressable>
 
-            <Pressable className="flex-row items-center justify-between px-4 py-4">
-              <View className="flex-row items-center gap-3">
+            <View className="px-4 py-4">
+              <View className="flex-row items-center gap-3 mb-3">
                 <Moon size={20} color={currentColors['text-secondary']} />
-                <Typography
-                  variant="body"
-                  className="text-text-primary"
-                  isBengali={isBengali}
-                >
+                <Typography variant="body" className="text-text-primary" isBengali={isBengali}>
                   {t('profile.theme') || 'Theme'}
                 </Typography>
               </View>
-              <View className="flex-row items-center gap-2">
-                <Typography
-                  variant="caption"
-                  className="text-text-secondary"
-                  isBengali={isBengali}
-                >
-                  {user?.theme_pref === 'light'
-                    ? t('profile.light') || 'Light'
-                    : user?.theme_pref === 'system'
-                    ? t('profile.system') || 'System'
-                    : t('profile.dark') || 'Dark'}
-                </Typography>
-                <CaretRight size={16} color={currentColors['text-tertiary']} />
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['light', 'dark', 'system'] as const).map((opt) => {
+                  const active = theme === opt;
+                  return (
+                    <Pressable
+                      key={opt}
+                      onPress={() => setTheme(opt)}
+                      style={{
+                        flex: 1, paddingVertical: 8, borderRadius: 20, alignItems: 'center',
+                        backgroundColor: active ? '#00A859' : 'transparent',
+                        borderWidth: 1, borderColor: active ? '#00A859' : currentColors['border'],
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        style={{ color: active ? '#fff' : currentColors['text-secondary'], fontFamily: 'Inter_500Medium' }}
+                      >
+                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      </Typography>
+                    </Pressable>
+                  );
+                })}
               </View>
-            </Pressable>
+            </View>
           </Card>
 
           {/* Account Section */}

@@ -1,357 +1,214 @@
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, Pressable, Modal } from 'react-native';
+import {
+  View, ScrollView, Pressable, Modal, StyleSheet, Text, StatusBar,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import {
-  BellSimple,
-  ArrowsDownUp,
-  CalendarBlank,
-  MapPin,
-  Plus,
-  Train,
-  MagnifyingGlass,
-  CaretRight,
-  BookmarkSimple,
+  ArrowsDownUp, CalendarBlank, MagnifyingGlass,
+  CaretRight, BookmarkSimple, Train, CaretDown,
 } from 'phosphor-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Typography } from '../../components/ui/Typography/Typography';
-import { Button } from '../../components/ui/Button/Button';
-import { Card } from '../../components/ui/Card/Card';
 import { StationSelector } from '../../components/features/StationSelector/StationSelector';
 import { SavedRouteChip } from '../../components/features/SavedRouteChip/SavedRouteChip';
 import { useSearchStore } from '../../stores/searchStore';
 import { useSavedRoutes, SavedRoute } from '../../hooks/useSavedRoutes';
 import { useTranslation } from '../../i18n';
 import { Station } from '../../types/station.types';
-import { Colors } from '../../constants/colors';
-import { usePrefsStore } from '../../stores/prefsStore';
+
+const C = {
+  bg: '#080D17', bgCard: '#0F1929', bgElevated: '#162035',
+  primary: '#00A859', accent: '#F5A623',
+  textPri: '#F0F4FF', textSec: '#8FA3C0', textTer: '#4E6480',
+  border: '#1E2E42', borderStrong: '#2A3F57',
+  danger: '#E8394B',
+};
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { theme } = usePrefsStore();
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
-  const activeColors = theme === 'dark' ? Colors.dark : Colors.light;
 
-  const {
-    fromStation,
-    toStation,
-    date,
-    setFromStation,
-    setToStation,
-    setDate,
-    swapStations,
-  } = useSearchStore();
-
+  const { fromStation, toStation, date, setFromStation, setToStation, setDate, swapStations } = useSearchStore();
   const { savedRoutes } = useSavedRoutes();
 
-  const [selectorConfig, setSelectorConfig] = useState<{
-    visible: boolean;
-    type: 'from' | 'to';
-  }>({ visible: false, type: 'from' });
-
+  const [selectorConfig, setSelectorConfig] = useState<{ visible: boolean; type: 'from' | 'to' }>({ visible: false, type: 'from' });
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return t('home.greeting_morning');
-    if (hour < 18) return t('home.greeting_afternoon');
-    return t('home.greeting_evening');
-  }, [t]);
-
   const handleStationSelect = (station: Station) => {
-    if (selectorConfig.type === 'from') {
-      setFromStation(station);
-    } else {
-      setToStation(station);
-    }
+    if (selectorConfig.type === 'from') setFromStation(station);
+    else setToStation(station);
     setSelectorConfig({ ...selectorConfig, visible: false });
   };
 
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(false);
-    if (selectedDate) {
-      setDate(selectedDate.toISOString().split('T')[0]);
-    }
+    if (selectedDate) setDate(selectedDate.toISOString().split('T')[0]);
   };
 
   const handleSearch = () => {
     if (fromStation && toStation) {
-      router.push({
-        pathname: '/search/results',
-        params: {
-          fromId: fromStation.id,
-          toId: toStation.id,
-          date: date,
-        },
-      });
+      router.push({ pathname: '/search/results', params: { fromId: fromStation.id, toId: toStation.id, date } });
     }
   };
 
   const handleSavedRoutePress = (route: SavedRoute) => {
     setFromStation(route.fromStation as any);
     setToStation(route.toStation as any);
-    router.push({
-      pathname: '/search/results',
-      params: {
-        fromId: route.fromStation.id,
-        toId: route.toStation.id,
-        date: date,
-      },
-    });
+    router.push({ pathname: '/search/results', params: { fromId: route.fromStation.id, toId: route.toStation.id, date } });
   };
 
-  const formattedDate = new Date(date).toLocaleDateString(isBengali ? 'bn-BD' : 'en-US', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-  });
+  const formattedDate = useMemo(() => {
+    const d = new Date(date);
+    const today = new Date();
+    const isToday = d.toDateString() === today.toDateString();
+    const dayStr = d.toLocaleDateString(isBengali ? 'bn-BD' : 'en-US', { weekday: 'short', day: 'numeric', month: 'long' });
+    return isToday ? `Today, ${d.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}` : dayStr;
+  }, [date, isBengali]);
 
-  const c = activeColors;
+  const fromLabel = fromStation
+    ? { bn: fromStation.name_bn, en: fromStation.name_en }
+    : { bn: 'ঢাকা', en: 'Dhaka' };
+
+  const toLabel = toStation
+    ? { bn: toStation.name_bn, en: toStation.name_en }
+    : { bn: 'চট্টগ্রাম', en: 'Chattogram' };
 
   return (
-    <ScreenWrapper className="bg-bg-base">
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        className="flex-1 w-full"
-        contentContainerClassName="flex-grow pb-8"
-      >
-        {/* ── Header ─────────────────────────────── */}
-        <View className="flex-row justify-between items-center pt-2 pb-6">
-          <View className="flex-row items-center gap-3">
-            {/* Logo pill */}
-            <View className="w-10 h-10 rounded-xl bg-primary items-center justify-center">
-              <Train size={22} color="#fff" weight="fill" />
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+
+        {/* ── Header ─────────────────── */}
+        <View style={s.header}>
+          <View style={s.headerLeft}>
+            <View style={s.logoPill}>
+              <Train size={20} color="#fff" weight="fill" />
             </View>
-            <View>
-              <View className="flex-row items-baseline gap-1">
-                <Typography variant="h3" className="text-text-primary">Rail</Typography>
-                <Typography variant="h3" className="text-primary">Mate</Typography>
+            <View style={{ marginLeft: 10 }}>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={[s.brandRail]}>Rail</Text>
+                <Text style={[s.brandMate]}>Mate</Text>
               </View>
-              <Typography variant="caption" className="text-text-tertiary">Bangladesh</Typography>
+              <Text style={s.brandSub}>Bangladesh</Text>
             </View>
           </View>
-
-          <Pressable className="w-10 h-10 bg-bg-card rounded-xl border border-border items-center justify-center relative">
-            <BellSimple size={20} color={c['text-secondary']} weight="duotone" />
-            <View className="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full" />
+          <Pressable style={s.bdtPill}>
+            <Text style={s.bdtFlag}>🇧🇩</Text>
+            <Text style={s.bdtText}>BDT</Text>
+            <CaretDown size={12} color={C.textSec} />
           </Pressable>
         </View>
 
-        {/* ── Hero CTA ───────────────────────────── */}
-        <View className="mb-6">
-          <Typography variant="display-lg" className="text-text-primary" isBengali={isBengali}>
-            {t('home.find_journey') || 'Find Your\nJourney'}
-          </Typography>
-          <Typography variant="body" className="text-text-secondary mt-1" isBengali={isBengali}>
-            {t('home.tagline') || 'Search trains. Plan better. Travel Bangladesh.'}
-          </Typography>
+        {/* ── Hero ────────────────────── */}
+        <View style={s.hero}>
+          <Text style={s.heroTitle}>{t('home.find_journey')}</Text>
+          <Text style={s.heroSub}>{t('home.tagline')}</Text>
         </View>
 
-        {/* ── Search Card ────────────────────────── */}
-        <Card className="p-5 mb-6">
-          {/* Dashed vertical line */}
-          <View
-            style={{
-              position: 'absolute',
-              left: 32,
-              top: 62,
-              bottom: 130,
-              width: 1,
-              borderLeftWidth: 1.5,
-              borderStyle: 'dashed',
-              borderColor: c['border-strong'],
-            }}
-          />
-
+        {/* ── Search Card ─────────────── */}
+        <View style={s.card}>
           {/* FROM */}
-          <Pressable
-            onPress={() => setSelectorConfig({ visible: true, type: 'from' })}
-            className="flex-row items-center mb-5"
-          >
-            <View className="w-8 h-8 rounded-full bg-danger/10 border-2 border-danger items-center justify-center mr-4 z-10">
-              <View className="w-2.5 h-2.5 rounded-full bg-danger" />
+          <Pressable style={s.stationRow} onPress={() => setSelectorConfig({ visible: true, type: 'from' })}>
+            <View style={s.stationIcon}>
+              <Train size={18} color={C.primary} weight="fill" />
             </View>
-            <View className="flex-1 border-b border-border pb-4">
-              <Typography variant="caption" className="text-text-tertiary mb-0.5 uppercase tracking-widest" isBengali={isBengali}>
-                {t('search.from')}
-              </Typography>
-              <Typography
-                variant="h3"
-                className={fromStation ? 'text-text-primary' : 'text-text-tertiary'}
-                isBengali={isBengali}
-              >
-                {fromStation
-                  ? (isBengali ? fromStation.name_bn : fromStation.name_en)
-                  : (isBengali ? 'ঢাকা' : t('station.search_placeholder'))}
-              </Typography>
+            <View style={{ flex: 1, marginLeft: 14 }}>
+              <Text style={s.stationLabel}>FROM</Text>
+              <Text style={s.stationName}>{isBengali ? fromLabel.bn : fromLabel.en}</Text>
+              {isBengali && <Text style={s.stationNameEn}>{fromLabel.en}</Text>}
             </View>
+            <CaretRight size={18} color={C.textTer} />
           </Pressable>
 
-          {/* SWAP */}
-          <Pressable
-            onPress={swapStations}
-            style={{
-              position: 'absolute',
-              right: 20,
-              top: 52,
-              zIndex: 20,
-            }}
-            className="w-10 h-10 bg-bg-elevated border border-border-strong rounded-full items-center justify-center active:scale-90"
-          >
-            <ArrowsDownUp size={18} color={c.primary} weight="bold" />
-          </Pressable>
+          {/* Divider + swap */}
+          <View style={s.dividerRow}>
+            <View style={s.divider} />
+            <Pressable style={s.swapBtn} onPress={swapStations}>
+              <ArrowsDownUp size={18} color={C.primary} weight="bold" />
+            </Pressable>
+          </View>
 
           {/* TO */}
-          <Pressable
-            onPress={() => setSelectorConfig({ visible: true, type: 'to' })}
-            className="flex-row items-center mb-5"
-          >
-            <View className="w-8 h-8 rounded-full bg-primary/10 border-2 border-primary items-center justify-center mr-4 z-10">
-              <View className="w-2.5 h-2.5 rounded-full bg-primary" />
+          <Pressable style={s.stationRow} onPress={() => setSelectorConfig({ visible: true, type: 'to' })}>
+            <View style={[s.stationIcon, { backgroundColor: '#00A85915' }]}>
+              <Train size={18} color={C.primary} weight="fill" />
             </View>
-            <View className="flex-1">
-              <Typography variant="caption" className="text-text-tertiary mb-0.5 uppercase tracking-widest" isBengali={isBengali}>
-                {t('search.to')}
-              </Typography>
-              <Typography
-                variant="h3"
-                className={toStation ? 'text-text-primary' : 'text-text-tertiary'}
-                isBengali={isBengali}
-              >
-                {toStation
-                  ? (isBengali ? toStation.name_bn : toStation.name_en)
-                  : (isBengali ? 'চট্টগ্রাম' : t('station.search_placeholder'))}
-              </Typography>
+            <View style={{ flex: 1, marginLeft: 14 }}>
+              <Text style={s.stationLabel}>TO</Text>
+              <Text style={s.stationName}>{isBengali ? toLabel.bn : toLabel.en}</Text>
+              {isBengali && <Text style={s.stationNameEn}>{toLabel.en}</Text>}
             </View>
+            <CaretRight size={18} color={C.textTer} />
           </Pressable>
+
+          {/* Divider */}
+          <View style={[s.divider, { marginVertical: 4 }]} />
 
           {/* DATE */}
-          <Pressable
-            onPress={() => setShowDatePicker(true)}
-            className="flex-row items-center bg-bg-elevated rounded-xl border border-border px-4 py-3 mb-5"
-          >
-            <View className="w-9 h-9 rounded-xl bg-primary/10 items-center justify-center mr-3">
-              <CalendarBlank size={20} color={c.primary} weight="duotone" />
+          <Pressable style={s.stationRow} onPress={() => setShowDatePicker(true)}>
+            <View style={[s.stationIcon, { backgroundColor: '#F5A62315' }]}>
+              <CalendarBlank size={18} color={C.accent} weight="fill" />
             </View>
-            <View className="flex-1">
-              <Typography variant="caption" className="text-text-tertiary uppercase tracking-widest" isBengali={isBengali}>
-                {t('search.date')}
-              </Typography>
-              <Typography variant="h4" className="text-text-primary" isBengali={isBengali}>
-                {formattedDate}
-              </Typography>
+            <View style={{ flex: 1, marginLeft: 14 }}>
+              <Text style={s.stationLabel}>DATE</Text>
+              <Text style={s.stationName}>{formattedDate}</Text>
             </View>
-            <CaretRight size={18} color={c['text-tertiary']} />
+            <CaretRight size={18} color={C.textTer} />
           </Pressable>
 
-          <Button
-            label={t('search.button')}
+          {/* Search button */}
+          <Pressable
+            style={[s.searchBtn, (!fromStation || !toStation) && { opacity: 0.6 }]}
             onPress={handleSearch}
-            disabled={!fromStation || !toStation}
-            className="w-full"
-            size="lg"
-            isBengali={isBengali}
-            icon={MagnifyingGlass}
-            iconPosition="left"
-          />
-        </Card>
+          >
+            <MagnifyingGlass size={20} color="#fff" weight="bold" />
+            <Text style={s.searchBtnText}>{t('search.button')}</Text>
+          </Pressable>
+        </View>
 
-        {/* ── Saved Routes ───────────────────────── */}
-        <View className="mb-8">
-          <View className="flex-row justify-between items-center mb-4 px-1">
-            <View className="flex-row items-center gap-2">
-              <BookmarkSimple size={18} color={c.accent} weight="fill" />
-              <Typography variant="h3" className="text-text-primary" isBengali={isBengali}>
-                {t('home.saved_routes')}
-              </Typography>
+        {/* ── Saved Routes ─────────────── */}
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <BookmarkSimple size={18} color={C.accent} weight="fill" />
+              <Text style={s.sectionTitle}>{t('home.saved_routes')}</Text>
             </View>
             {savedRoutes.length > 0 && (
-              <Pressable onPress={() => router.push('/profile')}>
-                <View className="flex-row items-center gap-1">
-                  <Typography variant="label" className="text-primary" isBengali={isBengali}>
-                    {t('home.see_all')}
-                  </Typography>
-                  <CaretRight size={14} color={c.primary} />
-                </View>
+              <Pressable onPress={() => router.push('/profile' as any)} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                <Text style={s.seeAll}>{t('home.see_all')}</Text>
+                <CaretRight size={13} color={C.accent} />
               </Pressable>
             )}
           </View>
 
           {savedRoutes.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row -mx-1 px-1">
-              {savedRoutes.map((route) => (
-                <SavedRouteChip
-                  key={route.id}
-                  route={route}
-                  onPress={handleSavedRoutePress}
-                  isBengali={isBengali}
-                />
-              ))}
-              <Pressable
-                onPress={() => router.push('/search')}
-                className="bg-primary/10 border border-primary/30 border-dashed rounded-full px-5 flex-row items-center h-[52px] mr-3"
-              >
-                <Plus size={16} color={c.primary} weight="bold" />
-                <Typography variant="label" className="text-primary ml-2" isBengali={isBengali}>
-                  {t('common.add')}
-                </Typography>
+            savedRoutes.slice(0, 5).map((route) => (
+              <Pressable key={route.id} style={s.routeItem} onPress={() => handleSavedRoutePress(route)}>
+                <View style={s.routeIcon}>
+                  <View style={s.routeDot} />
+                  <View style={s.routeLine} />
+                  <View style={s.routeDot} />
+                </View>
+                <Text style={s.routeText}>
+                  {route.fromStation.name_en} → {route.toStation.name_en}
+                </Text>
+                <BookmarkSimple size={18} color={C.accent} weight="fill" />
               </Pressable>
-            </ScrollView>
+            ))
           ) : (
-            <Card className="p-8 items-center border-dashed border-border-strong bg-transparent">
-              <View className="w-16 h-16 rounded-full bg-bg-card items-center justify-center mb-4">
-                <MapPin size={32} color={c['text-tertiary']} weight="thin" />
-              </View>
-              <Typography variant="h4" className="text-text-primary text-center" isBengali={isBengali}>
-                {t('home.no_saved_routes')}
-              </Typography>
-              <Typography variant="body-sm" className="text-text-tertiary text-center mt-2 px-6" isBengali={isBengali}>
-                {t('home.no_saved_routes_hint')}
-              </Typography>
-              <Button
-                label={t('home.add_route')}
-                variant="ghost"
-                size="sm"
-                className="mt-4"
-                onPress={() => router.push('/search')}
-                isBengali={isBengali}
-              />
-            </Card>
+            <View style={s.emptyRoutes}>
+              <Text style={s.emptyText}>{t('home.no_saved_routes')}</Text>
+              <Text style={s.emptyHint}>{t('home.no_saved_routes_hint')}</Text>
+            </View>
           )}
         </View>
-
-        {/* ── Promo Banner ───────────────────────── */}
-        <Card className="bg-primary p-6 mb-10 relative overflow-hidden">
-          <View className="z-10">
-            <Typography variant="h3" className="text-text-inverse mb-1" isBengali={isBengali}>
-              {t('home.promo_title')}
-            </Typography>
-            <Typography variant="body" className="text-text-inverse/80 mb-4" isBengali={isBengali}>
-              {t('home.promo_body')}
-            </Typography>
-            <View className="flex-row">
-              <View className="bg-text-inverse/20 px-3 py-1 rounded-full">
-                <Typography variant="label" className="text-text-inverse" isBengali={isBengali}>
-                  {t('home.pro_badge')}
-                </Typography>
-              </View>
-            </View>
-          </View>
-          <View className="absolute -right-6 -bottom-6 opacity-15">
-            <Train size={130} color="#FFFFFF" weight="fill" />
-          </View>
-        </Card>
       </ScrollView>
 
       {/* Station Selector Modal */}
-      <Modal
-        visible={selectorConfig.visible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelectorConfig({ ...selectorConfig, visible: false })}
-      >
+      <Modal visible={selectorConfig.visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSelectorConfig({ ...selectorConfig, visible: false })}>
         <StationSelector
           onSelect={handleStationSelect}
           onClose={() => setSelectorConfig({ ...selectorConfig, visible: false })}
@@ -360,14 +217,47 @@ export default function HomeScreen() {
       </Modal>
 
       {showDatePicker && (
-        <DateTimePicker
-          value={new Date(date)}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          minimumDate={new Date()}
-        />
+        <DateTimePicker value={new Date(date)} mode="date" display="default" onChange={handleDateChange} minimumDate={new Date()} />
       )}
-    </ScreenWrapper>
+    </View>
   );
 }
+
+const s = StyleSheet.create({
+  root:            { flex: 1, backgroundColor: C.bg, paddingHorizontal: 20, paddingTop: 56 },
+  header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
+  headerLeft:      { flexDirection: 'row', alignItems: 'center' },
+  logoPill:        { width: 40, height: 40, borderRadius: 20, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
+  brandRail:       { fontFamily: 'Inter_700Bold', fontSize: 18, color: C.textPri },
+  brandMate:       { fontFamily: 'Inter_700Bold', fontSize: 18, color: C.primary },
+  brandSub:        { fontFamily: 'Inter_400Regular', fontSize: 12, color: C.textTer },
+  bdtPill:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.border, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8 },
+  bdtFlag:         { fontSize: 14 },
+  bdtText:         { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.textSec },
+  hero:            { marginBottom: 24 },
+  heroTitle:       { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 34, color: C.textPri, lineHeight: 42, marginBottom: 6 },
+  heroSub:         { fontFamily: 'Inter_400Regular', fontSize: 15, color: C.textSec, lineHeight: 22 },
+  card:            { backgroundColor: C.bgCard, borderRadius: 20, borderWidth: 1, borderColor: C.border, padding: 20, marginBottom: 28 },
+  stationRow:      { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  stationIcon:     { width: 44, height: 44, borderRadius: 22, backgroundColor: '#00A85920', alignItems: 'center', justifyContent: 'center' },
+  stationLabel:    { fontFamily: 'Inter_500Medium', fontSize: 11, color: C.textTer, letterSpacing: 1, marginBottom: 2 },
+  stationName:     { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 22, color: C.textPri },
+  stationNameEn:   { fontFamily: 'Inter_400Regular', fontSize: 13, color: C.textSec, marginTop: 1 },
+  dividerRow:      { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
+  divider:         { flex: 1, height: 1, backgroundColor: C.border },
+  swapBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bgElevated, borderWidth: 1, borderColor: C.borderStrong, alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
+  searchBtn:       { marginTop: 16, backgroundColor: C.primary, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  searchBtnText:   { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: '#fff' },
+  section:         { marginBottom: 24 },
+  sectionHeader:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  sectionTitle:    { fontFamily: 'Inter_600SemiBold', fontSize: 18, color: C.textPri },
+  seeAll:          { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.accent },
+  routeItem:       { flexDirection: 'row', alignItems: 'center', backgroundColor: C.bgCard, borderRadius: 14, borderWidth: 1, borderColor: C.border, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10 },
+  routeIcon:       { width: 28, alignItems: 'center', marginRight: 12 },
+  routeDot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: C.primary },
+  routeLine:       { width: 2, height: 12, backgroundColor: C.border, marginVertical: 2 },
+  routeText:       { flex: 1, fontFamily: 'Inter_500Medium', fontSize: 15, color: C.textPri },
+  emptyRoutes:     { backgroundColor: C.bgCard, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 24, alignItems: 'center' },
+  emptyText:       { fontFamily: 'Inter_500Medium', fontSize: 15, color: C.textPri, marginBottom: 6 },
+  emptyHint:       { fontFamily: 'Inter_400Regular', fontSize: 13, color: C.textSec, textAlign: 'center' },
+});

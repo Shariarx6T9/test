@@ -46,6 +46,20 @@
       "@react-native-community/datetimepicker",
       "expo-dev-client",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "RailMate needs your location to show nearby stations.",
+          "locationWhenInUsePermission": "RailMate needs your location to show nearby stations."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "RailMate needs photo access to let you upload report photos.",
+          "cameraPermission": "RailMate needs camera access to let you take report photos."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash.png",
