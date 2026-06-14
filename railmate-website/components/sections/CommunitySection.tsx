@@ -99,7 +99,7 @@ export default function CommunitySection() {
                   alt="RailMate Feature Showcase"
                   width={800}
                   height={600}
-                  className="w-full h-auto object-cover"
+                  className="w-full h-auto"
                 />
               </div>
               
