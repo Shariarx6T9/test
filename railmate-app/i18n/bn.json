@@ -156,5 +156,11 @@
   "auth.guest_user": "অতিথি ব্যবহারকারী",
   "auth.guest_subtitle": "রুট সংরক্ষণ ও ব্যক্তিগত অ্যালার্টের জন্য সাইন ইন করুন",
   "auth.permission_needed": "অনুমতি প্রয়োজন",
-  "auth.permission_message": "প্রোফাইল ছবি সেট করতে অনুগ্রহ করে ফটো অ্যাক্সেসের অনুমতি দিন।"
+  "auth.permission_message": "প্রোফাইল ছবি সেট করতে অনুগ্রহ করে ফটো অ্যাক্সেসের অনুমতি দিন।",
+
+  "nav.home": "হোম",
+  "nav.search": "অনুসন্ধান",
+  "nav.live_updates": "লাইভ আপডেট",
+  "nav.community": "কমিউনিটি",
+  "nav.profile": "প্রোফাইল"
 }

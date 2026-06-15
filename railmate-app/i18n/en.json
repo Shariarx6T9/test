@@ -156,5 +156,11 @@
   "auth.guest_user": "Guest User",
   "auth.guest_subtitle": "Sign in to save routes and get personalized alerts",
   "auth.permission_needed": "Permission needed",
-  "auth.permission_message": "Please allow photo access to set a profile picture."
+  "auth.permission_message": "Please allow photo access to set a profile picture.",
+
+  "nav.home": "Home",
+  "nav.search": "Search",
+  "nav.live_updates": "Live Updates",
+  "nav.community": "Community",
+  "nav.profile": "Profile"
 }

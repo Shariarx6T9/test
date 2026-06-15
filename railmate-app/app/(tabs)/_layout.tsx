@@ -1,22 +1,29 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { House, MagnifyingGlass, ClipboardText, BellSimple, User } from 'phosphor-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { House, MagnifyingGlass, BellSimple, UsersThree, User } from 'phosphor-react-native';
 
-const C = { primary: '#00A859', tertiary: '#4E6480', bgElevated: '#0F1929', border: '#1E2E42' };
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { useTranslation } from '../../i18n';
+
+const TAB_BAR_HEIGHT = 60;
 
 export default function TabLayout() {
+  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: C.primary,
-        tabBarInactiveTintColor: C.tertiary,
+        tabBarActiveTintColor: colors['primary'],
+        tabBarInactiveTintColor: colors['text-tertiary'],
         tabBarStyle: {
-          backgroundColor: C.bgElevated,
+          backgroundColor: colors['bg-elevated'],
           borderTopWidth: 1,
-          borderTopColor: C.border,
-          height: 72,
-          paddingBottom: 12,
+          borderTopColor: colors['border'],
+          height: TAB_BAR_HEIGHT + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 8,
           elevation: 0,
           shadowOpacity: 0,
@@ -24,11 +31,51 @@ export default function TabLayout() {
         tabBarLabelStyle: { fontFamily: 'Inter_500Medium', fontSize: 11, marginTop: 2 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color, focused }) => <House size={24} color={color} weight={focused ? 'fill' : 'regular'} /> }} />
-      <Tabs.Screen name="search" options={{ title: 'Search', tabBarIcon: ({ color, focused }) => <MagnifyingGlass size={24} color={color} weight={focused ? 'bold' : 'regular'} /> }} />
-      <Tabs.Screen name="reports" options={{ title: 'Reports', tabBarIcon: ({ color, focused }) => <ClipboardText size={24} color={color} weight={focused ? 'fill' : 'regular'} /> }} />
-      <Tabs.Screen name="alerts" options={{ title: 'Alerts', tabBarIcon: ({ color, focused }) => <BellSimple size={24} color={color} weight={focused ? 'fill' : 'regular'} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({ color, focused }) => <User size={24} color={color} weight={focused ? 'fill' : 'regular'} /> }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('nav.home'),
+          tabBarIcon: ({ color, focused }) => (
+            <House size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: t('nav.search'),
+          tabBarIcon: ({ color, focused }) => (
+            <MagnifyingGlass size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="alerts"
+        options={{
+          title: t('nav.live_updates'),
+          tabBarIcon: ({ color, focused }) => (
+            <BellSimple size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="reports"
+        options={{
+          title: t('nav.community'),
+          tabBarIcon: ({ color, focused }) => (
+            <UsersThree size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: t('nav.profile'),
+          tabBarIcon: ({ color, focused }) => (
+            <User size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

@@ -1,8 +1,9 @@
+// Border radius scale — values per design system spec.
+// sm: chips/inputs · md: buttons/small cards · lg: cards/sheets · xl: hero surfaces · full: pills/avatars
 export const Radius = {
-  'radius-xs': 8,
-  'radius-sm': 12,
-  'radius-md': 16,
-  'radius-lg': 20,
+  'radius-sm': 6,
+  'radius-md': 10,
+  'radius-lg': 16,
   'radius-xl': 24,
   'radius-full': 9999,
-};
+} as const;
