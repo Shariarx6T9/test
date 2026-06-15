@@ -2,7 +2,7 @@
   "expo": {
     "name": "RailMate Bangladesh",
     "slug": "railmate-bangladesh",
-    "owner": "shariarxxs-team",
+    "owner": "nusraats-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -89,7 +89,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "9ed4b0fb-a16c-423e-9f6f-0f0eb526e57f"
+        "projectId": "0700b039-5dad-4171-9387-748a4e673807"
       },
       "router": {
         "origin": false
