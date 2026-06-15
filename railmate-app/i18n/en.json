@@ -319,5 +319,20 @@
   "updates.info_title": "We'll keep you informed",
   "updates.info_sub": "Get real-time updates so you can travel with confidence.",
 
-  "profile.traveler": "Traveler"
+  "profile.traveler": "Traveler",
+
+  "station.zone": "Zone",
+  "station.platforms": "Platforms",
+  "station.daily_trains": "Daily Trains",
+  "station.unknown": "Station",
+  "station.facility_wifi": "WiFi",
+  "station.facility_food": "Food Court",
+  "station.facility_restroom": "Restroom",
+  "station.facility_accessibility": "Accessibility",
+
+  "journey.add_route": "Add Route",
+  "journey.stat_journeys": "Journeys",
+  "journey.stat_distance": "Distance",
+  "journey.stat_saved_time": "Saved",
+  "journey.stat_spent": "Spent"
 }

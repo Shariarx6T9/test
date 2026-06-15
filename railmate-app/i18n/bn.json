@@ -238,5 +238,30 @@
   "updates.info_title": "আমরা আপনাকে অবগত রাখব",
   "updates.info_sub": "আত্মবিশ্বাসের সাথে যাত্রা করতে রিয়েল-টাইম আপডেট পান।",
 
-  "profile.traveler": "যাত্রী"
+  "profile.traveler": "যাত্রী",
+
+  "station.title": "স্টেশন তথ্য",
+  "station.facilities": "সুবিধা",
+  "station.popular_trains": "জনপ্রিয় ট্রেন",
+  "station.directions": "দিকনির্দেশ পান",
+  "station.zone": "জোন",
+  "station.platforms": "প্ল্যাটফর্ম",
+  "station.daily_trains": "দৈনিক ট্রেন",
+  "station.unknown": "স্টেশন",
+  "station.facility_wifi": "ওয়াইফাই",
+  "station.facility_food": "ফুড কোর্ট",
+  "station.facility_restroom": "টয়লেট",
+  "station.facility_accessibility": "প্রতিবন্ধী সুবিধা",
+
+  "journey.title": "যাত্রা সরঞ্জাম",
+  "journey.trips": "আমার যাত্রা",
+  "journey.upcoming": "আসন্ন",
+  "journey.completed": "সম্পন্ন",
+  "journey.saved_routes": "সংরক্ষিত রুট",
+  "journey.stats": "যাত্রার পরিসংখ্যান",
+  "journey.add_route": "রুট যুক্ত করুন",
+  "journey.stat_journeys": "যাত্রা",
+  "journey.stat_distance": "দূরত্ব",
+  "journey.stat_saved_time": "সংরক্ষিত",
+  "journey.stat_spent": "ব্যয়"
 }
