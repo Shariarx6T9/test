@@ -50,7 +50,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="alerts"
+        name="updates"
         options={{
           title: t('nav.live_updates'),
           tabBarIcon: ({ color, focused }) => (
@@ -59,7 +59,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="reports"
+        name="community"
         options={{
           title: t('nav.community'),
           tabBarIcon: ({ color, focused }) => (

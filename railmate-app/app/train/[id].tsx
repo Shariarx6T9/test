@@ -73,7 +73,7 @@ function TrainDetailContent() {
     }
   };
 
-  const handleJoinDiscussion = () => router.push('/(tabs)/reports' as any);
+  const handleJoinDiscussion = () => router.push('/(tabs)/community' as any);
 
   if (isLoading) {
     return (
