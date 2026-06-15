@@ -1,30 +1,17 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, Text, FlatList, ActivityIndicator, Image } from 'react-native';
-import { Plus, ThumbsUp, ChatCircle, ShareNetwork, Flag, CheckCircle, Warning, Users, Train, ArrowRight } from 'phosphor-react-native';
+import React, { useMemo, useState } from 'react';
+import { View, ScrollView, Pressable, StyleSheet, Text, FlatList, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Plus, ThumbsUp, ChatCircle, ShareNetwork, Flag, CheckCircle } from 'phosphor-react-native';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { Avatar } from '../../components/ui/Avatar/Avatar';
 import { useCommunityReports } from '../../hooks/useCommunityReports';
+import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
+import { useTranslation, TranslationKey } from '../../i18n';
 
-const C = {
-  bg: '#080D17', bgCard: '#0F1929', bgElevated: '#162035',
-  primary: '#00A859', accent: '#F5A623', danger: '#E8394B', info: '#4EA8E0', purple: '#A855F7',
-  textPri: '#F0F4FF', textSec: '#8FA3C0', textTer: '#4E6480',
-  border: '#1E2E42',
-};
+const FILTER_KEYS = ['filter_all', 'filter_following', 'filter_verified', 'filter_mine'] as const;
+type FilterKey = typeof FILTER_KEYS[number];
 
-const FILTERS = ['All', 'Following', 'Verified', 'My Posts'] as const;
-type Filter = typeof FILTERS[number];
-
-const REPORT_TYPES: Record<string, { label: string; color: string }> = {
-  DELAY:    { label: 'Delay',          color: C.accent },
-  CROWD:    { label: 'Crowding',       color: C.danger },
-  GENERAL:  { label: 'General',        color: C.info   },
-  ACCIDENT: { label: 'Incident',       color: C.purple },
-  PLATFORM: { label: 'Platform',       color: '#00C977' },
-  SCHEDULE: { label: 'Schedule',       color: C.primary },
-};
-
-// Rich mock feed data
+// Rich mock feed data — placeholder pending live community reports API
 const MOCK_FEED = [
   {
     id: '1', user: 'Rahim Uddin', avatar: null, badge: '🟢', trusted: true,
@@ -46,8 +33,24 @@ const MOCK_FEED = [
   },
 ];
 
-function CommunityCard({ item, onHelpful }: { item: typeof MOCK_FEED[0]; onHelpful: () => void }) {
-  const typeInfo = REPORT_TYPES[item.type] ?? { label: item.type, color: C.textSec };
+function CommunityCard({ item, onHelpful, colors, t }: {
+  item: typeof MOCK_FEED[0];
+  onHelpful: () => void;
+  colors: ThemeColors;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+}) {
+  const card = useMemo(() => createCardStyles(colors), [colors]);
+
+  const REPORT_TYPES: Record<string, { label: string; color: string }> = {
+    DELAY:    { label: t('community.type_delay'),    color: colors.accent },
+    CROWD:    { label: t('community.type_crowding'), color: colors.danger },
+    GENERAL:  { label: t('community.type_general'),  color: colors.info },
+    ACCIDENT: { label: t('community.type_incident'), color: '#A855F7' },
+    PLATFORM: { label: t('community.type_platform'), color: colors.success },
+    SCHEDULE: { label: t('community.type_schedule'), color: colors.primary },
+  };
+
+  const typeInfo = REPORT_TYPES[item.type] ?? { label: item.type, color: colors['text-secondary'] };
 
   return (
     <View style={card.root}>
@@ -61,8 +64,8 @@ function CommunityCard({ item, onHelpful }: { item: typeof MOCK_FEED[0]; onHelpf
             <Text style={card.userName}>{item.user}</Text>
             {item.trusted && (
               <View style={card.trustedBadge}>
-                <CheckCircle size={10} color={C.primary} weight="fill" />
-                <Text style={card.trustedText}>Trusted</Text>
+                <CheckCircle size={10} color={colors.primary} weight="fill" />
+                <Text style={card.trustedText}>{t('community.trusted')}</Text>
               </View>
             )}
           </View>
@@ -80,15 +83,15 @@ function CommunityCard({ item, onHelpful }: { item: typeof MOCK_FEED[0]; onHelpf
       {/* Stats */}
       <View style={card.statsRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <CheckCircle size={13} color={C.primary} weight="fill" />
-          <Text style={card.stat}>{item.confirmations} confirmed</Text>
+          <CheckCircle size={13} color={colors.primary} weight="fill" />
+          <Text style={card.stat}>{t('community.confirmed', { count: item.confirmations })}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <ThumbsUp size={13} color={C.textTer} />
-          <Text style={card.stat}>{item.helpful} helpful</Text>
+          <ThumbsUp size={13} color={colors['text-tertiary']} />
+          <Text style={card.stat}>{t('community.helpful_count', { count: item.helpful })}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <ChatCircle size={13} color={C.textTer} />
+          <ChatCircle size={13} color={colors['text-tertiary']} />
           <Text style={card.stat}>{item.comments}</Text>
         </View>
         <Text style={card.time}>{item.time}</Text>
@@ -97,19 +100,19 @@ function CommunityCard({ item, onHelpful }: { item: typeof MOCK_FEED[0]; onHelpf
       {/* Actions */}
       <View style={card.actions}>
         <Pressable style={card.actionBtn} onPress={onHelpful}>
-          <ThumbsUp size={16} color={C.textSec} />
-          <Text style={card.actionText}>Helpful</Text>
+          <ThumbsUp size={16} color={colors['text-secondary']} />
+          <Text style={card.actionText}>{t('community.helpful')}</Text>
         </Pressable>
         <Pressable style={card.actionBtn}>
-          <ChatCircle size={16} color={C.textSec} />
-          <Text style={card.actionText}>Comment</Text>
+          <ChatCircle size={16} color={colors['text-secondary']} />
+          <Text style={card.actionText}>{t('community.comment')}</Text>
         </Pressable>
         <Pressable style={card.actionBtn}>
-          <ShareNetwork size={16} color={C.textSec} />
-          <Text style={card.actionText}>Share</Text>
+          <ShareNetwork size={16} color={colors['text-secondary']} />
+          <Text style={card.actionText}>{t('community.share')}</Text>
         </Pressable>
         <Pressable style={card.actionBtn}>
-          <Flag size={16} color={C.textTer} />
+          <Flag size={16} color={colors['text-tertiary']} />
         </Pressable>
       </View>
     </View>
@@ -117,28 +120,33 @@ function CommunityCard({ item, onHelpful }: { item: typeof MOCK_FEED[0]; onHelpf
 }
 
 function CommunityContent() {
-  const [filter, setFilter] = useState<Filter>('All');
-  const { data: reports, isLoading } = useCommunityReports();
+  const { t } = useTranslation();
+  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
+  const s = useMemo(() => createStyles(colors), [colors]);
+
+  const [filter, setFilter] = useState<FilterKey>('filter_all');
+  const { isLoading } = useCommunityReports();
   const [helpful, setHelpful] = useState<Record<string, boolean>>({});
 
   return (
     <View style={s.root}>
       {/* Header */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
         <View>
-          <Text style={s.title}>Community</Text>
-          <Text style={s.sub}>Live reports from travelers</Text>
+          <Text style={s.title}>{t('community.title')}</Text>
+          <Text style={s.sub}>{t('community.sub')}</Text>
         </View>
         <Pressable style={s.addBtn}>
-          <Plus size={20} color="#fff" weight="bold" />
+          <Plus size={20} color={colors['text-inverse']} weight="bold" />
         </Pressable>
       </View>
 
       {/* Filters */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filtersRow}>
-        {FILTERS.map((f) => (
+        {FILTER_KEYS.map((f) => (
           <Pressable key={f} style={[s.filterChip, filter === f && s.filterChipActive]} onPress={() => setFilter(f)}>
-            <Text style={[s.filterText, filter === f && s.filterTextActive]}>{f}</Text>
+            <Text style={[s.filterText, filter === f && s.filterTextActive]}>{t(`community.${f}` as TranslationKey)}</Text>
           </Pressable>
         ))}
       </ScrollView>
@@ -152,18 +160,20 @@ function CommunityContent() {
         renderItem={({ item }) => (
           <CommunityCard
             item={item}
+            colors={colors}
+            t={t}
             onHelpful={() => setHelpful((h) => ({ ...h, [item.id]: !h[item.id] }))}
           />
         )}
         ListFooterComponent={
-          isLoading ? <ActivityIndicator color={C.primary} style={{ marginTop: 20 }} /> : null
+          isLoading ? <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} /> : null
         }
       />
 
       {/* FAB */}
       <Pressable style={s.fab}>
-        <Plus size={20} color="#fff" weight="bold" />
-        <Text style={s.fabText}>Share Update</Text>
+        <Plus size={20} color={colors['text-inverse']} weight="bold" />
+        <Text style={s.fabText}>{t('community.fab_share_update')}</Text>
       </Pressable>
     </View>
   );
@@ -173,37 +183,37 @@ export default function CommunityScreen() {
   return <ErrorBoundary name="Community"><CommunityContent /></ErrorBoundary>;
 }
 
-const s = StyleSheet.create({
-  root:            { flex: 1, backgroundColor: C.bg },
-  header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16 },
-  title:           { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, color: C.textPri },
-  sub:             { fontFamily: 'Inter_400Regular', fontSize: 14, color: C.textSec, marginTop: 3 },
-  addBtn:          { width: 44, height: 44, borderRadius: 22, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  root:            { flex: 1, backgroundColor: colors['bg-base'] },
+  header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
+  title:           { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, color: colors['text-primary'] },
+  sub:             { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], marginTop: 3 },
+  addBtn:          { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   filtersRow:      { paddingHorizontal: 20, gap: 8, paddingBottom: 12 },
-  filterChip:      { borderWidth: 1, borderColor: C.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  filterChipActive:{ backgroundColor: C.primary, borderColor: C.primary },
-  filterText:      { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.textSec },
-  filterTextActive:{ color: '#fff' },
-  fab:             { position: 'absolute', bottom: 90, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.primary, borderRadius: 28, paddingHorizontal: 22, paddingVertical: 15, elevation: 8, shadowColor: C.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12 },
-  fabText:         { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: '#fff' },
+  filterChip:      { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  filterChipActive:{ backgroundColor: colors.primary, borderColor: colors.primary },
+  filterText:      { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
+  filterTextActive:{ color: colors['text-inverse'] },
+  fab:             { position: 'absolute', bottom: 90, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primary, borderRadius: 28, paddingHorizontal: 22, paddingVertical: 15, elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12 },
+  fabText:         { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
 });
 
-const card = StyleSheet.create({
-  root:         { backgroundColor: C.bgCard, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 14, overflow: 'hidden' },
+const createCardStyles = (colors: ThemeColors) => StyleSheet.create({
+  root:         { backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 14, overflow: 'hidden' },
   topAccent:    { height: 3 },
   userRow:      { flexDirection: 'row', alignItems: 'flex-start', padding: 16, paddingBottom: 12 },
-  userName:     { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: C.textPri },
-  trustedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: C.primary + '18', borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2 },
-  trustedText:  { fontFamily: 'Inter_500Medium', fontSize: 10, color: C.primary },
-  trainName:    { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.textSec, marginTop: 2 },
-  route:        { fontFamily: 'Inter_400Regular', fontSize: 12, color: C.textTer },
+  userName:     { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-primary'] },
+  trustedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors['primary-subtle'], borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2 },
+  trustedText:  { fontFamily: 'Inter_500Medium', fontSize: 10, color: colors.primary },
+  trainName:    { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
+  route:        { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
   typeBadge:    { borderWidth: 1, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 },
   typeText:     { fontFamily: 'Inter_600SemiBold', fontSize: 11, letterSpacing: 0.2 },
-  body:         { fontFamily: 'Inter_400Regular', fontSize: 14, color: C.textPri, lineHeight: 22, paddingHorizontal: 16, paddingBottom: 12 },
+  body:         { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-primary'], lineHeight: 22, paddingHorizontal: 16, paddingBottom: 12 },
   statsRow:     { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 12 },
-  stat:         { fontFamily: 'Inter_400Regular', fontSize: 12, color: C.textTer },
-  time:         { fontFamily: 'Inter_400Regular', fontSize: 12, color: C.textTer, marginLeft: 'auto' },
-  actions:      { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: C.border, paddingHorizontal: 8 },
+  stat:         { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
+  time:         { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'], marginLeft: 'auto' },
+  actions:      { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 8 },
   actionBtn:    { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'center', paddingVertical: 12 },
-  actionText:   { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.textSec },
+  actionText:   { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
 });

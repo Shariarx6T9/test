@@ -309,5 +309,13 @@
   "train.high_crowding": "High crowding",
   "train.expected": "Expected",
   "train.traveler_reports": "{{count}} traveler reports",
-  "train.today": "Today"
+  "train.today": "Today",
+
+  "community.type_general": "General",
+  "community.type_incident": "Incident",
+  "community.trusted": "Trusted",
+  "community.fab_share_update": "Share Update",
+
+  "updates.info_title": "We'll keep you informed",
+  "updates.info_sub": "Get real-time updates so you can travel with confidence."
 }
