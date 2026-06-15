@@ -164,5 +164,11 @@
   "nav.community": "Community",
   "nav.profile": "Profile",
 
-  "search.no_stations_found": "No stations found"
+  "search.no_stations_found": "No stations found",
+
+  "results.today_all_classes": "Today • All Classes",
+  "results.search_again": "Search Again",
+  "common.go_back": "Go Back",
+
+  "community.crowd_high": "High"
 }

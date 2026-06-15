@@ -164,5 +164,11 @@
   "nav.community": "কমিউনিটি",
   "nav.profile": "প্রোফাইল",
 
-  "search.no_stations_found": "কোনো স্টেশন পাওয়া যায়নি"
+  "search.no_stations_found": "কোনো স্টেশন পাওয়া যায়নি",
+
+  "results.today_all_classes": "আজ • সকল শ্রেণি",
+  "results.search_again": "আবার খুঁজুন",
+  "common.go_back": "ফিরে যান",
+
+  "community.crowd_high": "অধিক"
 }
