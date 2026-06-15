@@ -3,6 +3,8 @@ import { View, ViewProps, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import { useThemeColors, useResolvedTheme } from '../../hooks/useThemeColors';
+
 interface ScreenWrapperProps extends ViewProps {
   children: React.ReactNode;
   withPadding?: boolean;
@@ -12,17 +14,21 @@ interface ScreenWrapperProps extends ViewProps {
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   withPadding = true,
-  bgColor = '#080D17',
+  bgColor,
   style,
   ...props
 }) => {
+  const colors = useThemeColors();
+  const theme = useResolvedTheme();
+  const resolvedBg = bgColor ?? colors['bg-base'];
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: bgColor }]} edges={['top', 'left', 'right']}>
-      <StatusBar style="light" backgroundColor={bgColor} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: resolvedBg }]} edges={['top', 'left', 'right']}>
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={resolvedBg} />
       <View
         style={[
           styles.inner,
-          { backgroundColor: bgColor },
+          { backgroundColor: resolvedBg },
           withPadding && styles.padding,
           style,
         ]}

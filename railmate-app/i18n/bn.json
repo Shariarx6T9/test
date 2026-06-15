@@ -162,5 +162,7 @@
   "nav.search": "অনুসন্ধান",
   "nav.live_updates": "লাইভ আপডেট",
   "nav.community": "কমিউনিটি",
-  "nav.profile": "প্রোফাইল"
+  "nav.profile": "প্রোফাইল",
+
+  "search.no_stations_found": "কোনো স্টেশন পাওয়া যায়নি"
 }

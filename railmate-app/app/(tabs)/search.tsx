@@ -17,6 +17,7 @@ import { Input } from '../../components/ui/Input/Input';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useSearchStore } from '../../stores/searchStore';
 import { useStations } from '../../hooks/useStations';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n';
 import { Station } from '../../types/station.types';
 
@@ -28,6 +29,7 @@ function SearchScreenInner() {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
+  const colors = useThemeColors();
 
   const { 
     fromStation, 
@@ -90,7 +92,7 @@ function SearchScreenInner() {
       className="flex-row items-center py-4 border-b border-border"
     >
       <View className="w-10 h-10 rounded-full bg-primary-subtle items-center justify-center mr-3">
-        <Train size={20} color="#00A859" weight="bold" />
+        <Train size={20} color={colors.primary} weight="bold" />
       </View>
       <View className="flex-1">
         <Typography variant="h4" className="text-text-primary" isBengali={isBengali}>
@@ -139,7 +141,7 @@ function SearchScreenInner() {
               onPress={swapStations}
               className="absolute right-0 top-[35%] bg-bg-card border border-border w-10 h-10 rounded-full items-center justify-center z-10"
             >
-              <ArrowsDownUp size={20} color="#00A859" weight="bold" />
+              <ArrowsDownUp size={20} color={colors.primary} weight="bold" />
             </Pressable>
 
             {/* To Station */}
@@ -167,7 +169,7 @@ function SearchScreenInner() {
               className="flex-row items-center flex-1"
             >
               <View className="mr-2">
-                <CalendarBlank size={20} color="#00A859" />
+                <CalendarBlank size={20} color={colors.primary} />
               </View>
               <Typography variant="body" className="text-text-primary ml-2" isBengali={isBengali}>
                 {formattedDate}
@@ -202,7 +204,7 @@ function SearchScreenInner() {
               ListEmptyComponent={
                 <View className="py-10 items-center">
                   <Typography variant="body" className="text-text-tertiary" isBengali={isBengali}>
-                    No stations found
+                    {t('search.no_stations_found')}
                   </Typography>
                 </View>
               }

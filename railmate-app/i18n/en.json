@@ -162,5 +162,7 @@
   "nav.search": "Search",
   "nav.live_updates": "Live Updates",
   "nav.community": "Community",
-  "nav.profile": "Profile"
+  "nav.profile": "Profile",
+
+  "search.no_stations_found": "No stations found"
 }
