@@ -42,6 +42,11 @@ export async function generateMetadata({
     description: t('description'),
     keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
     manifest: '/manifest.json',
+    icons: {
+      icon: '/favicon.png',
+      shortcut: '/favicon.png',
+      apple: '/favicon.png',
+    },
     openGraph: {
       title: t('title'),
       description: t('description'),
