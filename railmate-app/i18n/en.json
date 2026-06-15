@@ -317,5 +317,7 @@
   "community.fab_share_update": "Share Update",
 
   "updates.info_title": "We'll keep you informed",
-  "updates.info_sub": "Get real-time updates so you can travel with confidence."
+  "updates.info_sub": "Get real-time updates so you can travel with confidence.",
+
+  "profile.traveler": "Traveler"
 }

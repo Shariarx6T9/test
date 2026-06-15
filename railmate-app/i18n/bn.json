@@ -58,6 +58,17 @@
   "profile.system": "সিস্টেম",
   "profile.about": "সম্পর্কে",
   "profile.version": "ভার্সন",
+  "profile.badges": "আমার ব্যাজ",
+  "profile.helpful_votes": "সহায়ক",
+  "profile.journeys": "যাত্রা",
+  "profile.reports": "রিপোর্ট",
+  "profile.trusted_reporter": "বিশ্বস্ত প্রতিবেদক",
+  "profile.payment": "পেমেন্ট ও সাবস্ক্রিপশন",
+  "profile.notifications": "নোটিফিকেশন সেটিংস",
+  "profile.help": "সাহায্য ও সহায়তা",
+
+  "badges.title": "ব্যাজ ও স্তর",
+  "leaderboard.title": "লিডারবোর্ড",
 
   "common.add": "যোগ করুন",
   "common.or": "অথবা",
@@ -225,5 +236,7 @@
   "updates.min_delay": "{{mins}} মিনিট বিলম্ব রিপোর্ট করা হয়েছে",
   "updates.schedule_updated": "সময়সূচী আপডেট হয়েছে",
   "updates.info_title": "আমরা আপনাকে অবগত রাখব",
-  "updates.info_sub": "আত্মবিশ্বাসের সাথে যাত্রা করতে রিয়েল-টাইম আপডেট পান।"
+  "updates.info_sub": "আত্মবিশ্বাসের সাথে যাত্রা করতে রিয়েল-টাইম আপডেট পান।",
+
+  "profile.traveler": "যাত্রী"
 }
