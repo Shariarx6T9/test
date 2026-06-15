@@ -170,5 +170,20 @@
   "results.search_again": "Search Again",
   "common.go_back": "Go Back",
 
-  "community.crowd_high": "High"
+  "community.crowd_high": "High",
+
+  "train.not_found": "Train not found",
+  "train.journey_timeline": "Journey Timeline",
+  "train.community_insights": "Community Insights",
+  "train.departure": "Departure",
+  "train.arrival": "Arrival",
+  "train.set_alert": "Set Alert",
+  "train.buy_ticket": "Buy Ticket",
+  "train.join_discussion": "Join Discussion",
+  "train.delay_reported": "{{minutes}} min delay",
+  "train.reported": "Reported",
+  "train.high_crowding": "High crowding",
+  "train.expected": "Expected",
+  "train.traveler_reports": "{{count}} traveler reports",
+  "train.today": "Today"
 }

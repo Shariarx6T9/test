@@ -170,5 +170,20 @@
   "results.search_again": "আবার খুঁজুন",
   "common.go_back": "ফিরে যান",
 
-  "community.crowd_high": "অধিক"
+  "community.crowd_high": "অধিক",
+
+  "train.not_found": "ট্রেন পাওয়া যায়নি",
+  "train.journey_timeline": "যাত্রার সময়সূচী",
+  "train.community_insights": "কমিউনিটি তথ্য",
+  "train.departure": "প্রস্থান",
+  "train.arrival": "আগমন",
+  "train.set_alert": "সতর্কতা সেট করুন",
+  "train.buy_ticket": "টিকিট কিনুন",
+  "train.join_discussion": "আলোচনায় যুক্ত হন",
+  "train.delay_reported": "{{minutes}} মিনিট বিলম্ব",
+  "train.reported": "রিপোর্ট করা হয়েছে",
+  "train.high_crowding": "অতিরিক্ত ভিড়",
+  "train.expected": "প্রত্যাশিত",
+  "train.traveler_reports": "{{count}} জন যাত্রীর রিপোর্ট",
+  "train.today": "আজ"
 }
