@@ -3,34 +3,32 @@ import {
   View, ScrollView, Pressable, Modal, StyleSheet, Text, StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowsDownUp, CalendarBlank, MagnifyingGlass,
   CaretRight, BookmarkSimple, Train, CaretDown,
 } from 'phosphor-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
-import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
-import { Typography } from '../../components/ui/Typography/Typography';
 import { StationSelector } from '../../components/features/StationSelector/StationSelector';
-import { SavedRouteChip } from '../../components/features/SavedRouteChip/SavedRouteChip';
 import { useSearchStore } from '../../stores/searchStore';
+import { useAuthStore } from '../../stores/authStore';
 import { useSavedRoutes, SavedRoute } from '../../hooks/useSavedRoutes';
+import { useThemeColors, useResolvedTheme, ThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n';
 import { Station } from '../../types/station.types';
-
-const C = {
-  bg: '#080D17', bgCard: '#0F1929', bgElevated: '#162035',
-  primary: '#00A859', accent: '#F5A623',
-  textPri: '#F0F4FF', textSec: '#8FA3C0', textTer: '#4E6480',
-  border: '#1E2E42', borderStrong: '#2A3F57',
-  danger: '#E8394B',
-};
 
 export default function HomeScreen() {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
 
+  const colors = useThemeColors();
+  const theme = useResolvedTheme();
+  const insets = useSafeAreaInsets();
+  const s = useMemo(() => createStyles(colors), [colors]);
+
+  const { user } = useAuthStore();
   const { fromStation, toStation, date, setFromStation, setToStation, setDate, swapStations } = useSearchStore();
   const { savedRoutes } = useSavedRoutes();
 
@@ -68,6 +66,15 @@ export default function HomeScreen() {
     return isToday ? `Today, ${d.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}` : dayStr;
   }, [date, isBengali]);
 
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('home.greeting_morning');
+    if (hour < 18) return t('home.greeting_afternoon');
+    return t('home.greeting_evening');
+  }, [t]);
+
+  const userName = user?.display_name ?? t('profile.guest_user');
+
   const fromLabel = fromStation
     ? { bn: fromStation.name_bn, en: fromStation.name_en }
     : { bn: 'ঢাকা', en: 'Dhaka' };
@@ -78,19 +85,19 @@ export default function HomeScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors['bg-base']} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 32 }}>
 
         {/* ── Header ─────────────────── */}
         <View style={s.header}>
           <View style={s.headerLeft}>
             <View style={s.logoPill}>
-              <Train size={20} color="#fff" weight="fill" />
+              <Train size={20} color={colors['text-inverse']} weight="fill" />
             </View>
             <View style={{ marginLeft: 10 }}>
               <View style={{ flexDirection: 'row' }}>
-                <Text style={[s.brandRail]}>Rail</Text>
-                <Text style={[s.brandMate]}>Mate</Text>
+                <Text style={s.brandRail}>Rail</Text>
+                <Text style={s.brandMate}>Mate</Text>
               </View>
               <Text style={s.brandSub}>Bangladesh</Text>
             </View>
@@ -98,12 +105,13 @@ export default function HomeScreen() {
           <Pressable style={s.bdtPill}>
             <Text style={s.bdtFlag}>🇧🇩</Text>
             <Text style={s.bdtText}>BDT</Text>
-            <CaretDown size={12} color={C.textSec} />
+            <CaretDown size={12} color={colors['text-secondary']} />
           </Pressable>
         </View>
 
         {/* ── Hero ────────────────────── */}
         <View style={s.hero}>
+          <Text style={s.greeting}>{greeting}, {userName} 👋</Text>
           <Text style={s.heroTitle}>{t('home.find_journey')}</Text>
           <Text style={s.heroSub}>{t('home.tagline')}</Text>
         </View>
@@ -113,35 +121,35 @@ export default function HomeScreen() {
           {/* FROM */}
           <Pressable style={s.stationRow} onPress={() => setSelectorConfig({ visible: true, type: 'from' })}>
             <View style={s.stationIcon}>
-              <Train size={18} color={C.primary} weight="fill" />
+              <Train size={18} color={colors['primary']} weight="fill" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={s.stationLabel}>FROM</Text>
+              <Text style={s.stationLabel}>{t('search.from').toUpperCase()}</Text>
               <Text style={s.stationName}>{isBengali ? fromLabel.bn : fromLabel.en}</Text>
               {isBengali && <Text style={s.stationNameEn}>{fromLabel.en}</Text>}
             </View>
-            <CaretRight size={18} color={C.textTer} />
+            <CaretRight size={18} color={colors['text-tertiary']} />
           </Pressable>
 
           {/* Divider + swap */}
           <View style={s.dividerRow}>
             <View style={s.divider} />
             <Pressable style={s.swapBtn} onPress={swapStations}>
-              <ArrowsDownUp size={18} color={C.primary} weight="bold" />
+              <ArrowsDownUp size={18} color={colors['primary']} weight="bold" />
             </Pressable>
           </View>
 
           {/* TO */}
           <Pressable style={s.stationRow} onPress={() => setSelectorConfig({ visible: true, type: 'to' })}>
-            <View style={[s.stationIcon, { backgroundColor: '#00A85915' }]}>
-              <Train size={18} color={C.primary} weight="fill" />
+            <View style={s.stationIcon}>
+              <Train size={18} color={colors['primary']} weight="fill" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={s.stationLabel}>TO</Text>
+              <Text style={s.stationLabel}>{t('search.to').toUpperCase()}</Text>
               <Text style={s.stationName}>{isBengali ? toLabel.bn : toLabel.en}</Text>
               {isBengali && <Text style={s.stationNameEn}>{toLabel.en}</Text>}
             </View>
-            <CaretRight size={18} color={C.textTer} />
+            <CaretRight size={18} color={colors['text-tertiary']} />
           </Pressable>
 
           {/* Divider */}
@@ -149,14 +157,14 @@ export default function HomeScreen() {
 
           {/* DATE */}
           <Pressable style={s.stationRow} onPress={() => setShowDatePicker(true)}>
-            <View style={[s.stationIcon, { backgroundColor: '#F5A62315' }]}>
-              <CalendarBlank size={18} color={C.accent} weight="fill" />
+            <View style={[s.stationIcon, { backgroundColor: colors['accent-subtle'] }]}>
+              <CalendarBlank size={18} color={colors['accent']} weight="fill" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={s.stationLabel}>DATE</Text>
+              <Text style={s.stationLabel}>{t('search.date').toUpperCase()}</Text>
               <Text style={s.stationName}>{formattedDate}</Text>
             </View>
-            <CaretRight size={18} color={C.textTer} />
+            <CaretRight size={18} color={colors['text-tertiary']} />
           </Pressable>
 
           {/* Search button */}
@@ -164,7 +172,7 @@ export default function HomeScreen() {
             style={[s.searchBtn, (!fromStation || !toStation) && { opacity: 0.6 }]}
             onPress={handleSearch}
           >
-            <MagnifyingGlass size={20} color="#fff" weight="bold" />
+            <MagnifyingGlass size={20} color={colors['text-inverse']} weight="bold" />
             <Text style={s.searchBtnText}>{t('search.button')}</Text>
           </Pressable>
         </View>
@@ -173,13 +181,13 @@ export default function HomeScreen() {
         <View style={s.section}>
           <View style={s.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <BookmarkSimple size={18} color={C.accent} weight="fill" />
+              <BookmarkSimple size={18} color={colors['accent']} weight="fill" />
               <Text style={s.sectionTitle}>{t('home.saved_routes')}</Text>
             </View>
             {savedRoutes.length > 0 && (
               <Pressable onPress={() => router.push('/profile' as any)} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                 <Text style={s.seeAll}>{t('home.see_all')}</Text>
-                <CaretRight size={13} color={C.accent} />
+                <CaretRight size={13} color={colors['accent']} />
               </Pressable>
             )}
           </View>
@@ -195,7 +203,7 @@ export default function HomeScreen() {
                 <Text style={s.routeText}>
                   {route.fromStation.name_en} → {route.toStation.name_en}
                 </Text>
-                <BookmarkSimple size={18} color={C.accent} weight="fill" />
+                <BookmarkSimple size={18} color={colors['accent']} weight="fill" />
               </Pressable>
             ))
           ) : (
@@ -223,41 +231,42 @@ export default function HomeScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root:            { flex: 1, backgroundColor: C.bg, paddingHorizontal: 20, paddingTop: 56 },
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  root:            { flex: 1, backgroundColor: colors['bg-base'], paddingHorizontal: 20 },
   header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
   headerLeft:      { flexDirection: 'row', alignItems: 'center' },
-  logoPill:        { width: 40, height: 40, borderRadius: 20, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
-  brandRail:       { fontFamily: 'Inter_700Bold', fontSize: 18, color: C.textPri },
-  brandMate:       { fontFamily: 'Inter_700Bold', fontSize: 18, color: C.primary },
-  brandSub:        { fontFamily: 'Inter_400Regular', fontSize: 12, color: C.textTer },
-  bdtPill:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.border, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8 },
+  logoPill:        { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['primary'], alignItems: 'center', justifyContent: 'center' },
+  brandRail:       { fontFamily: 'Inter_700Bold', fontSize: 18, color: colors['text-primary'] },
+  brandMate:       { fontFamily: 'Inter_700Bold', fontSize: 18, color: colors['primary'] },
+  brandSub:        { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
+  bdtPill:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors['border'], borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8 },
   bdtFlag:         { fontSize: 14 },
-  bdtText:         { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.textSec },
+  bdtText:         { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
   hero:            { marginBottom: 24 },
-  heroTitle:       { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 34, color: C.textPri, lineHeight: 42, marginBottom: 6 },
-  heroSub:         { fontFamily: 'Inter_400Regular', fontSize: 15, color: C.textSec, lineHeight: 22 },
-  card:            { backgroundColor: C.bgCard, borderRadius: 20, borderWidth: 1, borderColor: C.border, padding: 20, marginBottom: 28 },
+  greeting:        { fontFamily: 'Inter_500Medium', fontSize: 15, color: colors['text-secondary'], marginBottom: 8 },
+  heroTitle:       { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 34, color: colors['text-primary'], lineHeight: 42, marginBottom: 6 },
+  heroSub:         { fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-secondary'], lineHeight: 22 },
+  card:            { backgroundColor: colors['bg-card'], borderRadius: 20, borderWidth: 1, borderColor: colors['border'], padding: 20, marginBottom: 28 },
   stationRow:      { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
-  stationIcon:     { width: 44, height: 44, borderRadius: 22, backgroundColor: '#00A85920', alignItems: 'center', justifyContent: 'center' },
-  stationLabel:    { fontFamily: 'Inter_500Medium', fontSize: 11, color: C.textTer, letterSpacing: 1, marginBottom: 2 },
-  stationName:     { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 22, color: C.textPri },
-  stationNameEn:   { fontFamily: 'Inter_400Regular', fontSize: 13, color: C.textSec, marginTop: 1 },
+  stationIcon:     { width: 44, height: 44, borderRadius: 22, backgroundColor: colors['primary-subtle'], alignItems: 'center', justifyContent: 'center' },
+  stationLabel:    { fontFamily: 'Inter_500Medium', fontSize: 11, color: colors['text-tertiary'], letterSpacing: 1, marginBottom: 2 },
+  stationName:     { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 22, color: colors['text-primary'] },
+  stationNameEn:   { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], marginTop: 1 },
   dividerRow:      { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
-  divider:         { flex: 1, height: 1, backgroundColor: C.border },
-  swapBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bgElevated, borderWidth: 1, borderColor: C.borderStrong, alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
-  searchBtn:       { marginTop: 16, backgroundColor: C.primary, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  searchBtnText:   { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: '#fff' },
+  divider:         { flex: 1, height: 1, backgroundColor: colors['border'] },
+  swapBtn:         { width: 36, height: 36, borderRadius: 18, backgroundColor: colors['bg-overlay'], borderWidth: 1, borderColor: colors['border-strong'], alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
+  searchBtn:       { marginTop: 16, backgroundColor: colors['primary'], borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  searchBtnText:   { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: colors['text-inverse'] },
   section:         { marginBottom: 24 },
   sectionHeader:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionTitle:    { fontFamily: 'Inter_600SemiBold', fontSize: 18, color: C.textPri },
-  seeAll:          { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.accent },
-  routeItem:       { flexDirection: 'row', alignItems: 'center', backgroundColor: C.bgCard, borderRadius: 14, borderWidth: 1, borderColor: C.border, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10 },
+  sectionTitle:    { fontFamily: 'Inter_600SemiBold', fontSize: 18, color: colors['text-primary'] },
+  seeAll:          { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['accent'] },
+  routeItem:       { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors['border'], paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10 },
   routeIcon:       { width: 28, alignItems: 'center', marginRight: 12 },
-  routeDot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: C.primary },
-  routeLine:       { width: 2, height: 12, backgroundColor: C.border, marginVertical: 2 },
-  routeText:       { flex: 1, fontFamily: 'Inter_500Medium', fontSize: 15, color: C.textPri },
-  emptyRoutes:     { backgroundColor: C.bgCard, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 24, alignItems: 'center' },
-  emptyText:       { fontFamily: 'Inter_500Medium', fontSize: 15, color: C.textPri, marginBottom: 6 },
-  emptyHint:       { fontFamily: 'Inter_400Regular', fontSize: 13, color: C.textSec, textAlign: 'center' },
+  routeDot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: colors['primary'] },
+  routeLine:       { width: 2, height: 12, backgroundColor: colors['border'], marginVertical: 2 },
+  routeText:       { flex: 1, fontFamily: 'Inter_500Medium', fontSize: 15, color: colors['text-primary'] },
+  emptyRoutes:     { backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors['border'], padding: 24, alignItems: 'center' },
+  emptyText:       { fontFamily: 'Inter_500Medium', fontSize: 15, color: colors['text-primary'], marginBottom: 6 },
+  emptyHint:       { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], textAlign: 'center' },
 });
