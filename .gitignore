@@ -44,3 +44,7 @@ railmate-website/.next/
 
 # Personal Resources
 RailMate_Resourse/
+
+railmate-website/.env
+
+railmate-website/.env.local
