@@ -3,45 +3,8 @@ import { useState } from 'react'
 import PremiumCheckoutModal from './PremiumCheckoutModal'
 
 import { useI18n } from '@/lib/i18n'
-import { Check, X, Crown, DownloadSimple, Lock } from '@phosphor-icons/react'
+import { Check, Crown, DownloadSimple, Lock, GooglePlayLogo } from '@phosphor-icons/react'
 import { Link } from '@/lib/i18n/navigation'
-
-// SVG payment logos rendered inline — no external images needed
-function BkashLogo({ className }: { className?: string }) {
-  return (
-    <div className={`flex items-center justify-center px-4 py-2.5 bg-bg-card border border-border-subtle rounded-lg ${className}`}>
-      <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-inter">bKash</span>
-    </div>
-  )
-}
-function NagadLogo({ className }: { className?: string }) {
-  return (
-    <div className={`flex items-center justify-center px-4 py-2.5 bg-bg-card border border-border-subtle rounded-lg ${className}`}>
-      <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-inter">Nagad</span>
-    </div>
-  )
-}
-function RocketLogo({ className }: { className?: string }) {
-  return (
-    <div className={`flex items-center justify-center px-4 py-2.5 bg-bg-card border border-border-subtle rounded-lg ${className}`}>
-      <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-inter">Rocket</span>
-    </div>
-  )
-}
-function VisaLogo({ className }: { className?: string }) {
-  return (
-    <div className={`flex items-center justify-center px-4 py-2.5 bg-bg-card border border-border-subtle rounded-lg ${className}`}>
-      <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-inter italic">VISA</span>
-    </div>
-  )
-}
-function McLogo({ className }: { className?: string }) {
-  return (
-    <div className={`flex items-center justify-center px-4 py-2.5 bg-bg-card border border-border-subtle rounded-lg ${className}`}>
-      <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-inter">Mastercard</span>
-    </div>
-  )
-}
 
 export default function PricingSection() {
   const { t } = useI18n()
@@ -150,27 +113,25 @@ export default function PricingSection() {
           </div>
         </div>
 
-        {/* Payment methods — Coming Soon */}
+        {/* Payment notice — Google Play Billing */}
         <div className="max-w-3xl mx-auto">
-          <div className="p-6 bg-bg-card border border-border-subtle rounded-xl">
-            <div className="flex items-center justify-center gap-2 mb-5">
-              <Lock size={16} className="text-text-tertiary" />
-              <p className="text-text-secondary text-sm font-semibold font-inter text-center">
-                {s.payment_label}
-              </p>
+          <div className="p-5 bg-bg-card border border-border-subtle rounded-xl flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="flex items-center gap-2">
+              <Lock size={15} className="text-text-tertiary flex-shrink-0" />
+              <span className="text-text-tertiary text-xs font-inter">
+                Secure payment via
+              </span>
             </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 opacity-50">
-              <BkashLogo />
-              <NagadLogo />
-              <RocketLogo />
-              <VisaLogo />
-              <McLogo />
+            <div className="flex items-center gap-2 bg-bg-elevated border border-border-subtle rounded-lg px-4 py-2">
+              <GooglePlayLogo size={16} className="text-primary" weight="fill" />
+              <span className="text-text-secondary text-xs font-semibold font-inter">
+                Google Play Billing
+              </span>
             </div>
-
-            <p className="text-center text-text-tertiary text-xs font-inter mt-5 max-w-md mx-auto">
-              {s.payment_note}
-            </p>
+            <span className="text-text-tertiary text-xs font-inter hidden sm:block">·</span>
+            <span className="text-text-tertiary text-xs font-inter">
+              Cancel anytime
+            </span>
           </div>
         </div>
       </div>

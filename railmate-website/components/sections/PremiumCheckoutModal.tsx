@@ -10,7 +10,7 @@ interface PremiumCheckoutModalProps {
   onClose: () => void
 }
 
-const PAYMENT_METHODS = ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard']
+
 
 export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutModalProps) {
   const { t } = useI18n()
@@ -26,15 +26,10 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
     e.preventDefault()
     setStatus('loading')
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Premium waitlist signup',
-          email,
-          subject: 'Partnership',
-          message: `User requested RailMate Pro (${plan}) before payment was live. Notify at launch.`,
-        }),
+        body: JSON.stringify({ email, plan }),
       })
       if (res.ok) setStatus('success')
       else setStatus('error')
@@ -96,24 +91,10 @@ export default function PremiumCheckoutModal({ open, onClose }: PremiumCheckoutM
             </button>
           </div>
 
-          {/* Payment methods — explicitly Coming Soon, no fake CTA */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Lock size={14} className="text-text-tertiary" />
-              <p className="text-text-secondary text-xs font-semibold font-inter">
-                {s.payment_methods_label}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {PAYMENT_METHODS.map((m) => (
-                <span
-                  key={m}
-                  className="px-3 py-1.5 rounded-md bg-bg-card border border-border-subtle text-text-tertiary text-xs font-bold uppercase tracking-wide font-inter opacity-60"
-                >
-                  {m}
-                </span>
-              ))}
-            </div>
+          {/* Payment notice */}
+          <div className="mb-6 flex items-center justify-center gap-2 text-xs text-text-tertiary font-inter">
+            <Lock size={13} className="text-text-tertiary flex-shrink-0" />
+            <span>Secure payment via Google Play Billing · Cancel anytime</span>
           </div>
 
           {/* Honest status note */}
