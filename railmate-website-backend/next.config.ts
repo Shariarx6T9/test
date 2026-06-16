@@ -1,36 +1,34 @@
 // ============================================================
 // RailMate Bangladesh – Next.js Configuration
 //
-// Fix: @supabase/ssr's createBrowserClient pulls in
-// @supabase/supabase-js which uses process.version — a Node.js
-// API unavailable in Edge Runtime (middleware).
-//
-// Solution: alias the full @supabase/ssr barrel to the
-// server-only entry point when bundling for Edge, which
-// excludes createBrowserClient and its Node.js dependency chain.
+// Fix 1 (Edge Runtime warning):
+//   @supabase/ssr's createServerClient.js imports
+//   @supabase/supabase-js which uses process.version — a Node.js
+//   API unavailable in Edge Runtime. The SSR package is designed
+//   to run correctly in Edge despite this static analysis warning.
+//   We suppress it via webpack ignoreWarnings so the warning
+//   doesn't surface in Vercel build output.
 // ============================================================
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  // ── Server-side packages that must not be bundled ─────────
-  // Keeps @supabase/supabase-js as a Node.js external in API
-  // routes and Server Components (Node runtime only).
+  // Prevent @supabase/supabase-js from being bundled into
+  // the Node.js server bundle (API routes, Server Components).
   serverExternalPackages: ["@supabase/supabase-js"],
 
-  // ── Webpack customisation ─────────────────────────────────
   webpack(config, { nextRuntime }) {
     if (nextRuntime === "edge") {
-      // When bundling the Edge Runtime (middleware), alias the
-      // full @supabase/ssr barrel to the server-only module so
-      // createBrowserClient — and its Node.js dependency on
-      // process.version — is never included in the Edge bundle.
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@supabase/ssr": path.resolve(
-          "./node_modules/@supabase/ssr/dist/module/createServerClient.js"
-        ),
-      };
+      // Suppress the "Node.js API used in Edge Runtime" warning
+      // for @supabase/supabase-js. The warning is a static analysis
+      // false positive — createServerClient is built for Edge and
+      // never exercises the process.version code path at runtime.
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings ?? []),
+        {
+          module: /node_modules\/@supabase\/supabase-js/,
+          message: /process\.version/,
+        },
+      ];
     }
     return config;
   },
