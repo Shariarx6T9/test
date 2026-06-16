@@ -2,7 +2,6 @@
   "expo": {
     "name": "RailMate",
     "slug": "railmate",
-    "owner": "nusraats-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -72,20 +71,6 @@
           }
         }
       ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "RailMate needs photo access to let you upload report photos.",
-          "cameraPermission": "RailMate needs camera access to let you take report photos."
-        }
-      ],
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "RailMate needs your location to show nearby stations.",
-          "locationWhenInUsePermission": "RailMate needs your location to show nearby stations."
-        }
-      ],
       "expo-localization",
       [
         "@sentry/react-native/expo",
@@ -97,9 +82,6 @@
       ]
     ],
     "extra": {
-      "eas": {
-        "projectId": "0700b039-5dad-4171-9387-748a4e673807"
-      },
       "router": {
         "origin": false
       }
