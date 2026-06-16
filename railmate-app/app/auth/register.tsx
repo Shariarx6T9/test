@@ -60,7 +60,7 @@ export default function RegisterScreen() {
 
   return (
     <ScreenWrapper withPadding={false}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={s.page}>
           <Text style={[s.title, { fontFamily: 'PlusJakartaSans_700Bold' }]}>{t('auth.register_title')}</Text>
           <Pressable onPress={pickImage} disabled={uploading} style={s.avatarWrap}>
@@ -80,7 +80,7 @@ export default function RegisterScreen() {
             </View>
           )}
           {!!error && <Text style={[s.error, { fontFamily: F.r }]}>{error}</Text>}
-          <View style={{ flex: 1, minHeight: 40 }} />
+          <View style={{ height: 32 }} />
           <View style={{ width:'100%', marginBottom: 16 }}>
             <Button label={t('auth.create_account')} onPress={handleSubmit} isLoading={submitting || uploading} isBengali={isBengali} style={{ width:'100%' }} />
           </View>
@@ -94,7 +94,7 @@ export default function RegisterScreen() {
 }
 
 const s = StyleSheet.create({
-  page:        { flex:1, paddingHorizontal:24, paddingTop:48, paddingBottom:40 },
+  page:        { paddingHorizontal:24, paddingTop:48, paddingBottom:40 },
   title:       { fontSize:28, color:'#F0F4FF', lineHeight:36, marginBottom:32 },
   avatarWrap:  { alignSelf:'center', alignItems:'center', marginBottom:32 },
   avatarCircle:{ width:96, height:96, borderRadius:48, backgroundColor:'#162035', borderWidth:1, borderColor:'#1E2E42', alignItems:'center', justifyContent:'center', overflow:'hidden' },

@@ -78,13 +78,9 @@ export default function RootLayout() {
 
 const s = StyleSheet.create({
   splash: {
-    alignItems: 'center',
-    justifyContent: 'center',
     zIndex: 9999,
   },
   splashImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    ...StyleSheet.absoluteFillObject,
   },
 });
