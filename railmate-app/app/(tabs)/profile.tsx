@@ -25,14 +25,13 @@ const THEME_OPTIONS = [
 function ProfileContent() {
   const router = useRouter();
   const { signOut, user, isAuthenticated } = useAuth();
-  const { theme, setTheme, language, setLanguage } = usePrefsStore();
-  const locale = language;
-  const { t } = useTranslation();
+  const { theme, setTheme } = usePrefsStore();
+  const { t, locale, setLocale } = useTranslation();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
 
-  const toggleLanguage = () => setLanguage(language === 'bn' ? 'en' : 'bn');
+  const toggleLanguage = () => setLocale(locale === 'bn' ? 'en' : 'bn');
 
   const STATS = [
     { key: 'reports', label: t('profile.reports'), val: '15' },

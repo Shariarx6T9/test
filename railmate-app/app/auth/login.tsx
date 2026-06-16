@@ -34,12 +34,6 @@ export default function LoginScreen() {
 
   const handleContinue = async () => {
     setError(null);
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-    const isConfigured = supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co' && supabaseUrl.trim() !== '';
-    if (!isConfigured) {
-      setError('Backend not configured. Please continue as guest for now.');
-      return;
-    }
     setSubmitting(true);
     try {
       if (mode === 'phone') {
@@ -68,7 +62,6 @@ export default function LoginScreen() {
     ? { regular: 'NotoSansBengali_400Regular', semi: 'NotoSansBengali_600SemiBold' }
     : { regular: 'Inter_400Regular', semi: 'Inter_600SemiBold' };
 
-  const isNetworkError = !!error && (error.includes('Network') || error.includes('Backend not configured'));
 
   return (
     <ScreenWrapper withPadding={false}>
@@ -138,11 +131,6 @@ export default function LoginScreen() {
           {!!error && (
             <View style={{ marginTop: 8 }}>
               <Text style={s.errorText}>{error}</Text>
-              {isNetworkError && (
-                <Pressable onPress={handleGuest} style={s.guestFallbackBtn}>
-                  <Text style={s.guestFallbackText}>{t('auth.guest')} →</Text>
-                </Pressable>
-              )}
             </View>
           )}
 
