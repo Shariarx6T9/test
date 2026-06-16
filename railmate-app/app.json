@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "RailMate Bangladesh",
+    "name": "RailMate",
     "slug": "railmate",
     "owner": "nusraats-team",
     "version": "1.0.0",
@@ -36,7 +36,7 @@
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro",
       "output": "single",
-      "name": "RailMate Bangladesh",
+      "name": "RailMate",
       "shortName": "RailMate",
       "backgroundColor": "#F5F7FA"
     },
@@ -84,6 +84,15 @@
         {
           "locationAlwaysAndWhenInUsePermission": "RailMate needs your location to show nearby stations.",
           "locationWhenInUsePermission": "RailMate needs your location to show nearby stations."
+        }
+      ],
+      "expo-localization",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "shariar-hn"
         }
       ]
     ],
