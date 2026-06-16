@@ -37,7 +37,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'metadata' })
 
   return {
-    metadataBase: new URL('https://railmatebd.com'),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'),
     title: t('title'),
     description: t('description'),
     keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
@@ -50,7 +50,7 @@ export async function generateMetadata({
     openGraph: {
       title: t('title'),
       description: t('description'),
-      url: 'https://railmatebd.com',
+      url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app',
       siteName: 'RailMate Bangladesh',
       images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'RailMate Bangladesh' }],
       locale: locale === 'bn' ? 'bn_BD' : 'en_US',
@@ -109,8 +109,8 @@ export default async function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "RailMate Bangladesh",
-              "url": "https://railmatebd.com",
-              "logo": "https://railmatebd.com/logo.png",
+              "url": process.env.NEXT_PUBLIC_SITE_URL ?? "https://bhairail.vercel.app",
+              "logo": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://bhairail.vercel.app"}/logo.png`,
               "contactPoint": {
                 "@type": "ContactPoint",
                 "contactType": "customer service",

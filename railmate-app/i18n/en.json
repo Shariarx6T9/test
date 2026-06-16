@@ -375,7 +375,12 @@
   "report.select_type_error": "Select report type",
   "report.type_delay": "Delay",
   "report.type_crowd": "Crowding",
-  "report.type_platform": "Platform",
-  "report.type_general": "General",
+  "report.type_condition": "Coach Condition",
+  "report.crowd_level_label": "Crowding Level",
+  "report.crowd_level_empty": "Empty",
+  "report.crowd_level_moderate": "Moderate",
+  "report.crowd_level_full": "Full",
+  "report.crowd_level_overcrowded": "Overcrowded",
+  "report.condition_rating_label": "Coach Rating (1–5)",
   "report.location_permission": "Allow location access to tag your report."
 }

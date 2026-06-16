@@ -19,13 +19,12 @@ import { useTranslation, TranslationKey } from '../../i18n';
 const FILTER_KEYS = ['filter_all', 'filter_following', 'filter_verified', 'filter_mine'] as const;
 type FilterKey = typeof FILTER_KEYS[number];
 
+// Colors per Master Reference Part 03 Section 3.5 — Community Report Card
+// Delay → --color-danger | Crowding → --color-accent | Condition → --color-info
 const TYPE_COLORS: Record<string, string> = {
-  DELAY:    '#F5A623',
-  CROWD:    '#E8394B',
-  PLATFORM: '#00A859',
-  SCHEDULE: '#4EA8E0',
-  GENERAL:  '#8FA3C0',
-  ACCIDENT: '#A855F7',
+  DELAY:           '#E8394B',
+  CROWDING:        '#F5A623',
+  COACH_CONDITION: '#4EA8E0',
 };
 
 function formatTime(iso?: string): string {
