@@ -85,6 +85,15 @@
           "locationAlwaysAndWhenInUsePermission": "RailMate needs your location to show nearby stations.",
           "locationWhenInUsePermission": "RailMate needs your location to show nearby stations."
         }
+      ],
+      "expo-localization",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "shariar-hn"
+        }
       ]
     ],
     "extra": {

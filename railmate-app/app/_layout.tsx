@@ -12,8 +12,28 @@ import { useAuthStore } from '../stores/authStore';
 import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
+import * as Sentry from '@sentry/react-native';
 
-export default function RootLayout() {
+Sentry.init({
+  dsn: 'https://c786957ff4cbc536501121e941a7888c@o4511573011726336.ingest.us.sentry.io/4511573013364736',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
+
+export default Sentry.wrap(function RootLayout() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
   const { isGuest } = useAuthStore();
   const { theme: themePref } = usePrefsStore();
@@ -74,7 +94,7 @@ export default function RootLayout() {
       </View>
     </QueryClientProvider>
   );
-}
+});
 
 const s = StyleSheet.create({
   splash: {
