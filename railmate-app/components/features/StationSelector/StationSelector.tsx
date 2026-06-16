@@ -19,7 +19,7 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
   isBengali = false,
 }) => {
   const { t } = useTranslation();
-  const { data: stations } = useStations();
+  const { data: stations, isLoading, error } = useStations();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredStations = useMemo(() => {
@@ -96,7 +96,7 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
             ListEmptyComponent={
               <View className="py-10 items-center">
                 <Typography variant="body" className="text-text-tertiary" isBengali={isBengali}>
-                  No stations found
+                  {t('search.no_stations_found')}
                 </Typography>
               </View>
             }
