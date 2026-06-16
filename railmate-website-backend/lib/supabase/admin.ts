@@ -7,7 +7,7 @@
 // ============================================================
 
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types";
+import type { Database } from "@/types/index";
 
 let _adminClient: ReturnType<typeof createClient<Database>> | undefined;
 
