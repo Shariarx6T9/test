@@ -74,16 +74,7 @@
           }
         }
       ],
-      "expo-localization",
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "react-native",
-          "organization": "shariar-hn",
-          "uploadSourceMaps": false
-        }
-      ]
+      "expo-localization"
     ],
     "extra": {
       "router": {
