@@ -71,7 +71,7 @@ export default Sentry.wrap(function RootLayout() {
 
     // 1. New user who hasn't completed onboarding → show onboarding
     if (!hasFinishedOnboarding && !inOnboardingGroup && seg0 !== 'onboarding') {
-      router.replace('/onboarding' as any);
+      router.replace('/onboarding/welcome' as any);
       return;
     }
 

@@ -62,6 +62,21 @@ export default function PermissionsScreen() {
         </Pressable>
       </View>
 
+      {/* Pagination dots — slide 5 of 5 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 7, paddingBottom: 16 }}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <View
+            key={i}
+            style={{
+              width: i === 4 ? 22 : 7,
+              height: 7,
+              borderRadius: 3.5,
+              backgroundColor: i === 4 ? '#00A859' : colors['border'],
+            }}
+          />
+        ))}
+      </View>
+
       <View style={[s.footer, { paddingBottom: insets.bottom + 24 }]}>
         <Pressable style={s.allowBtn} onPress={handleContinue}>
           <Text style={s.allowText}>{notifGranted ? 'Continue' : 'Allow Notifications'}</Text>
