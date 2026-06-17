@@ -80,7 +80,8 @@
         {
           "url": "https://sentry.io/",
           "project": "react-native",
-          "organization": "shariar-hn"
+          "organization": "shariar-hn",
+          "uploadSourceMaps": false
         }
       ]
     ],
