@@ -112,11 +112,20 @@ export async function signOut() {
 }
 
 // ─── Admin: Get User by Email ─────────────────────────────
+// NOTE: `admin.auth.admin.listUsers()` paginates (default page size
+// 50) — calling it once and doing `.find()` silently misses any user
+// beyond the first page. Querying the `users` table directly is O(1)
+// via the indexed email column and doesn't have this failure mode.
 export async function adminGetUserByEmail(email: string) {
   const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.listUsers();
+  const { data, error } = await admin
+    .from("users")
+    .select("id, email, phone, display_name, avatar_url")
+    .eq("email", email)
+    .maybeSingle();
+
   if (error) throw new Error(error.message);
-  return data.users.find((u) => u.email === email) ?? null;
+  return data;
 }
 
 // ─── Admin: Delete User ───────────────────────────────────

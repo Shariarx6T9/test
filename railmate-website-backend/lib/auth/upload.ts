@@ -24,6 +24,58 @@ const ALLOWED_IMAGE_TYPES = new Set([
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;       // 5 MB
 const MAX_COMMUNITY_SIZE = 10 * 1024 * 1024;   // 10 MB
 
+// ─── Magic-Byte Validation ────────────────────────────────
+// `file.type` is a client-supplied MIME hint and is trivially
+// spoofable (rename anything, set the multipart Content-Type).
+// We verify the first few bytes against the real file signature
+// before trusting the declared type and writing it to Storage.
+function detectImageMimeType(bytes: Uint8Array): string | null {
+  if (bytes.length < 12) return null;
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+  ) {
+    return "image/png";
+  }
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  // GIF: "GIF87a" or "GIF89a"
+  if (
+    bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38
+  ) {
+    return "image/gif";
+  }
+  // WEBP: "RIFF" .... "WEBP"
+  if (
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return null;
+}
+
+function assertRealImageType(buffer: ArrayBuffer, declaredType: string): void {
+  const detected = detectImageMimeType(new Uint8Array(buffer));
+  if (!detected || !ALLOWED_IMAGE_TYPES.has(detected)) {
+    throw new AppError(
+      "File content does not match an allowed image format.",
+      ErrorCode.VALIDATION_ERROR,
+      422
+    );
+  }
+  if (detected !== declaredType) {
+    throw new AppError(
+      "Declared file type does not match the actual file content.",
+      ErrorCode.VALIDATION_ERROR,
+      422
+    );
+  }
+}
+
 // ─── Helpers ──────────────────────────────────────────────
 function sanitizeFileName(original: string): string {
   return original
@@ -67,6 +119,7 @@ export async function uploadAvatar(
   const admin = createAdminClient();
   const path = buildPath("avatars", userId, sanitizeFileName(file.name));
   const buffer = await file.arrayBuffer();
+  assertRealImageType(buffer, file.type);
 
   const { error } = await admin.storage
     .from(BUCKETS.avatars)
@@ -127,6 +180,7 @@ export async function uploadCommunityPhoto(
   const admin = createAdminClient();
   const path = buildPath("community", userId, sanitizeFileName(file.name));
   const buffer = await file.arrayBuffer();
+  assertRealImageType(buffer, file.type);
 
   const { error } = await admin.storage
     .from(BUCKETS.communityPhotos)

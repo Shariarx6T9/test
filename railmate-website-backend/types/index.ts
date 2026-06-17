@@ -327,6 +327,36 @@ export type Database = {
         Relationships: [];
       };
 
+      // ── users ────────────────────────────────────────────
+      // NOTE: This table is owned by the railmate-app schema (Part 07
+      // of the Master Reference). Only the columns this backend actually
+      // reads/writes are declared here — do not treat this as the source
+      // of truth for the full users schema.
+      users: {
+        Row: {
+          id: string;
+          email: string | null;
+          phone: string | null;
+          display_name: string | null;
+          avatar_url: string | null;
+        };
+        Insert: {
+          id: string;
+          email?: string | null;
+          phone?: string | null;
+          display_name?: string | null;
+          avatar_url?: string | null;
+        };
+        Update: {
+          id?: string;
+          email?: string | null;
+          phone?: string | null;
+          display_name?: string | null;
+          avatar_url?: string | null;
+        };
+        Relationships: [];
+      };
+
       // ── download_cta_events ─────────────────────────────
       download_cta_events: {
         Row: {

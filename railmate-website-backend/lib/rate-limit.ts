@@ -115,6 +115,8 @@ async function upstashLimit(
 }
 
 // ─── Public API ───────────────────────────────────────────
+let warnedAboutMissingUpstash = false;
+
 export async function rateLimit(
   req: NextRequest,
   preset: RateLimitPresetKey,
@@ -127,6 +129,16 @@ export async function rateLimit(
   const hasUpstash =
     !!process.env.UPSTASH_REDIS_REST_URL &&
     !!process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!hasUpstash && process.env.NODE_ENV === "production" && !warnedAboutMissingUpstash) {
+    warnedAboutMissingUpstash = true;
+    console.warn(
+      "[RateLimit] UPSTASH_REDIS_REST_URL/TOKEN not set in production. " +
+        "Falling back to in-memory rate limiting, which does NOT share state " +
+        "across serverless invocations on Vercel — this provides effectively " +
+        "no real protection. Configure Upstash before relying on these limits."
+    );
+  }
 
   try {
     if (hasUpstash) {
