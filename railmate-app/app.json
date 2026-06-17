@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "railmatebd",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.railmate.bd",
       "supportsTablet": false,
@@ -37,7 +37,7 @@
       "output": "single",
       "name": "RailMate",
       "shortName": "RailMate",
-      "backgroundColor": "#F5F7FA"
+      "backgroundColor": "#080D17"
     },
     "plugins": [
       "expo-router",

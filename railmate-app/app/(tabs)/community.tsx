@@ -15,6 +15,7 @@ import {
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation, TranslationKey } from '../../i18n';
+import type { ReportFilter, ReportType } from '../../types/report.types';
 
 const FILTER_KEYS = ['filter_all', 'filter_following', 'filter_verified', 'filter_mine'] as const;
 type FilterKey = typeof FILTER_KEYS[number];
@@ -31,6 +32,7 @@ function formatTime(iso?: string): string {
   if (!iso) return '';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
@@ -47,37 +49,60 @@ function CommunityContent() {
   const { user, isAuthenticated } = useAuthStore();
   const [filter, setFilter] = useState<FilterKey>('filter_all');
 
-  const apiFilter = filter === 'filter_verified' ? { type: 'VERIFIED' } :
-                    filter === 'filter_mine'     ? { userId: user?.id }   :
-                    null;
+  // Map the UI filter key to the discriminated ReportFilter type
+  const apiFilter: ReportFilter = useMemo(() => {
+    if (filter === 'filter_verified') return { type: 'VERIFIED' as ReportType };
+    if (filter === 'filter_mine' && user?.id) return { userId: user.id };
+    return null; // filter_all and filter_following both use unfiltered feed for now
+  }, [filter, user?.id]);
 
-  const { data: reports, isLoading, refetch } = useCommunityReports(apiFilter as any);
+  const { data: reports, isLoading, refetch, isRefetching } = useCommunityReports(apiFilter);
   const { mutate: vote } = useVoteReport();
 
   const handleVote = (reportId: string, currentVote: 'CONFIRM' | 'DISPUTE' | null) => {
-    if (!isAuthenticated) { Alert.alert('', t('auth.sign_in')); return; }
-    vote({ reportId, voteType: 'CONFIRM', existingVote: currentVote, activeFilter: apiFilter as any });
+    if (!isAuthenticated) {
+      Alert.alert('', t('auth.sign_in'));
+      return;
+    }
+    vote({ reportId, voteType: 'CONFIRM', existingVote: currentVote, activeFilter: apiFilter });
   };
 
-  const handleShare = async (reportId: string, text: string) => {
-    try { await Share.share({ message: `RailMate Report: ${text}` }); } catch {}
+  const handleShare = async (text: string) => {
+    try {
+      await Share.share({ message: `RailMate Report: ${text}` });
+    } catch {
+      // User cancelled share — no-op
+    }
   };
 
-  const handleReport = (reportId: string) => {
+  const handleFlag = (reportId: string) => {
+    if (!isAuthenticated) {
+      Alert.alert('', t('auth.sign_in'));
+      return;
+    }
     Alert.alert(t('community.report_abuse'), 'This report will be reviewed by our team.', [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: 'Submit', style: 'destructive', onPress: () => {} },
+      {
+        text: 'Submit',
+        style: 'destructive',
+        onPress: () => {
+          // TODO: call flag API once endpoint exists
+        },
+      },
     ]);
   };
 
   const renderCard = ({ item }: { item: any }) => {
     const typeColor = TYPE_COLORS[item.report_type] ?? colors['text-secondary'];
-    const typeLabel = t(('community.type_' + (item.report_type ?? '').toLowerCase()) as TranslationKey) || item.report_type;
+    const typeLabel =
+      t(('community.type_' + (item.report_type ?? '').toLowerCase()) as TranslationKey) ||
+      item.report_type;
     const hasVoted = item.current_user_vote === 'CONFIRM';
 
     return (
       <View style={s.card}>
         <View style={[s.cardAccent, { backgroundColor: typeColor }]} />
+
         <View style={s.userRow}>
           <Avatar name={item.user?.display_name ?? 'User'} size={40} />
           <View style={{ flex: 1, marginLeft: 12 }}>
@@ -97,39 +122,64 @@ function CommunityContent() {
           </View>
         </View>
 
-        <Text style={s.body}>{item.description}</Text>
+        {!!item.description && (
+          <Text style={s.body}>{item.description}</Text>
+        )}
 
         <View style={s.statsRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <CheckCircle size={13} color={colors.primary} weight="fill" />
-            <Text style={s.stat}>{t('community.confirmed', { count: item.verification_count ?? 0 })}</Text>
+            <Text style={s.stat}>
+              {t('community.confirmed', { count: item.verification_count ?? 0 })}
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <ThumbsUp size={13} color={colors['text-tertiary']} />
-            <Text style={s.stat}>{t('community.helpful_count', { count: item.helpful_count ?? 0 })}</Text>
+            <Text style={s.stat}>
+              {t('community.helpful_count', { count: item.helpful_count ?? 0 })}
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <ChatCircle size={13} color={colors['text-tertiary']} />
             <Text style={s.stat}>{item.comment_count ?? 0}</Text>
           </View>
-          <Text style={s.time}>{formatTime(item.created_at)}</Text>
+          <Text style={s.time}>{formatTime(item.created_at ?? item.reported_at)}</Text>
         </View>
 
         <View style={s.actions}>
-          <Pressable style={[s.actionBtn, hasVoted && { backgroundColor: colors['primary-subtle'] }]}
-            onPress={() => handleVote(item.id, item.current_user_vote)}>
-            <ThumbsUp size={16} color={hasVoted ? colors.primary : colors['text-secondary']} weight={hasVoted ? 'fill' : 'regular'} />
-            <Text style={[s.actionText, hasVoted && { color: colors.primary }]}>{t('community.helpful')}</Text>
+          <Pressable
+            style={[s.actionBtn, hasVoted && { backgroundColor: colors['primary-subtle'] }]}
+            onPress={() => handleVote(item.id, item.current_user_vote)}
+          >
+            <ThumbsUp
+              size={16}
+              color={hasVoted ? colors.primary : colors['text-secondary']}
+              weight={hasVoted ? 'fill' : 'regular'}
+            />
+            <Text style={[s.actionText, hasVoted && { color: colors.primary }]}>
+              {t('community.helpful')}
+            </Text>
           </Pressable>
-          <Pressable style={s.actionBtn} onPress={() => router.push({ pathname: '/report/[id]' as any, params: { id: item.id } })}>
+
+          <Pressable
+            style={s.actionBtn}
+            onPress={() =>
+              router.push({ pathname: '/report/[id]' as any, params: { id: item.id } })
+            }
+          >
             <ChatCircle size={16} color={colors['text-secondary']} />
             <Text style={s.actionText}>{t('community.comment')}</Text>
           </Pressable>
-          <Pressable style={s.actionBtn} onPress={() => handleShare(item.id, item.description)}>
+
+          <Pressable
+            style={s.actionBtn}
+            onPress={() => handleShare(item.description ?? item.report_type)}
+          >
             <ShareNetwork size={16} color={colors['text-secondary']} />
             <Text style={s.actionText}>{t('community.share')}</Text>
           </Pressable>
-          <Pressable style={s.actionBtn} onPress={() => handleReport(item.id)}>
+
+          <Pressable style={s.actionBtn} onPress={() => handleFlag(item.id)}>
             <Flag size={16} color={colors['text-tertiary']} />
           </Pressable>
         </View>
@@ -144,14 +194,31 @@ function CommunityContent() {
           <Text style={s.title}>{t('community.title')}</Text>
           <Text style={s.sub}>{t('community.sub')}</Text>
         </View>
-        <Pressable style={s.addBtn} onPress={() => router.push('/report/submit' as any)}>
+        <Pressable
+          style={s.addBtn}
+          onPress={() => {
+            if (!isAuthenticated) {
+              Alert.alert('', t('auth.sign_in'));
+              return;
+            }
+            router.push('/report/submit' as any);
+          }}
+        >
           <Plus size={20} color={colors['text-inverse']} weight="bold" />
         </Pressable>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filtersRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={s.filtersRow}
+      >
         {FILTER_KEYS.map((f) => (
-          <Pressable key={f} style={[s.filterChip, filter === f && s.filterChipActive]} onPress={() => setFilter(f)}>
+          <Pressable
+            key={f}
+            style={[s.filterChip, filter === f && s.filterChipActive]}
+            onPress={() => setFilter(f)}
+          >
             <Text style={[s.filterText, filter === f && s.filterTextActive]}>
               {t(('community.' + f) as TranslationKey)}
             </Text>
@@ -171,18 +238,36 @@ function CommunityContent() {
           contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
           onRefresh={refetch}
-          refreshing={false}
+          refreshing={isRefetching}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', paddingTop: 60 }}>
-              <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-tertiary'] }}>
-                {t('updates.empty_body')}
+              <Text
+                style={{
+                  fontFamily: 'Inter_400Regular',
+                  fontSize: 15,
+                  color: colors['text-tertiary'],
+                  textAlign: 'center',
+                }}
+              >
+                {filter === 'filter_mine'
+                  ? "You haven't posted any reports yet."
+                  : t('updates.empty_body')}
               </Text>
             </View>
           }
         />
       )}
 
-      <Pressable style={s.fab} onPress={() => router.push('/report/submit' as any)}>
+      <Pressable
+        style={s.fab}
+        onPress={() => {
+          if (!isAuthenticated) {
+            Alert.alert('', t('auth.sign_in'));
+            return;
+          }
+          router.push('/report/submit' as any);
+        }}
+      >
         <Plus size={20} color={colors['text-inverse']} weight="bold" />
         <Text style={s.fabText}>{t('community.fab_share_update')}</Text>
       </Pressable>
@@ -194,33 +279,34 @@ export default function CommunityScreen() {
   return <ErrorBoundary name="Community"><CommunityContent /></ErrorBoundary>;
 }
 
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:             { flex: 1, backgroundColor: colors['bg-base'] },
-  header:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
-  title:            { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, color: colors['text-primary'] },
-  sub:              { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], marginTop: 3 },
-  addBtn:           { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  filtersRow:       { paddingHorizontal: 20, gap: 8, paddingBottom: 12 },
-  filterChip:       { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  filterText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-  filterTextActive: { color: colors['text-inverse'] },
-  card:             { backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 14, overflow: 'hidden' },
-  cardAccent:       { height: 3 },
-  userRow:          { flexDirection: 'row', alignItems: 'flex-start', padding: 16, paddingBottom: 12 },
-  userName:         { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-primary'] },
-  trustedBadge:     { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors['primary-subtle'], borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2 },
-  trustedText:      { fontFamily: 'Inter_500Medium', fontSize: 10, color: colors.primary },
-  trainName:        { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
-  typeBadge:        { borderWidth: 1, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 },
-  typeText:         { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
-  body:             { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-primary'], lineHeight: 22, paddingHorizontal: 16, paddingBottom: 12 },
-  statsRow:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 12 },
-  stat:             { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
-  time:             { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'], marginLeft: 'auto' },
-  actions:          { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 8 },
-  actionBtn:        { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'center', paddingVertical: 12, borderRadius: 8 },
-  actionText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-  fab:              { position: 'absolute', bottom: 90, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primary, borderRadius: 28, paddingHorizontal: 22, paddingVertical: 15, elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12 },
-  fabText:          { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    root:             { flex: 1, backgroundColor: colors['bg-base'] },
+    header:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
+    title:            { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, color: colors['text-primary'] },
+    sub:              { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], marginTop: 3 },
+    addBtn:           { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+    filtersRow:       { paddingHorizontal: 20, gap: 8, paddingBottom: 12 },
+    filterChip:       { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+    filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    filterText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
+    filterTextActive: { color: colors['text-inverse'] },
+    card:             { backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 14, overflow: 'hidden' },
+    cardAccent:       { height: 3 },
+    userRow:          { flexDirection: 'row', alignItems: 'flex-start', padding: 16, paddingBottom: 12 },
+    userName:         { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-primary'] },
+    trustedBadge:     { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: colors['primary-subtle'], borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2 },
+    trustedText:      { fontFamily: 'Inter_500Medium', fontSize: 10, color: colors.primary },
+    trainName:        { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
+    typeBadge:        { borderWidth: 1, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 },
+    typeText:         { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
+    body:             { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-primary'], lineHeight: 22, paddingHorizontal: 16, paddingBottom: 12 },
+    statsRow:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 12 },
+    stat:             { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
+    time:             { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'], marginLeft: 'auto' },
+    actions:          { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 8 },
+    actionBtn:        { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'center', paddingVertical: 12, borderRadius: 8 },
+    actionText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
+    fab:              { position: 'absolute', bottom: 90, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primary, borderRadius: 28, paddingHorizontal: 22, paddingVertical: 15, elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12 },
+    fabText:          { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
+  });

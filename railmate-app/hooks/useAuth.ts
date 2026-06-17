@@ -1,11 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, AppUser } from '../stores/authStore';
 
 const BD_PHONE_REGEX = /^\+880\d{10}$/;
 
 function normalizeBDPhone(phone: string): string {
-  // Accepts "1XXXXXXXXX" or "+8801XXXXXXXXX" or "01XXXXXXXXX"
   let cleaned = phone.trim().replace(/\s+/g, '');
   if (cleaned.startsWith('+880')) return cleaned;
   if (cleaned.startsWith('880')) return `+${cleaned}`;
@@ -24,6 +23,10 @@ export function useAuth() {
     clearAuth,
     setLoading,
   } = useAuthStore();
+
+  // Keep a stable ref to the active subscription so we can unsubscribe on
+  // cleanup and never register more than one listener at a time.
+  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
 
   const fetchProfile = useCallback(
     async (userId: string): Promise<AppUser | null> => {
@@ -44,6 +47,11 @@ export function useAuth() {
 
   const initialize = useCallback(async () => {
     setLoading(true);
+
+    // Tear down any previous auth-state listener before creating a new one.
+    subscriptionRef.current?.unsubscribe();
+    subscriptionRef.current = null;
+
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
@@ -64,22 +72,25 @@ export function useAuth() {
         setUser(null);
       }
 
-      // Listen for future auth state changes
-      supabase.auth.onAuthStateChange(async (event, session) => {
-        setSession(session);
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          setUser(
-            profile ?? {
-              id: session.user.id,
-              phone: session.user.phone,
-              email: session.user.email,
-            }
-          );
-        } else {
-          setUser(null);
+      // Register exactly one auth-state listener and store the handle.
+      const { data: listenerData } = supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+          setSession(session);
+          if (session?.user) {
+            const profile = await fetchProfile(session.user.id);
+            setUser(
+              profile ?? {
+                id: session.user.id,
+                phone: session.user.phone,
+                email: session.user.email,
+              }
+            );
+          } else {
+            setUser(null);
+          }
         }
-      });
+      );
+      subscriptionRef.current = listenerData.subscription;
     } catch (err) {
       console.error('initialize error:', err);
       clearAuth();
@@ -88,19 +99,23 @@ export function useAuth() {
     }
   }, [setLoading, setSession, setUser, clearAuth, fetchProfile]);
 
+  // Clean up the listener when the hook unmounts (e.g. root layout unmount).
+  useEffect(() => {
+    return () => {
+      subscriptionRef.current?.unsubscribe();
+      subscriptionRef.current = null;
+    };
+  }, []);
+
   const signInWithPhone = useCallback(async (phone: string) => {
     const formatted = normalizeBDPhone(phone);
     if (!BD_PHONE_REGEX.test(formatted)) {
       return { error: 'invalid_phone', data: null };
     }
-
     const { data, error } = await supabase.auth.signInWithOtp({
       phone: formatted,
     });
-
-    if (error) {
-      return { error: error.message, data: null };
-    }
+    if (error) return { error: error.message, data: null };
     return { error: null, data: { ...data, contact: formatted } };
   }, []);
 
@@ -109,10 +124,7 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signInWithOtp({
       email: trimmed,
     });
-
-    if (error) {
-      return { error: error.message, data: null };
-    }
+    if (error) return { error: error.message, data: null };
     return { error: null, data: { ...data, contact: trimmed } };
   }, []);
 
@@ -125,18 +137,15 @@ export function useAuth() {
 
       const { data, error } = await supabase.auth.verifyOtp(payload);
 
-      if (error) {
-        return { error: error.message, data: null, isNewUser: false };
-      }
+      if (error) return { error: error.message, data: null, isNewUser: false };
 
       const authedUser = data.session?.user ?? data.user;
       setSession(data.session);
 
       let isNewUser = false;
-      let profile: AppUser | null = null;
 
       if (authedUser) {
-        profile = await fetchProfile(authedUser.id);
+        const profile = await fetchProfile(authedUser.id);
         if (!profile) {
           isNewUser = true;
           setUser({
@@ -159,9 +168,7 @@ export function useAuth() {
       const currentSession = useAuthStore.getState().session;
       const authUser = currentSession?.user;
 
-      if (!authUser) {
-        return { error: 'no_session', data: null };
-      }
+      if (!authUser) return { error: 'no_session', data: null };
 
       const payload: Partial<AppUser> & { id: string } = {
         id: authUser.id,
@@ -170,9 +177,7 @@ export function useAuth() {
         email: authUser.email ?? null,
       };
 
-      if (avatarUrl) {
-        payload.avatar_url = avatarUrl;
-      }
+      if (avatarUrl) payload.avatar_url = avatarUrl;
 
       const { data, error } = await supabase
         .from('users')
@@ -180,9 +185,7 @@ export function useAuth() {
         .select()
         .single();
 
-      if (error) {
-        return { error: error.message, data: null };
-      }
+      if (error) return { error: error.message, data: null };
 
       setUser(data as AppUser);
       return { error: null, data };
@@ -191,12 +194,12 @@ export function useAuth() {
   );
 
   const signOut = useCallback(async () => {
+    subscriptionRef.current?.unsubscribe();
+    subscriptionRef.current = null;
     const { error } = await supabase.auth.signOut();
-    useAuthStore.getState().setGuest(false);  // clear guest flag on sign out
+    useAuthStore.getState().setGuest(false);
     clearAuth();
-    if (error) {
-      return { error: error.message };
-    }
+    if (error) return { error: error.message };
     return { error: null };
   }, [clearAuth]);
 

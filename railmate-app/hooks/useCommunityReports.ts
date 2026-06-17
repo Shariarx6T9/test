@@ -12,6 +12,9 @@ import {
   submitReport,
   uploadReportPhoto,
   voteOnReport,
+  getReportComments,
+  addReportComment,
+  type ReportComment,
 } from '../api/community';
 import { useAuthStore } from '../stores/authStore';
 import type {
@@ -27,16 +30,13 @@ export const communityKeys = {
   all: ['community_reports'] as const,
   filtered: (filter: ReportFilter) =>
     [...communityKeys.all, filter] as const,
+  comments: (reportId: string) => ['report_comments', reportId] as const,
   trains: (query: string) => ['trains_search', query] as const,
   stations: (query: string) => ['stations_search', query] as const,
 };
 
 // ─── Feed query ───────────────────────────────────────────────────────────────
 
-/**
- * Fetches reports + merges the current user's own votes into each report
- * so vote buttons can render their active state immediately.
- */
 export function useCommunityReports(filter?: ReportFilter) {
   const { user } = useAuthStore();
 
@@ -45,7 +45,6 @@ export function useCommunityReports(filter?: ReportFilter) {
     queryFn: async (): Promise<CommunityReport[]> => {
       const reports = await getCommunityReports(filter);
 
-      // If the user is authenticated, hydrate current_user_vote on each report
       if (user?.id && reports.length > 0) {
         const ids = reports.map((r) => r.id);
         const votesMap = await getUserVotesForReports(user.id, ids);
@@ -80,14 +79,9 @@ export function useVoteReport() {
       return voteOnReport(reportId, user.id, voteType, existingVote);
     },
 
-    // ── Optimistic update ──────────────────────────────────────────────────
     onMutate: async ({ reportId, voteType, existingVote, activeFilter }) => {
       const queryKey = communityKeys.filtered(activeFilter);
-
-      // Cancel in-flight fetches so they don't overwrite our optimistic state
       await queryClient.cancelQueries({ queryKey });
-
-      // Snapshot previous data for rollback
       const previousData =
         queryClient.getQueryData<CommunityReport[]>(queryKey);
 
@@ -104,11 +98,9 @@ export function useVoteReport() {
           let disputeCount = report.dispute_count;
 
           if (isToggleOff) {
-            // Remove the vote
             if (voteType === 'CONFIRM') verificationCount -= 1;
             else disputeCount -= 1;
           } else {
-            // Add new vote, remove old one if switching
             if (voteType === 'CONFIRM') {
               verificationCount += 1;
               if (wasDispute) disputeCount -= 1;
@@ -130,14 +122,12 @@ export function useVoteReport() {
       return { previousData, queryKey };
     },
 
-    // ── Rollback on error ──────────────────────────────────────────────────
     onError: (_err, _vars, context) => {
       if (context?.previousData !== undefined) {
         queryClient.setQueryData(context.queryKey, context.previousData);
       }
     },
 
-    // ── Always refetch after settle to stay in sync ────────────────────────
     onSettled: (_data, _err, { activeFilter }) => {
       queryClient.invalidateQueries({
         queryKey: communityKeys.filtered(activeFilter),
@@ -150,7 +140,7 @@ export function useVoteReport() {
 
 interface SubmitReportVariables {
   data: ReportSubmitData;
-  photoUri?: string; // local file URI from expo-image-picker
+  photoUri?: string;
 }
 
 export function useSubmitReport() {
@@ -162,7 +152,6 @@ export function useSubmitReport() {
       if (!user?.id) throw new Error('Not authenticated');
 
       let photo_url: string | undefined;
-
       if (photoUri) {
         photo_url = await uploadReportPhoto(user.id, photoUri);
       }
@@ -171,8 +160,39 @@ export function useSubmitReport() {
     },
 
     onSuccess: () => {
-      // Invalidate all filter variants so every tab refreshes
       queryClient.invalidateQueries({ queryKey: communityKeys.all });
+    },
+  });
+}
+
+// ─── Comments queries ─────────────────────────────────────────────────────────
+
+export function useReportComments(reportId: string) {
+  return useQuery({
+    queryKey: communityKeys.comments(reportId),
+    queryFn: () => getReportComments(reportId),
+    enabled: !!reportId,
+    staleTime: 15_000,
+  });
+}
+
+export function useAddComment(reportId: string, activeFilter: ReportFilter) {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+
+  return useMutation({
+    mutationFn: (body: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      return addReportComment(reportId, user.id, body);
+    },
+    onSuccess: () => {
+      // Refresh comments and also the feed (comment_count changes)
+      queryClient.invalidateQueries({
+        queryKey: communityKeys.comments(reportId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: communityKeys.filtered(activeFilter),
+      });
     },
   });
 }
@@ -196,3 +216,6 @@ export function useStationSearch(query: string) {
     staleTime: 60_000,
   });
 }
+
+// Re-export ReportComment type for consumers
+export type { ReportComment };

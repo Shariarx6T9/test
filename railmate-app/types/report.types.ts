@@ -1,95 +1,78 @@
 // types/report.types.ts
-
-export type ReportType = 'DELAY' | 'CROWDING' | 'COACH_CONDITION';
-
-export type CrowdLevel = 'EMPTY' | 'MODERATE' | 'FULL' | 'OVERCROWDED';
-
-export type ReportStatus = 'ACTIVE' | 'VERIFIED' | 'DISPUTED' | 'REMOVED';
+// Source-of-truth types for the Community / Reports feature.
 
 export type VoteType = 'CONFIRM' | 'DISPUTE';
 
-// ─── Joined shape returned from getCommunityReports ─────────────────────────
+export type ReportType =
+  | 'DELAY'
+  | 'CROWD'
+  | 'PLATFORM'
+  | 'SCHEDULE'
+  | 'GENERAL'
+  | 'ACCIDENT';
 
-export interface ReportUser {
-  display_name: string;
-  avatar_url: string | null;
-}
-
-export interface ReportTrain {
-  name_en: string;
-  name_bn: string;
-  number: string;
-}
-
-export interface ReportStation {
-  name_en: string;
-  name_bn: string;
-}
+/**
+ * Discriminated filter union passed to getCommunityReports / useQuery.
+ *   null              → no filter (all active reports)
+ *   { type }          → filter by report_type column
+ *   { userId }        → filter by user_id column (My Reports tab)
+ */
+export type ReportFilter =
+  | null
+  | { type: ReportType }
+  | { userId: string };
 
 export interface CommunityReport {
   id: string;
-  user_id: string | null;        // null if user was deleted (ON DELETE SET NULL)
-  train_id: string;
-  station_id: string;
+  user_id: string;
+  train_id: string | null;
+  station_id: string | null;
   report_type: ReportType;
-
-  // DELAY fields
-  delay_minutes?: number | null;
-
-  // CROWDING fields
-  crowd_level?: CrowdLevel | null;
-
-  // COACH_CONDITION fields
-  condition_rating?: number | null; // 1–5
-  condition_note?: string | null;
-
-  // Shared optional fields
-  coach_number?: string | null;
-  photo_url?: string | null;
-
-  reported_at: string;           // ISO timestamp from Supabase
-  journey_date: string;          // YYYY-MM-DD
-  status: ReportStatus;
+  description: string | null;
+  delay_minutes: number | null;
+  crowd_level: string | null;
+  coach_number: string | null;
+  condition_rating: number | null;
+  condition_note: string | null;
+  photo_url: string | null;
+  reported_at: string;
+  created_at: string;
+  journey_date: string | null;
+  status: 'ACTIVE' | 'VERIFIED' | 'DISPUTED' | 'ARCHIVED';
   verification_count: number;
   dispute_count: number;
-
-  // Joined relations
-  user: ReportUser | null;
-  train: ReportTrain;
-  station: ReportStation;
-
-  // Current user's vote — injected client-side after fetching report_votes
+  helpful_count: number;
+  comment_count: number;
+  // Injected client-side by useCommunityReports after fetching user votes
   current_user_vote?: VoteType | null;
+  // Joined relations
+  user: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    is_trusted: boolean;
+    trust_score?: number;
+  } | null;
+  train: {
+    name_en: string;
+    name_bn: string;
+    number: string;
+  } | null;
+  station: {
+    name_en: string;
+    name_bn: string;
+  } | null;
 }
-
-// ─── Payload for submitting a new report ────────────────────────────────────
 
 export interface ReportSubmitData {
-  train_id: string;
-  station_id: string;
+  train_id?: string | null;
+  station_id?: string | null;
   report_type: ReportType;
-  journey_date: string;          // YYYY-MM-DD
-
-  // DELAY
-  delay_minutes?: number;
-
-  // CROWDING
-  crowd_level?: CrowdLevel;
-
-  // COACH_CONDITION
-  condition_rating?: number;
-  condition_note?: string;
-
-  // Shared optional
-  coach_number?: string;
-  photo_url?: string;
+  description?: string | null;
+  delay_minutes?: number | null;
+  crowd_level?: string | null;
+  journey_date?: string | null;
 }
-
-// ─── Filter alias used by hooks / UI ────────────────────────────────────────
-
-export type ReportFilter = ReportType | null;
-
-// ─── Train / Station search shapes (for selectors in submit sheet) ──────────
 
 export interface TrainOption {
   id: string;
@@ -102,4 +85,5 @@ export interface StationOption {
   id: string;
   name_en: string;
   name_bn: string;
+  code: string;
 }

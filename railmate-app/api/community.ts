@@ -17,8 +17,11 @@ import type {
 // ─── Reports ─────────────────────────────────────────────────────────────────
 
 /**
- * Fetch the latest 30 ACTIVE reports, optionally filtered by type.
- * Joins users, trains, and stations for display.
+ * Fetch the latest 30 ACTIVE/VERIFIED reports, with optional filters.
+ * ReportFilter is a discriminated object to keep the API extensible:
+ *   { type: 'DELAY' }         — filter by report_type
+ *   { userId: 'abc-123' }     — filter by author
+ *   null                      — no filter (return all)
  */
 export async function getCommunityReports(
   filter?: ReportFilter,
@@ -32,6 +35,7 @@ export async function getCommunityReports(
       train_id,
       station_id,
       report_type,
+      description,
       delay_minutes,
       crowd_level,
       coach_number,
@@ -39,13 +43,19 @@ export async function getCommunityReports(
       condition_note,
       photo_url,
       reported_at,
+      created_at,
       journey_date,
       status,
       verification_count,
       dispute_count,
+      helpful_count,
+      comment_count,
       user:users!community_reports_user_id_fkey (
+        id,
         display_name,
-        avatar_url
+        avatar_url,
+        is_trusted,
+        trust_score
       ),
       train:trains!community_reports_train_id_fkey (
         name_en,
@@ -62,8 +72,11 @@ export async function getCommunityReports(
     .order('reported_at', { ascending: false })
     .limit(30);
 
-  if (filter) {
-    query = query.eq('report_type', filter);
+  // Apply discriminated filter
+  if (filter && 'type' in filter) {
+    query = query.eq('report_type', filter.type);
+  } else if (filter && 'userId' in filter) {
+    query = query.eq('user_id', filter.userId);
   }
 
   const { data, error } = await query;
@@ -72,22 +85,19 @@ export async function getCommunityReports(
     throw new Error(`getCommunityReports: ${error.message}`);
   }
 
-  // Supabase returns joined relations as nested objects.
-  // Cast through unknown because the Supabase inferred type doesn't know
-  // our exact join aliases — our CommunityReport type is the source of truth.
   return (data ?? []) as unknown as CommunityReport[];
 }
 
+// ─── User votes ───────────────────────────────────────────────────────────────
+
 /**
- * Fetch the current user's votes for a list of report IDs.
- * Used to hydrate `current_user_vote` on each report client-side.
+ * Returns a map of reportId → VoteType for the given user + report IDs.
+ * Used to hydrate current_user_vote after fetching the feed.
  */
 export async function getUserVotesForReports(
   userId: string,
   reportIds: string[],
 ): Promise<Record<string, VoteType>> {
-  if (reportIds.length === 0) return {};
-
   const { data, error } = await supabase
     .from('report_votes')
     .select('report_id, vote_type')
@@ -95,56 +105,19 @@ export async function getUserVotesForReports(
     .in('report_id', reportIds);
 
   if (error) {
-    throw new Error(`getUserVotesForReports: ${error.message}`);
+    console.error('getUserVotesForReports:', error.message);
+    return {};
   }
 
-  return Object.fromEntries(
-    (data ?? []).map((row: { report_id: string; vote_type: string }) => [row.report_id, row.vote_type as VoteType]),
-  );
+  const map: Record<string, VoteType> = {};
+  (data ?? []).forEach((row: { report_id: string; vote_type: VoteType }) => {
+    map[row.report_id] = row.vote_type;
+  });
+  return map;
 }
 
-/**
- * Insert a new community report.
- * Caller must be authenticated — enforced by RLS.
- */
-export async function submitReport(
-  data: ReportSubmitData & { user_id: string },
-): Promise<CommunityReport> {
-  const { data: inserted, error } = await supabase
-    .from('community_reports')
-    .insert({
-      user_id: data.user_id,
-      train_id: data.train_id,
-      station_id: data.station_id,
-      report_type: data.report_type,
-      journey_date: data.journey_date,
-      ...(data.delay_minutes != null && { delay_minutes: data.delay_minutes }),
-      ...(data.crowd_level && { crowd_level: data.crowd_level }),
-      ...(data.coach_number && { coach_number: data.coach_number }),
-      ...(data.condition_rating != null && {
-        condition_rating: data.condition_rating,
-      }),
-      ...(data.condition_note && { condition_note: data.condition_note }),
-      ...(data.photo_url && { photo_url: data.photo_url }),
-    })
-    .select()
-    .single();
+// ─── Voting ───────────────────────────────────────────────────────────────────
 
-  if (error) {
-    throw new Error(`submitReport: ${error.message}`);
-  }
-
-  return inserted as unknown as CommunityReport;
-}
-
-// ─── Votes ────────────────────────────────────────────────────────────────────
-
-/**
- * Upsert a vote on a report.
- * If the user votes the same type again → the vote is removed (toggle).
- * If the user votes a different type → the vote_type is updated.
- * Caller must be authenticated — enforced by RLS.
- */
 export async function voteOnReport(
   reportId: string,
   userId: string,
@@ -152,81 +125,84 @@ export async function voteOnReport(
   existingVote: VoteType | null,
 ): Promise<void> {
   if (existingVote === voteType) {
-    // Toggle off: remove the vote
+    // Toggle off — delete the existing vote
     const { error } = await supabase
       .from('report_votes')
       .delete()
-      .eq('report_id', reportId)
-      .eq('user_id', userId);
-
-    if (error) throw new Error(`removeVote: ${error.message}`);
-    return;
+      .match({ report_id: reportId, user_id: userId });
+    if (error) throw new Error(`voteOnReport (delete): ${error.message}`);
+  } else {
+    // Upsert new vote
+    const { error } = await supabase
+      .from('report_votes')
+      .upsert(
+        { report_id: reportId, user_id: userId, vote_type: voteType },
+        { onConflict: 'report_id,user_id' },
+      );
+    if (error) throw new Error(`voteOnReport (upsert): ${error.message}`);
   }
-
-  // Insert or update to new vote type
-  const { error } = await supabase.from('report_votes').upsert(
-    { report_id: reportId, user_id: userId, vote_type: voteType },
-    { onConflict: 'report_id,user_id' },
-  );
-
-  if (error) throw new Error(`voteOnReport: ${error.message}`);
 }
 
-// ─── Photo Upload ─────────────────────────────────────────────────────────────
+// ─── Submit report ───────────────────────────────────────────────────────────
 
-/**
- * Upload an image from a local URI to Supabase Storage.
- * Returns the public URL of the uploaded file.
- *
- * expo-image-picker already handles quality compression (quality: 0.8)
- * before we receive the URI, so no additional compression needed here.
- */
+export async function submitReport(
+  data: ReportSubmitData & { user_id: string; photo_url?: string },
+): Promise<void> {
+  const { error } = await supabase.from('community_reports').insert({
+    user_id: data.user_id,
+    train_id: data.train_id ?? null,
+    station_id: data.station_id ?? null,
+    report_type: data.report_type,
+    description: data.description ?? null,
+    delay_minutes: data.delay_minutes ?? null,
+    crowd_level: data.crowd_level ?? null,
+    photo_url: data.photo_url ?? null,
+    journey_date: data.journey_date ?? new Date().toISOString().split('T')[0],
+    status: 'ACTIVE',
+  });
+
+  if (error) throw new Error(`submitReport: ${error.message}`);
+}
+
+// ─── Photo upload ─────────────────────────────────────────────────────────────
+
 export async function uploadReportPhoto(
   userId: string,
-  uri: string,
+  localUri: string,
 ): Promise<string> {
-  const timestamp = Date.now();
-  const path = `${userId}/${timestamp}.jpg`;
+  const filename = `${userId}/${Date.now()}.jpg`;
 
-  // Read the file as base64 from the local filesystem
-  const base64 = await FileSystem.readAsStringAsync(uri, {
+  const fileInfo = await FileSystem.getInfoAsync(localUri);
+  if (!fileInfo.exists) throw new Error('Photo file not found');
+
+  const base64 = await FileSystem.readAsStringAsync(localUri, {
     encoding: FileSystem.EncodingType.Base64,
   });
 
-  // Convert base64 string to a Uint8Array for the Supabase upload
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
   }
+  const byteArray = new Uint8Array(byteNumbers);
 
   const { error } = await supabase.storage
-    .from('community-photos')
-    .upload(path, bytes, {
-      contentType: 'image/jpeg',
-      upsert: false,
-    });
+    .from('report-photos')
+    .upload(filename, byteArray, { contentType: 'image/jpeg', upsert: true });
 
-  if (error) {
-    throw new Error(`uploadReportPhoto: ${error.message}`);
-  }
+  if (error) throw new Error(`uploadReportPhoto: ${error.message}`);
 
-  const { data: urlData } = supabase.storage
-    .from('community-photos')
-    .getPublicUrl(path);
-
-  return urlData.publicUrl;
+  return supabase.storage.from('report-photos').getPublicUrl(filename).data
+    .publicUrl;
 }
 
-// ─── Train / Station search (for submit sheet selectors) ─────────────────────
+// ─── Train / station search (for submit sheet selectors) ─────────────────────
 
 export async function searchTrains(query: string): Promise<TrainOption[]> {
   const { data, error } = await supabase
     .from('trains')
     .select('id, name_en, name_bn, number')
-    .or(
-      `name_en.ilike.%${query}%,name_bn.ilike.%${query}%,number.ilike.%${query}%`,
-    )
+    .or(`name_en.ilike.%${query}%,name_bn.ilike.%${query}%,number.ilike.%${query}%`)
     .limit(20);
 
   if (error) throw new Error(`searchTrains: ${error.message}`);
@@ -236,10 +212,66 @@ export async function searchTrains(query: string): Promise<TrainOption[]> {
 export async function searchStations(query: string): Promise<StationOption[]> {
   const { data, error } = await supabase
     .from('stations')
-    .select('id, name_en, name_bn')
-    .or(`name_en.ilike.%${query}%,name_bn.ilike.%${query}%`)
-    .limit(30);
+    .select('id, name_en, name_bn, code')
+    .or(`name_en.ilike.%${query}%,name_bn.ilike.%${query}%,code.ilike.%${query}%`)
+    .limit(20);
 
   if (error) throw new Error(`searchStations: ${error.message}`);
   return (data ?? []) as StationOption[];
+}
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+export interface ReportComment {
+  id: string;
+  report_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  user: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    is_trusted: boolean;
+  };
+}
+
+export async function getReportComments(
+  reportId: string,
+): Promise<ReportComment[]> {
+  const { data, error } = await supabase
+    .from('report_comments')
+    .select(
+      `
+      id,
+      report_id,
+      user_id,
+      body,
+      created_at,
+      user:users!report_comments_user_id_fkey (
+        id,
+        display_name,
+        avatar_url,
+        is_trusted
+      )
+      `,
+    )
+    .eq('report_id', reportId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw new Error(`getReportComments: ${error.message}`);
+  return (data ?? []) as unknown as ReportComment[];
+}
+
+export async function addReportComment(
+  reportId: string,
+  userId: string,
+  body: string,
+): Promise<void> {
+  const { error } = await supabase.from('report_comments').insert({
+    report_id: reportId,
+    user_id: userId,
+    body: body.trim(),
+  });
+  if (error) throw new Error(`addReportComment: ${error.message}`);
 }
