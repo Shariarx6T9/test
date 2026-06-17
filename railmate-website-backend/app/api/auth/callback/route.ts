@@ -1,9 +1,8 @@
 // ============================================================
 // GET /api/auth/callback
-// Handles Supabase Auth callback for:
-//   • Google OAuth
-//   • Email magic-link (OTP)
-// Exchanges the code for a session and redirects the user.
+// Handles the Google OAuth redirect and exchanges the code for
+// a session. Email sign-in no longer uses this route — it goes
+// through send-otp → verify-otp (6-digit code), not a link.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";

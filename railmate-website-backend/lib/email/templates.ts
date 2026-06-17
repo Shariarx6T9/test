@@ -2,6 +2,8 @@
 // RailMate Bangladesh – Email HTML Templates
 // ============================================================
 
+import { escapeHtml } from "@/lib/utils/escape-html";
+
 const baseStyle = `
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   max-width: 600px;
@@ -95,16 +97,16 @@ export function contactAdminEmail(data: {
       New Contact Form Submission
     </h2>
     <p style="${labelStyle}">From</p>
-    <p style="${valueStyle}">${data.name} &lt;${data.email}&gt;</p>
+    <p style="${valueStyle}">${escapeHtml(data.name)} &lt;${escapeHtml(data.email)}&gt;</p>
     <p style="${labelStyle}">Subject</p>
-    <p style="${valueStyle}">${data.subject}</p>
+    <p style="${valueStyle}">${escapeHtml(data.subject)}</p>
     <p style="${labelStyle}">Message</p>
-    <p style="white-space:pre-wrap;line-height:1.6;color:#334155;border-left:3px solid #e2e8f0;padding-left:16px;margin:0 0 20px;">${data.message}</p>
+    <p style="white-space:pre-wrap;line-height:1.6;color:#334155;border-left:3px solid #e2e8f0;padding-left:16px;margin:0 0 20px;">${escapeHtml(data.message)}</p>
     <p style="${labelStyle}">Received</p>
-    <p style="${valueStyle}">${data.submittedAt}</p>
-    <a href="mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject)}"
+    <p style="${valueStyle}">${escapeHtml(data.submittedAt)}</p>
+    <a href="mailto:${encodeURIComponent(data.email)}?subject=Re: ${encodeURIComponent(data.subject)}"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-      Reply to ${data.name}
+      Reply to ${escapeHtml(data.name)}
     </a>
   `);
 }
@@ -113,7 +115,7 @@ export function contactAdminEmail(data: {
 export function contactConfirmationEmail(name: string): string {
   return layout(`
     <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a2e;">
-      Thanks for reaching out, ${name}!
+      Thanks for reaching out, ${escapeHtml(name)}!
     </h2>
     <p style="line-height:1.7;color:#475569;margin:0 0 16px;">
       We've received your message and a member of our team will get back to you 
@@ -123,7 +125,7 @@ export function contactConfirmationEmail(name: string): string {
       In the meantime, feel free to explore the RailMate app and follow Bangladesh 
       Railway trains in real time.
     </p>
-    <a href="https://railmate.app" 
+    <a href="https://railmatebd.com" 
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Visit RailMate →
     </a>
@@ -145,12 +147,12 @@ export function newsletterWelcomeEmail(email: string): string {
       <li>Tips for hassle-free train travel</li>
       <li>Community stories and announcements</li>
     </ul>
-    <a href="https://railmate.app"
+    <a href="https://railmatebd.com"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Explore RailMate →
     </a>
     <p style="font-size:12px;color:#94a3b8;margin:24px 0 0;">
-      Not you? <a href="https://railmate.app/unsubscribe?email=${encodeURIComponent(email)}" style="color:#94a3b8;">Unsubscribe</a>
+      Not you? <a href="https://railmatebd.com/unsubscribe?email=${encodeURIComponent(email)}" style="color:#94a3b8;">Unsubscribe</a>
     </p>
   `);
 }
@@ -159,7 +161,7 @@ export function newsletterWelcomeEmail(email: string): string {
 export function waitlistConfirmationEmail(name: string): string {
   return layout(`
     <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a2e;">
-      You're on the waitlist, ${name}! 🚂
+      You're on the waitlist, ${escapeHtml(name)}! 🚂
     </h2>
     <p style="line-height:1.7;color:#475569;margin:0 0 16px;">
       You've secured your spot on the RailMate waitlist. We're working hard to 
@@ -169,7 +171,7 @@ export function waitlistConfirmationEmail(name: string): string {
       We'll notify you the moment your access is ready. In the meantime, share 
       RailMate with friends to move up the queue!
     </p>
-    <a href="https://railmate.app"
+    <a href="https://railmatebd.com"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Learn More →
     </a>
@@ -199,19 +201,19 @@ export function businessInquiryAdminEmail(data: {
     <h2 style="margin:0 0 8px;font-size:20px;color:#1a1a2e;">
       New Business Inquiry
     </h2>
-    <span style="${badgeStyle(color)}">${data.inquiry_type.replace("_", " ").toUpperCase()}</span>
+    <span style="${badgeStyle(color)}">${escapeHtml(data.inquiry_type.replace("_", " ").toUpperCase())}</span>
     <br/><br/>
     <p style="${labelStyle}">Company</p>
-    <p style="${valueStyle}">${data.company_name}</p>
+    <p style="${valueStyle}">${escapeHtml(data.company_name)}</p>
     <p style="${labelStyle}">Contact</p>
-    <p style="${valueStyle}">${data.contact_name} &lt;${data.email}&gt;${data.phone ? ` · ${data.phone}` : ""}</p>
+    <p style="${valueStyle}">${escapeHtml(data.contact_name)} &lt;${escapeHtml(data.email)}&gt;${data.phone ? ` · ${escapeHtml(data.phone)}` : ""}</p>
     <p style="${labelStyle}">Message</p>
-    <p style="white-space:pre-wrap;line-height:1.6;color:#334155;border-left:3px solid #e2e8f0;padding-left:16px;margin:0 0 20px;">${data.message}</p>
+    <p style="white-space:pre-wrap;line-height:1.6;color:#334155;border-left:3px solid #e2e8f0;padding-left:16px;margin:0 0 20px;">${escapeHtml(data.message)}</p>
     <p style="${labelStyle}">Received</p>
-    <p style="${valueStyle}">${data.submittedAt}</p>
-    <a href="mailto:${data.email}?subject=Re: Business Inquiry from ${encodeURIComponent(data.company_name)}"
+    <p style="${valueStyle}">${escapeHtml(data.submittedAt)}</p>
+    <a href="mailto:${encodeURIComponent(data.email)}?subject=Re: Business Inquiry from ${encodeURIComponent(data.company_name)}"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
-      Reply to ${data.contact_name}
+      Reply to ${escapeHtml(data.contact_name)}
     </a>
   `);
 }
@@ -220,18 +222,18 @@ export function businessInquiryAdminEmail(data: {
 export function businessInquiryConfirmationEmail(contactName: string, companyName: string): string {
   return layout(`
     <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a2e;">
-      Thank you, ${contactName}!
+      Thank you, ${escapeHtml(contactName)}!
     </h2>
     <p style="line-height:1.7;color:#475569;margin:0 0 16px;">
-      We've received your business inquiry from <strong>${companyName}</strong>. 
+      We've received your business inquiry from <strong>${escapeHtml(companyName)}</strong>. 
       Our partnerships team will review your message and reach out within 
       <strong>2–3 business days</strong>.
     </p>
     <p style="line-height:1.7;color:#475569;margin:0 0 24px;">
       For urgent matters, please contact us directly at 
-      <a href="mailto:partnerships@railmate.app" style="color:#4f46e5;">partnerships@railmate.app</a>.
+      <a href="mailto:partnerships@railmatebd.com" style="color:#4f46e5;">partnerships@railmatebd.com</a>.
     </p>
-    <a href="https://railmate.app"
+    <a href="https://railmatebd.com"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Back to RailMate →
     </a>

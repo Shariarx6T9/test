@@ -12,6 +12,7 @@ import {
   analyticsBatchSchema,
 } from "@/lib/validators/analytics";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { hashIp } from "@/lib/utils/hash-ip";
 import {
   handleApiError,
   rateLimitResponse,
@@ -23,6 +24,11 @@ import { env } from "@/lib/env";
 export const runtime = "nodejs";
 
 // ─── PostHog Server-Side Capture ─────────────────────────
+// NOTE: distinct_id intentionally never falls back to a raw IP.
+// Per Master Reference Part 14.3, PostHog (third-party) must only
+// ever see anonymous identifiers, never PII. Raw IP is fine in our
+// own Supabase tables (first-party, admin-only, used for abuse
+// investigation) but must not leave our infrastructure.
 async function capturePostHogEvents(
   events: Array<{
     event_name: string;
@@ -38,7 +44,7 @@ async function capturePostHogEvents(
   try {
     const batch = events.map((e) => ({
       event: e.event_name,
-      distinct_id: e.user_id ?? e.session_id ?? "anonymous",
+      distinct_id: e.user_id ?? e.session_id ?? hashIp(e.ip),
       properties: {
         ...e.properties,
         $lib: "railmate-backend",
@@ -46,7 +52,7 @@ async function capturePostHogEvents(
         locale: e.locale,
         platform: e.platform,
         $referrer: e.referrer,
-        $ip: e.ip,
+        // Deliberately NOT including raw IP here — see note above.
       },
       timestamp: new Date().toISOString(),
     }));

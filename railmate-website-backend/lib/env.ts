@@ -29,11 +29,11 @@ const envSchema = z.object({
   EMAIL_FROM: z
     .string()
     .email("EMAIL_FROM must be a valid email address")
-    .default("noreply@railmate.app"),
+    .default("noreply@railmatebd.com"),
   EMAIL_REPLY_TO: z
     .string()
     .email("EMAIL_REPLY_TO must be a valid email address")
-    .default("hello@railmate.app"),
+    .default("hello@railmatebd.com"),
   ADMIN_EMAIL: z
     .string()
     .email("ADMIN_EMAIL must be a valid email address"),

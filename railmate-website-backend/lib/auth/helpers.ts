@@ -1,6 +1,7 @@
 // ============================================================
 // RailMate Bangladesh – Authentication Helpers
-// Wraps Supabase Auth for Email OTP and Google OAuth.
+// Wraps Supabase Auth for Email OTP (6-digit code, not a
+// magic link) and Google OAuth.
 // ============================================================
 
 import { createClient } from "@/lib/supabase/server";
@@ -42,14 +43,24 @@ export async function requireUser(): Promise<AuthUser> {
 }
 
 // ─── Email OTP ────────────────────────────────────────────
-export async function sendEmailOtp(email: string, redirectTo?: string) {
+// IMPORTANT: do not pass `emailRedirectTo` here. Supplying it is what
+// causes Supabase to treat this as a magic-link sign-in and send a
+// clickable confirmation link instead of (or alongside) the 6-digit
+// code. We want code-only.
+//
+// One thing this code cannot fix on its own: Supabase's default
+// "Magic Link" email template still renders {{ .ConfirmationURL }}
+// even without emailRedirectTo (it'll just be a dead link). To get a
+// clean code-only email, edit the template in the Supabase Dashboard
+// (Authentication → Email Templates → Magic Link) to show
+// {{ .Token }} and remove the {{ .ConfirmationURL }} button. This is
+// a one-time dashboard change, not something this repo can set.
+export async function sendEmailOtp(email: string) {
   const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://railmate.app";
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: redirectTo ?? `${siteUrl}/auth/callback`,
       shouldCreateUser: true,
     },
   });
@@ -60,6 +71,11 @@ export async function sendEmailOtp(email: string, redirectTo?: string) {
   }
 }
 
+// Completes the email OTP flow started by sendEmailOtp(). On success,
+// the underlying Supabase client (via lib/supabase/server.ts) writes
+// the session into cookies automatically — this function doesn't need
+// to handle that itself, but it MUST be called from a Route Handler
+// (not a Server Component) for the cookie write to actually persist.
 export async function verifyEmailOtp(email: string, token: string) {
   const supabase = await createClient();
 
@@ -80,7 +96,7 @@ export async function verifyEmailOtp(email: string, token: string) {
 // ─── Google OAuth ─────────────────────────────────────────
 export async function getGoogleOAuthUrl(redirectTo?: string): Promise<string> {
   const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://railmate.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://railmatebd.com";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -112,11 +128,20 @@ export async function signOut() {
 }
 
 // ─── Admin: Get User by Email ─────────────────────────────
+// NOTE: `admin.auth.admin.listUsers()` paginates (default page size
+// 50) — calling it once and doing `.find()` silently misses any user
+// beyond the first page. Querying the `users` table directly is O(1)
+// via the indexed email column and doesn't have this failure mode.
 export async function adminGetUserByEmail(email: string) {
   const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.listUsers();
+  const { data, error } = await admin
+    .from("users")
+    .select("id, email, phone, display_name, avatar_url")
+    .eq("email", email)
+    .maybeSingle();
+
   if (error) throw new Error(error.message);
-  return data.users.find((u) => u.email === email) ?? null;
+  return data;
 }
 
 // ─── Admin: Delete User ───────────────────────────────────

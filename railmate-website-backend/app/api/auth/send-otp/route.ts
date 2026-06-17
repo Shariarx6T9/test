@@ -1,6 +1,7 @@
 // ============================================================
 // POST /api/auth/send-otp
-// Sends a magic-link / OTP email via Supabase Auth.
+// Sends a 6-digit email OTP code via Supabase Auth (not a
+// magic link — see lib/auth/helpers.ts for why that matters).
 // ============================================================
 
 import { NextRequest } from "next/server";
@@ -24,7 +25,6 @@ const schema = z.object({
     .trim()
     .toLowerCase()
     .email("Please provide a valid email address."),
-  redirectTo: z.string().url("redirectTo must be a valid URL.").optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
       return validationErrorResponse(parsed.error);
     }
 
-    const { email, redirectTo } = parsed.data;
+    const { email } = parsed.data;
 
-    await sendEmailOtp(email, redirectTo);
+    await sendEmailOtp(email);
 
     return successResponse(undefined, 200);
   } catch (err) {

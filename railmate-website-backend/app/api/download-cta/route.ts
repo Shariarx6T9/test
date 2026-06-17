@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { downloadCtaSchema } from "@/lib/validators/download-cta";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { hashIp } from "@/lib/utils/hash-ip";
 import {
   handleApiError,
   rateLimitResponse,
@@ -31,7 +32,9 @@ async function captureDownloadEvent(
       body: JSON.stringify({
         api_key: env.posthogApiKey,
         event: "download_cta_click",
-        distinct_id: ip ?? "anonymous",
+        // Hashed, not raw — see Master Reference Part 14.3 (no PII to
+        // third-party analytics systems).
+        distinct_id: hashIp(ip),
         properties: {
           platform,
           locale,
