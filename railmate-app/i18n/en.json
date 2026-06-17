@@ -81,10 +81,6 @@
   "train.fare_data_from": "Fare data from {{date}}",
   "train.halt": "Halt: {{minutes}} min",
   "train.duration": "{{hours}}h {{minutes}}m",
-  "train.community_insights": "Community Insights",
-  "train.set_alert": "Set Alert",
-  "train.buy_ticket": "Buy Ticket",
-  "train.join_discussion": "Join Discussion",
   "train.reports_today": "{{count}} reports today",
 
   "station.title": "Station Info",
@@ -222,12 +218,6 @@
   "leaderboard.rank": "Rank",
   "leaderboard.you": "You",
 
-  "notifications.title": "Notifications",
-  "notifications.delay": "Delays",
-  "notifications.crowding": "Crowding",
-  "notifications.verified": "Verified Reports",
-  "notifications.schedule": "Schedule Changes",
-  "notifications.empty": "No notifications yet",
 
   "common.add": "Add",
   "common.or": "or",
