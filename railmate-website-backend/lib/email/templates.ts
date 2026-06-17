@@ -125,7 +125,7 @@ export function contactConfirmationEmail(name: string): string {
       In the meantime, feel free to explore the RailMate app and follow Bangladesh 
       Railway trains in real time.
     </p>
-    <a href="https://railmate.app" 
+    <a href="https://railmatebd.com" 
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Visit RailMate →
     </a>
@@ -147,12 +147,12 @@ export function newsletterWelcomeEmail(email: string): string {
       <li>Tips for hassle-free train travel</li>
       <li>Community stories and announcements</li>
     </ul>
-    <a href="https://railmate.app"
+    <a href="https://railmatebd.com"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Explore RailMate →
     </a>
     <p style="font-size:12px;color:#94a3b8;margin:24px 0 0;">
-      Not you? <a href="https://railmate.app/unsubscribe?email=${encodeURIComponent(email)}" style="color:#94a3b8;">Unsubscribe</a>
+      Not you? <a href="https://railmatebd.com/unsubscribe?email=${encodeURIComponent(email)}" style="color:#94a3b8;">Unsubscribe</a>
     </p>
   `);
 }
@@ -171,7 +171,7 @@ export function waitlistConfirmationEmail(name: string): string {
       We'll notify you the moment your access is ready. In the meantime, share 
       RailMate with friends to move up the queue!
     </p>
-    <a href="https://railmate.app"
+    <a href="https://railmatebd.com"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Learn More →
     </a>
@@ -231,9 +231,9 @@ export function businessInquiryConfirmationEmail(contactName: string, companyNam
     </p>
     <p style="line-height:1.7;color:#475569;margin:0 0 24px;">
       For urgent matters, please contact us directly at 
-      <a href="mailto:partnerships@railmate.app" style="color:#4f46e5;">partnerships@railmate.app</a>.
+      <a href="mailto:partnerships@railmatebd.com" style="color:#4f46e5;">partnerships@railmatebd.com</a>.
     </p>
-    <a href="https://railmate.app"
+    <a href="https://railmatebd.com"
        style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
       Back to RailMate →
     </a>

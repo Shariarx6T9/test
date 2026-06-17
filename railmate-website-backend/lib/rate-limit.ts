@@ -17,6 +17,8 @@ export const RateLimitPreset = {
   analytics: { requests: 60, windowSeconds: 60 },
   /** Auth OTP send – 3 req / 10 min */
   authOtp: { requests: 3, windowSeconds: 600 },
+  /** Auth OTP verify – 5 attempts / 10 min (brute-force guard on the 6-digit code) */
+  authOtpVerify: { requests: 5, windowSeconds: 600 },
   /** Upload – 10 req / min */
   upload: { requests: 10, windowSeconds: 60 },
 } as const;

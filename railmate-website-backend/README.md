@@ -16,8 +16,9 @@ railmate-website-backend/
 │   ├── download-cta/route.ts       # App download tracking
 │   ├── business-inquiry/route.ts   # Enterprise/partnership forms
 │   ├── auth/
-│   │   ├── send-otp/route.ts       # Email OTP dispatch
-│   │   ├── callback/route.ts       # OAuth + magic-link callback
+│   │   ├── send-otp/route.ts       # Email OTP dispatch (6-digit code)
+│   │   ├── verify-otp/route.ts     # Email OTP verification (completes sign-in)
+│   │   ├── callback/route.ts       # Google OAuth callback only
 │   │   └── signout/route.ts        # Session teardown
 │   └── upload/
 │       ├── avatar/route.ts         # Avatar image uploads
@@ -141,22 +142,26 @@ supabase db push
 ## Step 5 – Configure Supabase Auth
 
 1. Go to **Authentication → Providers**
-2. Enable **Email** (OTP / Magic Link)
+2. Enable **Email**, then go to **Authentication → Email Templates → Magic Link**
+   and edit the template to show `{{ .Token }}` as the 6-digit code instead of
+   (or in addition to) the `{{ .ConfirmationURL }}` button. This app uses
+   `send-otp` + `verify-otp` (typed code), not a clickable link — without this
+   template edit, Supabase's default template still includes the link.
 3. Enable **Google** OAuth:
    - Create a Google OAuth app at [console.cloud.google.com](https://console.cloud.google.com)
    - Set authorized redirect URI to: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
    - Copy Client ID and Secret into Supabase
 
 4. Go to **Authentication → URL Configuration**:
-   - Site URL: `https://railmate.app`
-   - Redirect URL: `https://railmate.app/api/auth/callback`
+   - Site URL: `https://railmatebd.com`
+   - Redirect URL: `https://railmatebd.com/api/auth/callback` (used by Google OAuth only)
 
 ---
 
 ## Step 6 – Verify Resend Sender Domain
 
 1. Log in to [resend.com](https://resend.com)
-2. Go to **Domains** → Add Domain (`railmate.app`)
+2. Go to **Domains** → Add Domain (`railmatebd.com`)
 3. Add the provided DNS records to your domain registrar
 4. Wait for verification (usually < 5 minutes)
 
@@ -262,10 +267,20 @@ Single event or batch (`{ events: [...] }`, max 50):
 | Field | Type | Rules |
 |-------|------|-------|
 | email | string | valid email |
-| redirectTo | string? | valid URL |
+
+Sends a 6-digit code by email. Rate limited 3 req / 10 min per IP.
+
+### POST /api/auth/verify-otp
+| Field | Type | Rules |
+|-------|------|-------|
+| email | string | valid email |
+| token | string | exactly 6 digits |
+
+Completes sign-in and sets the session cookie. Rate limited 5 attempts / 10 min
+per email (brute-force guard on the 6-digit code).
 
 ### GET /api/auth/callback
-Handles Supabase Auth redirect. Query params: `code`, `next`, `error`.
+Google OAuth redirect only — email sign-in does not use this route. Query params: `code`, `next`, `error`.
 
 ### POST /api/auth/signout
 Clears session. No body required.
@@ -287,6 +302,7 @@ Multipart form: `file` (JPEG/PNG/WebP/GIF, max 10 MB). **Requires authentication
 - [x] Service role bypasses RLS only on server-side admin client
 - [x] Security headers on all responses (CSP, HSTS, X-Frame-Options)
 - [x] Open-redirect prevention on `/api/auth/callback`
+- [x] OTP verification rate-limited per email (brute-force guard on the 6-digit code)
 - [x] File type and size validation before upload
 - [x] Structured, non-leaking error responses in production
 
