@@ -4,12 +4,19 @@
 import Image from 'next/image'
 import DownloadButton from '@/components/ui/DownloadButton'
 import { useI18n } from '@/lib/i18n'
-import { CheckCircle } from '@phosphor-icons/react'
+import { useRouter } from '@/lib/i18n/navigation'
+import { CheckCircle, MagnifyingGlass } from '@phosphor-icons/react'
 
 export default function HeroSection() {
   const { t } = useI18n()
 
   const badges = [t.hero.badge1, t.hero.badge2, t.hero.badge3]
+  const router = useRouter()
+
+  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    router.push('/search')
+  }
 
   return (
     <section
@@ -71,6 +78,33 @@ export default function HeroSection() {
                 className="w-full sm:w-auto justify-center"
               />
             </div>
+
+            {/* Quick search — primary entry point to train schedule search */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="w-full flex items-center gap-2 mt-1 p-1.5 bg-bg-elevated border border-border-subtle rounded-xl shadow-sm hover:border-primary/30 transition-colors"
+              aria-label={t.hero.search_label}
+            >
+              <MagnifyingGlass
+                size={18}
+                className="text-primary ml-2 flex-shrink-0"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                readOnly
+                onClick={() => router.push('/search')}
+                placeholder={t.hero.search_placeholder}
+                className="flex-1 bg-transparent text-text-secondary placeholder-text-tertiary text-sm font-inter py-2 cursor-pointer focus:outline-none"
+                aria-label={t.hero.search_label}
+              />
+              <button
+                type="submit"
+                className="flex-shrink-0 h-9 px-4 bg-primary text-white text-xs font-bold font-inter rounded-lg hover:bg-primary-dim transition-colors whitespace-nowrap"
+              >
+                {t.hero.search_cta}
+              </button>
+            </form>
           </div>
 
           {/* RIGHT Hero Visual */}

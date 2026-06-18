@@ -31,9 +31,9 @@ export default function Navbar() {
 
   const navLinks = [
     { label: t.nav.features,  href: '/features' },
+    { label: t.nav.search,    href: '/search'    },
     { label: t.nav.community, href: '/#community' },
     { label: t.nav.pricing,   href: '/#pricing' },
-    { label: t.nav.business,  href: '/#business' },
     { label: t.nav.download,  href: '/download' },
   ]
 

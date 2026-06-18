@@ -9,7 +9,8 @@
     "community": "Community",
     "pricing": "Pricing",
     "business": "Business",
-    "cta": "Download App →"
+    "cta": "Download App →",
+    "search": "Train Search"
   },
   "hero": {
     "overline": "Built for Bangladeshi Railway Travelers",
@@ -19,7 +20,10 @@
     "cta": "Get RailMate Now",
     "badge1": "Free to Download",
     "badge2": "Bengali + English",
-    "badge3": "Community Powered"
+    "badge3": "Community Powered",
+    "search_label": "Search train schedules",
+    "search_placeholder": "e.g. Dhaka to Chittagong",
+    "search_cta": "Search Trains"
   },
   "common": {
     "brand": "RailMate",
