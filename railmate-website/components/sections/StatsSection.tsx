@@ -1,8 +1,10 @@
+// Stats sourced from actual seeded data: 133 trains, 52 stations.
+// Do NOT inflate these numbers without verifying against production Supabase counts.
 const STATS = [
-  { num: '100+',  label: 'Train Routes Covered' },
-  { num: '500+',  label: 'Stations Searchable' },
-  { num: '8',     label: 'Coach Classes Supported' },
-  { num: 'Free',  label: 'Core Features, Always' },
+  { num: '130+', label: 'Trains in Database' },
+  { num: '50+',  label: 'Stations Covered' },
+  { num: '8',    label: 'Coach Classes Supported' },
+  { num: 'Free', label: 'Core Features, Always' },
 ]
 
 const COPY = {

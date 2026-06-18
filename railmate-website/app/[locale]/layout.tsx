@@ -66,7 +66,8 @@ export async function generateMetadata({
 }
 
 export function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'bn' }]
+  // Bengali first — it's the default locale and primary SEO target
+  return [{ locale: 'bn' }, { locale: 'en' }]
 }
 
 export default async function RootLayout({
@@ -81,7 +82,7 @@ export default async function RootLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale === 'bn' ? 'bn-BD' : 'en'} dir="ltr" suppressHydrationWarning>
       <body
         className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} font-inter antialiased`}
       >

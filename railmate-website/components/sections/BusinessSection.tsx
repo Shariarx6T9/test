@@ -7,27 +7,30 @@ export default function BusinessSection() {
   const { t } = useI18n()
   const s = t.business_section
 
+  // All business CTAs point to register-interest mailto until the product launches.
+  const INTEREST_MAILTO = 'mailto:hello@railmatebd.com?subject=RailMate%20Business%20Interest'
+
   const cards = [
     {
       icon: <ChartBar size={28} weight="duotone" className="text-primary" />,
       title: s.card1_title,
       body: s.card1_body,
       cta: s.card1_cta,
-      href: '/contact',
+      href: INTEREST_MAILTO,
     },
     {
       icon: <Buildings size={28} weight="duotone" className="text-primary" />,
       title: s.card2_title,
       body: s.card2_body,
       cta: s.card2_cta,
-      href: '/contact',
+      href: INTEREST_MAILTO,
     },
     {
       icon: <Code size={28} weight="duotone" className="text-primary" />,
       title: s.card3_title,
       body: s.card3_body,
       cta: s.card3_cta,
-      href: '/contact',
+      href: INTEREST_MAILTO,
     },
   ]
 
@@ -40,6 +43,10 @@ export default function BusinessSection() {
           <p className="text-primary text-xs font-bold uppercase tracking-widest mb-3 font-inter">
             {s.overline}
           </p>
+          {/* Beta gate label — keeps framing honest until post-launch */}
+          <span className="inline-block mb-4 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold font-inter border border-primary/20">
+            Launching after our public beta
+          </span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-text-primary font-jakarta mb-4">
             {s.headline}
           </h2>

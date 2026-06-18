@@ -70,27 +70,27 @@
     "para1": "RailMate was born out of a simple frustration: it shouldn't be this hard to find a train. We started as a small side project to help friends find schedules on their phones, and we're building it into a community platform for travelers across Bangladesh.",
     "para2": "We believe that access to public transport information is a right, not a luxury. That's why RailMate is independent, community-driven, and free for the core features that matter most.",
     "legal_note": "RailMate is an independent platform and is not affiliated with Bangladesh Railway or any government entity.",
-    "stat1_num": "100+",
-    "stat1_label": "Train Routes Covered",
-    "stat2_num": "500+",
+    "stat1_num": "130+",
+    "stat1_label": "Trains in Database",
+    "stat2_num": "50+",
     "stat2_label": "Stations Covered",
     "stat3_num": "8",
     "stat3_label": "Coach Classes Supported",
     "beta_badge": "Currently in Open Beta"
   },
   "business_section": {
-    "overline": "FOR ORGANIZATIONS",
+    "overline": "FOR ORGANIZATIONS — COMING SOON",
     "headline": "Unlock more with RailMate for Business.",
     "subheadline": "Whether you're a transport logistics firm, a media outlet, or a corporate travel department, our data and platform can help you scale.",
     "card1_title": "Data API Access",
     "card1_body": "Integrate real-time community delay data and verified schedules into your own internal apps or customer-facing dashboards.",
-    "card1_cta": "Request API Key",
+    "card1_cta": "Register Interest",
     "card2_title": "Corporate Subscriptions",
     "card2_body": "Provide your employees with RailMate Pro features to ensure they are always on time and informed during business travel.",
-    "card2_cta": "Bulk Licensing",
+    "card2_cta": "Register Interest",
     "card3_title": "Advertising & Reach",
     "card3_body": "Reach thousands of travelers exactly when they are planning their journeys. Hyper-local, context-aware advertising that works.",
-    "card3_cta": "View Media Kit",
+    "card3_cta": "Register Interest",
     "contact_partnerships": "Partnership Inquiries: hello@railmatebd.com",
     "contact_advertising": "Advertising Sales: ads@railmatebd.com"
   },
@@ -149,15 +149,15 @@
     "questions": [
       {
         "question": "Is RailMate free to use?",
-        "answer": "Yes, the core app is completely free — schedules, fares, saved routes, community reports, and delay alerts are all free. We offer an optional RailMate+ premium subscription (৳99–299/month) for advanced features."
+        "answer": "Yes, the core app is completely free — schedules, fares, saved routes, community reports, and delay alerts are all free. We offer an optional RailMate Pro subscription (৳99/month or ৳799/year) for advanced features."
       },
       {
         "question": "How accurate is the schedule information?",
-        "answer": "Schedule data is sourced from Bangladesh Railway's official published timetables. We update it when official timetables change. Real-time accuracy depends on community reports — we recommend verifying against official sources for critical journeys."
+        "answer": "Schedule data is sourced from official Bangladesh Railway publications and is reviewed regularly. Every train listing shows a \"last verified\" date so you always know how current the information is. Schedules can change without notice from Bangladesh Railway — for time-critical travel, confirm with the station or official channels before departure."
       },
       {
         "question": "Does RailMate sell train tickets?",
-        "answer": "No. RailMate is an information and companion platform. For ticket purchases, we direct you to the official Rail Sheba platform (railshebashohoz.com) or the government e-ticketing portal."
+        "answer": "No. RailMate does not process ticket sales or payments of any kind for train tickets. We link directly to the official Rail Sheba app/website for ticket purchases. RailMate is an independent information and community platform, not a ticketing service."
       },
       {
         "question": "How do community reports work?",
@@ -433,7 +433,7 @@
         "desc": "Platform numbers, facilities, nearby transport links. Navigate complex stations like a pro with detailed local information."
       },
       {
-        "name": "Premium Features (RailMate+)",
+        "name": "Premium Features (RailMate Pro)",
         "desc": "Offline maps, priority alerts, ad-free experience, and advanced journey analytics. Support the mission while getting the ultimate companion experience."
       }
     ]
@@ -521,11 +521,11 @@
     "notice": "Schedule data is sourced from Bangladesh Railway official publications (railway.gov.bd) and community-verified. Always confirm critical journeys with official sources. Live delay data is community-reported.",
     "stats": [
       {
-        "num": "100+",
-        "label": "Train Routes Covered"
+        "num": "130+",
+        "label": "Trains in Database"
       },
       {
-        "num": "500+",
+        "num": "50+",
         "label": "Stations Searchable"
       },
       {
@@ -570,12 +570,12 @@
     ],
     "stats": [
       {
-        "label": "Train Routes",
-        "value": "100+"
+        "label": "Trains",
+        "value": "130+"
       },
       {
         "label": "Stations",
-        "value": "500+"
+        "value": "50+"
       },
       {
         "label": "Powered By",

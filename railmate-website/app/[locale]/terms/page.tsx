@@ -55,7 +55,7 @@ export default function TermsPage() {
     },
     {
       title: "12. Premium Subscriptions",
-      content: "RailMate+ subscriptions are auto-renewable and can be managed or cancelled anytime through your App Store or Play Store account settings.",
+      content: "RailMate Pro subscriptions are auto-renewable and can be managed or cancelled anytime through your App Store or Play Store account settings.",
     },
     {
       title: "13. Changes to Terms",

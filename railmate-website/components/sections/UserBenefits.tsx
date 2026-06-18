@@ -14,7 +14,7 @@ export default function UserBenefits() {
 
   const stats = [
     { label: "Train Routes", value: "10+" },
-    { label: "Stations", value: "100+" },
+    { label: "Stations", value: "50+" },
     { label: "Powered By", value: "Community" },
     { label: "Core App", value: "Free Forever" },
   ];

@@ -77,7 +77,7 @@ const features = [
   },
   {
     icon: <Crown size={32} />,
-    name: "Premium Features (RailMate+)",
+    name: "Premium Features (RailMate Pro)",
     desc: "Offline maps, priority alerts, ad-free experience, and advanced journey analytics. Support the mission while getting the ultimate companion experience.",
     phase: 3,
   },
