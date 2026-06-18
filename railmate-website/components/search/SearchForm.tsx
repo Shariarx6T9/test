@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { MagnifyingGlass, ArrowsLeftRight, Train, CalendarBlank } from '@phosphor-icons/react'
 import type { StationOption } from '@/lib/train-search'
-import { stationToSlug } from '@/lib/train-search'
 
 interface Props {
   stations: StationOption[]

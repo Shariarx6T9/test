@@ -1,26 +1,24 @@
 /**
  * RailMate Bangladesh — Train search queries (website)
  *
- * These functions hit the same Supabase instance as the mobile app.
- * Key constraints enforced here (not in the UI layer):
- *   - No fare amounts returned — website never exposes pricing.
- *   - Only class names returned (available_classes chip display).
- *   - `last_verified` date always included for transparency.
+ * Actual deployed schema column names (from supabase/seed.sql):
+ *   stations:    id, code, name_en, name_bn, ...
+ *   trains:      id, number, name, train_type, off_days, is_active, ...
+ *   train_stops: train_number, station_code, stop_sequence, arrive_time, depart_time, ...
  *
- * The deployed schema uses station.code (VARCHAR) as the join key and
- * station.id as SERIAL integer — NOT UUIDs. The search_trains RPC in
- * migrations/001 is an older artefact; we query directly here.
+ * Join key: train_stops.station_code = stations.code (VARCHAR)
+ * No fare data is returned anywhere in this file — website never exposes pricing.
  */
 import { supabase } from '@/lib/supabase'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface StationOption {
-  id:      number
-  code:    string
-  name_en: string
-  name_bn: string
-  division: string
+  id:               number
+  code:             string
+  name_en:          string
+  name_bn:          string
+  division:         string
   is_intercity_hub: boolean
 }
 
@@ -28,14 +26,12 @@ export interface TrainSearchResult {
   train_id:         number
   train_number:     number
   train_name_en:    string
-  train_name_bn:    string
   train_type:       string
-  departure_time:   string // "HH:MM:SS"
-  arrival_time:     string // "HH:MM:SS"
+  departure_time:   string  // "HH:MM"
+  arrival_time:     string  // "HH:MM"
   duration_minutes: number
-  available_classes: string[] // class names only, never prices
-  last_verified:    string | null
   off_days:         string[]
+  last_verified:    string | null
 }
 
 export interface RouteStations {
@@ -43,9 +39,8 @@ export interface RouteStations {
   to:   StationOption
 }
 
-// ─── Station helpers ──────────────────────────────────────────────────────────
+// ─── Station queries ──────────────────────────────────────────────────────────
 
-/** All stations for autocomplete. Cached at build time via Next.js fetch cache. */
 export async function getAllStations(): Promise<StationOption[]> {
   const { data, error } = await supabase
     .from('stations')
@@ -56,171 +51,128 @@ export async function getAllStations(): Promise<StationOption[]> {
   return (data ?? []) as StationOption[]
 }
 
-/** Lookup a single station by its slug (lowercased name_en, spaces → hyphens) */
-export async function getStationBySlug(
-  slug: string
-): Promise<StationOption | null> {
-  // "dhaka-kamalapur" → "Dhaka (Kamalapur)" style search
-  // We store the slug → code mapping at generateStaticParams time,
-  // but for ISR on-demand routes we query by normalised name.
-  const readable = slug
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
-
-  const { data, error } = await supabase
-    .from('stations')
-    .select('id, code, name_en, name_bn, division, is_intercity_hub')
-    .ilike('name_en', `%${readable}%`)
-    .limit(1)
-    .single()
-
-  if (error) return null
-  return data as StationOption
-}
-
-/** Lookup stations by their station codes (e.g. "DHKA", "CTG") */
 export async function getStationsByCodes(
   fromCode: string,
-  toCode: string
+  toCode:   string
 ): Promise<RouteStations | null> {
   const { data, error } = await supabase
     .from('stations')
     .select('id, code, name_en, name_bn, division, is_intercity_hub')
-    .in('code', [fromCode, toCode])
+    .in('code', [fromCode.toUpperCase(), toCode.toUpperCase()])
 
   if (error || !data || data.length < 2) return null
 
-  const from = (data as StationOption[]).find((s) => s.code === fromCode)
-  const to   = (data as StationOption[]).find((s) => s.code === toCode)
+  const stations = data as StationOption[]
+  const from = stations.find((s) => s.code === fromCode.toUpperCase())
+  const to   = stations.find((s) => s.code === toCode.toUpperCase())
 
   if (!from || !to) return null
   return { from, to }
 }
 
-// ─── Search ───────────────────────────────────────────────────────────────────
+// ─── Train search ─────────────────────────────────────────────────────────────
 
 /**
- * Search trains between two stations on a given date.
- *
- * This replicates the logic of the mobile app's search_trains RPC but
- * uses the actual deployed schema column names (station.code, train.number,
- * train_stops.station_code, train_stops.stop_sequence).
- *
- * Intentionally does NOT return any fare data.
+ * Search trains between two stations by their station codes.
+ * Uses the actual schema join: train_stops.station_code = stations.code
  */
 export async function searchTrains(
-  fromStationId: number,
-  toStationId:   number,
-  journeyDate:   string // "YYYY-MM-DD"
+  fromCode:    string,
+  toCode:      string,
+  journeyDate: string  // "YYYY-MM-DD"
 ): Promise<TrainSearchResult[]> {
-  // DOW: JS getDay() returns 0=Sun … 6=Sat, but our off_days are text strings
-  // like 'friday', 'saturday' — so we filter on the client side after fetch.
-  const date    = new Date(journeyDate)
+  const date    = new Date(journeyDate + 'T00:00:00')
   const dowName = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][date.getDay()]
 
-  // Step 1: find trains that stop at from-station
+  // Step 1: stops at the FROM station
   const { data: fromStops, error: fromErr } = await supabase
     .from('train_stops')
     .select('train_number, stop_sequence, depart_time')
-    .eq('station_id', fromStationId)
+    .eq('station_code', fromCode.toUpperCase())
 
-  if (fromErr) throw new Error(`searchTrains (from): ${fromErr.message}`)
+  if (fromErr) throw new Error(`searchTrains from: ${fromErr.message}`)
   if (!fromStops?.length) return []
 
-  const trainNums = fromStops.map((s: any) => s.train_number)
+  const trainNumbers = [...new Set(fromStops.map((s: any) => s.train_number))]
 
-  // Step 2: find those trains that also stop at to-station, with higher sequence
+  // Step 2: stops at the TO station for the same trains
   const { data: toStops, error: toErr } = await supabase
     .from('train_stops')
     .select('train_number, stop_sequence, arrive_time')
-    .eq('station_id', toStationId)
-    .in('train_number', trainNums)
+    .eq('station_code', toCode.toUpperCase())
+    .in('train_number', trainNumbers)
 
-  if (toErr) throw new Error(`searchTrains (to): ${toErr.message}`)
+  if (toErr) throw new Error(`searchTrains to: ${toErr.message}`)
   if (!toStops?.length) return []
 
-  // Step 3: filter to trains where from.sequence < to.sequence
-  const validPairs = toStops
-    .map((to: any) => {
-      const from = fromStops.find(
-        (f: any) =>
-          f.train_number === to.train_number && f.stop_sequence < to.stop_sequence
-      )
-      return from ? { trainNum: to.train_number, depart: from.depart_time, arrive: to.arrive_time } : null
-    })
-    .filter(Boolean) as { trainNum: number; depart: string; arrive: string }[]
+  // Step 3: keep only trains where from.sequence < to.sequence (correct direction)
+  const validPairs: { trainNum: number; depart: string; arrive: string }[] = []
+
+  for (const toStop of toStops as any[]) {
+    const fromStop = fromStops.find(
+      (f: any) =>
+        f.train_number === toStop.train_number &&
+        f.stop_sequence < toStop.stop_sequence
+    )
+    if (fromStop) {
+      validPairs.push({
+        trainNum: toStop.train_number,
+        depart:   fromStop.depart_time,
+        arrive:   toStop.arrive_time,
+      })
+    }
+  }
 
   if (!validPairs.length) return []
 
-  // Step 4: fetch train details for valid trains
-  const validTrainNums = validPairs.map((p) => p.trainNum)
-
+  // Step 4: fetch train details
+  const validNums = validPairs.map((p) => p.trainNum)
   const { data: trains, error: trainErr } = await supabase
     .from('trains')
-    .select('id, number, name, train_type, off_days, last_verified, is_active')
-    .in('number', validTrainNums)
+    .select('id, number, name, train_type, off_days, is_active')
+    .in('number', validNums)
     .eq('is_active', true)
 
-  if (trainErr) throw new Error(`searchTrains (trains): ${trainErr.message}`)
+  if (trainErr) throw new Error(`searchTrains trains: ${trainErr.message}`)
   if (!trains?.length) return []
 
-  // Step 5: build results, filter by day-of-week
+  // Step 5: build results, filter by day-of-week off_days
   const results: TrainSearchResult[] = []
 
   for (const train of trains as any[]) {
-    // off_days is TEXT[] — filter trains not running today
-    if (Array.isArray(train.off_days) && train.off_days.includes(dowName)) continue
+    const offDays: string[] = Array.isArray(train.off_days) ? train.off_days : []
+    if (offDays.includes(dowName)) continue
 
     const pair = validPairs.find((p) => p.trainNum === train.number)!
+    const depart = pair.depart?.slice(0, 5) ?? '—'
+    const arrive = pair.arrive?.slice(0, 5) ?? '—'
 
-    const departParts = pair.depart?.split(':').map(Number) ?? [0, 0]
-    const arriveParts = pair.arrive?.split(':').map(Number) ?? [0, 0]
-    const departMins  = departParts[0] * 60 + departParts[1]
-    const arriveMins  = arriveParts[0] * 60 + arriveParts[1]
-    const duration    = arriveMins >= departMins
+    const [dh, dm] = depart.split(':').map(Number)
+    const [ah, am] = arrive.split(':').map(Number)
+    const departMins = dh * 60 + dm
+    const arriveMins = ah * 60 + am
+    const duration   = arriveMins >= departMins
       ? arriveMins - departMins
-      : (24 * 60 - departMins) + arriveMins // overnight
+      : (24 * 60 - departMins) + arriveMins
 
     results.push({
       train_id:         train.id,
       train_number:     train.number,
       train_name_en:    train.name,
-      train_name_bn:    train.name,   // name_bn not in schema — falls back
-      train_type:       train.train_type,
-      departure_time:   pair.depart,
-      arrival_time:     pair.arrive,
+      train_type:       train.train_type ?? '',
+      departure_time:   depart,
+      arrival_time:     arrive,
       duration_minutes: duration,
-      available_classes: [],           // never expose class list on website
-      last_verified:    train.last_verified,
-      off_days:         train.off_days ?? [],
+      off_days:         offDays,
+      last_verified:    null, // not in deployed schema
     })
   }
 
-  // Sort by departure time
   return results.sort((a, b) => a.departure_time.localeCompare(b.departure_time))
 }
 
-// ─── Slug helpers ─────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Convert a station name to a URL-safe slug */
-export function stationToSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[()]/g, '')       // remove parentheses
-    .replace(/[^\w\s-]/g, '')   // remove non-word chars
-    .replace(/\s+/g, '-')       // spaces to hyphens
-    .replace(/-+/g, '-')        // collapse multiple hyphens
-    .trim()
-}
-
-/** Format HH:MM:SS to HH:MM */
-export function formatTime(time: string | null): string {
-  if (!time) return '—'
-  return time.slice(0, 5)
-}
-
-/** Format duration in minutes to "Xh Ym" */
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
@@ -229,15 +181,10 @@ export function formatDuration(minutes: number): string {
   return `${h}h ${m}m`
 }
 
-// ─── Top routes for prerendering ──────────────────────────────────────────────
+// ─── Top routes for generateStaticParams ─────────────────────────────────────
+// Codes match stations.code in Supabase seed data exactly.
 
-/**
- * The top 40 station-pair routes to prerender at build time.
- * Sourced from actual hub stations in seed data (is_intercity_hub = true).
- * Codes match stations.code in Supabase.
- */
-export const TOP_ROUTES: Array<{ fromCode: string; toCode: string }> = [
-  // Dhaka ↔ major hubs
+export const TOP_ROUTES: { fromCode: string; toCode: string }[] = [
   { fromCode: 'DHKA', toCode: 'CTG'  },
   { fromCode: 'CTG',  toCode: 'DHKA' },
   { fromCode: 'DHKA', toCode: 'SYT'  },
@@ -248,7 +195,6 @@ export const TOP_ROUTES: Array<{ fromCode: string; toCode: string }> = [
   { fromCode: 'RAJ',  toCode: 'DHKA' },
   { fromCode: 'DHKA', toCode: 'MYM'  },
   { fromCode: 'MYM',  toCode: 'DHKA' },
-  // Dhaka ↔ secondary
   { fromCode: 'DHKA', toCode: 'DNJ'  },
   { fromCode: 'DNJ',  toCode: 'DHKA' },
   { fromCode: 'DHKA', toCode: 'RNG'  },
@@ -263,7 +209,6 @@ export const TOP_ROUTES: Array<{ fromCode: string; toCode: string }> = [
   { fromCode: 'CXBZ', toCode: 'DHKA' },
   { fromCode: 'DHKA', toCode: 'JS'   },
   { fromCode: 'JS',   toCode: 'DHKA' },
-  // Cross routes
   { fromCode: 'CTG',  toCode: 'SYT'  },
   { fromCode: 'SYT',  toCode: 'CTG'  },
   { fromCode: 'CTG',  toCode: 'COM'  },

@@ -15,33 +15,26 @@ interface I18nContextType {
 }
 
 const dictionaries = { en, bn } as const
-
 const I18nContext = createContext<I18nContextType | undefined>(undefined)
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // The URL param is the canonical source of truth.
-  // With localePrefix 'as-needed', the root path (/) has no [locale] segment,
-  // so params.locale will be undefined — that means Bengali (the default).
   const params = useParams()
-  const urlLocale = params?.locale as Locale | undefined
-
-  // undefined → root path → Bengali default
-  const validLocale: Locale =
-    urlLocale === 'en' ? 'en' : 'bn'
+  const urlLocale = params?.locale as string | undefined
+  const validLocale: Locale = urlLocale === 'en' ? 'en' : 'bn'
 
   const [locale, setLocaleState] = useState<Locale>(validLocale)
 
   useEffect(() => {
     setLocaleState(validLocale)
     if (typeof document !== 'undefined') {
-      document.documentElement.lang = validLocale === 'bn' ? 'bn' : 'en'
+      document.documentElement.lang = validLocale === 'bn' ? 'bn-BD' : 'en'
     }
   }, [validLocale])
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale)
     if (typeof document !== 'undefined') {
-      document.documentElement.lang = newLocale === 'bn' ? 'bn' : 'en'
+      document.documentElement.lang = newLocale === 'bn' ? 'bn-BD' : 'en'
     }
   }
 
@@ -54,8 +47,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
 export function useI18n() {
   const context = useContext(I18nContext)
-  if (!context) {
-    throw new Error('useI18n must be used within an I18nProvider')
-  }
+  if (!context) throw new Error('useI18n must be used within an I18nProvider')
   return context
 }

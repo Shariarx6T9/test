@@ -82,7 +82,7 @@ export default async function RootLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={locale === 'bn' ? 'bn-BD' : 'en'} dir="ltr" suppressHydrationWarning>
+    <html lang={locale === 'bn' ? 'bn-BD' : 'en'} suppressHydrationWarning>
       <body
         className={`${jakartaSans.variable} ${inter.variable} ${notoSansBengali.variable} font-inter antialiased`}
       >

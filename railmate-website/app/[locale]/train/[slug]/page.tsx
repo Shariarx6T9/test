@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound }      from 'next/navigation'
-import { getStationsByCodes, searchTrains, TOP_ROUTES, formatTime, formatDuration } from '@/lib/train-search'
+import { getStationsByCodes, searchTrains, TOP_ROUTES, formatDuration, getAllStations } from '@/lib/train-search'
 import SearchForm from '@/components/search/SearchForm'
-import { getAllStations } from '@/lib/train-search'
 import TrainResultCard   from './TrainResultCard'
 
 // ─── Caching ─────────────────────────────────────────────────────────────────
@@ -48,18 +47,17 @@ export async function generateMetadata({
     title:       `${from} to ${to} Train Schedule | RailMate Bangladesh`,
     description: `Find train schedules from ${from} to ${to}. View departure times, journey duration, and available classes. Live delay reports available in the app.`,
     alternates: {
-      // With localePrefix 'as-needed': bn is at root, en is at /en/
-      canonical: locale === 'en' ? `${siteUrl}/en/train/${slug}` : `${siteUrl}/train/${slug}`,
+      canonical: `${siteUrl}/${locale}/train/${slug}`,
       languages: {
-        'en':      `${siteUrl}/en/train/${slug}`,
-        'bn':      `${siteUrl}/train/${slug}`,
-        'x-default': `${siteUrl}/train/${slug}`, // Bengali is the primary audience
+        'en': `${siteUrl}/en/train/${slug}`,
+        'bn': `${siteUrl}/bn/train/${slug}`,
+        'x-default': `${siteUrl}/bn/train/${slug}`,
       },
     },
     openGraph: {
       title:       `${from} to ${to} Train Schedule`,
       description: `Bangladesh Railway trains from ${from} to ${to}. Schedules, duration, and class availability.`,
-      url:         locale === 'en' ? `${siteUrl}/en/train/${slug}` : `${siteUrl}/train/${slug}`,
+      url:         `${siteUrl}/${locale}/train/${slug}`,
     },
   }
 }
@@ -89,7 +87,7 @@ export default async function TrainRoutePage({
     ? date
     : new Date().toISOString().split('T')[0]
 
-  const results = await searchTrains(route.from.id, route.to.id, journeyDate)
+  const results = await searchTrains(parsed.fromCode, parsed.toCode, journeyDate)
 
   const siteUrl    = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'
   const railShebaUrl = 'https://www.railshebashohoz.com'
@@ -139,9 +137,9 @@ export default async function TrainRoutePage({
 
           {/* Breadcrumb */}
           <nav className="mb-6 text-xs text-text-tertiary font-inter flex items-center gap-2">
-            <a href={locale === 'en' ? '/en' : '/'} className="hover:text-primary transition-colors">Home</a>
+            <a href={`/${locale}`} className="hover:text-primary transition-colors">Home</a>
             <span>/</span>
-            <a href={locale === 'en' ? '/en/search' : '/search'} className="hover:text-primary transition-colors">Search</a>
+            <a href={`/${locale}/search`} className="hover:text-primary transition-colors">Search</a>
             <span>/</span>
             <span className="text-text-secondary">{route.from.name_en} → {route.to.name_en}</span>
           </nav>
@@ -232,7 +230,7 @@ export default async function TrainRoutePage({
                 {relatedRoutes.map((r) => (
                   <a
                     key={r.slug}
-                    href={locale === 'en' ? `/en/train/${r.slug}` : `/train/${r.slug}`}
+                    href={`/${locale}/train/${r.slug}`}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-bg-elevated border border-border-subtle rounded-full text-sm font-inter text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
                   >
                     {r.label}

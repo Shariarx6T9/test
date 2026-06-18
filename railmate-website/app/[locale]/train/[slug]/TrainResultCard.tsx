@@ -1,5 +1,5 @@
 import { ArrowRight, Clock, Train, CalendarBlank } from '@phosphor-icons/react/dist/ssr'
-import { formatTime, formatDuration } from '@/lib/train-search'
+import { formatDuration } from '@/lib/train-search'
 import type { TrainSearchResult } from '@/lib/train-search'
 
 interface Props {
@@ -69,7 +69,7 @@ export default function TrainResultCard({ train, railShebaUrl, fromStation, toSt
             dateTime={train.departure_time}
             className="font-mono font-bold text-text-primary text-xl leading-none"
           >
-            {formatTime(train.departure_time)}
+            {train.departure_time}
           </time>
           <p className="text-text-tertiary text-xs mt-0.5 font-inter">{fromStation}</p>
         </div>
@@ -90,7 +90,7 @@ export default function TrainResultCard({ train, railShebaUrl, fromStation, toSt
             dateTime={train.arrival_time}
             className="font-mono font-bold text-text-primary text-xl leading-none"
           >
-            {formatTime(train.arrival_time)}
+            {train.arrival_time}
           </time>
           <p className="text-text-tertiary text-xs mt-0.5 font-inter">{toStation}</p>
         </div>
@@ -106,22 +106,10 @@ export default function TrainResultCard({ train, railShebaUrl, fromStation, toSt
         </div>
       )}
 
-      {/* Available classes — names only, never prices */}
-      {train.available_classes.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {train.available_classes.map((cls) => (
-            <span
-              key={cls}
-              className="px-2 py-0.5 bg-bg-card border border-border-subtle text-text-secondary text-xs font-inter rounded-sm font-bengali"
-            >
-              {CLASS_LABELS[cls] ?? cls}
-            </span>
-          ))}
-          <span className="px-2 py-0.5 text-text-tertiary text-xs font-inter italic">
-            Fares in app →
-          </span>
-        </div>
-      )}
+      {/* Class/fare info is app-exclusive — intentional omission */}
+      <span className="text-text-tertiary text-xs font-inter italic">
+        Fares &amp; seat classes available in the app →
+      </span>
 
       {/* Last verified */}
       {train.last_verified && (
