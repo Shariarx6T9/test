@@ -216,18 +216,19 @@ function SearchScreenInner() {
         />
       </View>
 
-      {/* Station selector modal */}
+      {/* Station selector modal — presentationStyle removed: iOS-only, breaks Android background */}
       <Modal
         visible={selectorConfig.visible}
         animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setSelectorConfig((p) => ({ ...p, visible: false }))}
       >
-        <StationSelector
-          onSelect={handleStationSelect}
-          onClose={() => setSelectorConfig((p) => ({ ...p, visible: false }))}
-          isBengali={isBengali}
-        />
+        <View style={{ flex: 1, backgroundColor: colors['bg-base'] }}>
+          <StationSelector
+            onSelect={handleStationSelect}
+            onClose={() => setSelectorConfig((p) => ({ ...p, visible: false }))}
+            isBengali={isBengali}
+          />
+        </View>
       </Modal>
 
       {showDatePicker && (

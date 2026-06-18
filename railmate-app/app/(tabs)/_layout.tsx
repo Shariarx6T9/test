@@ -50,7 +50,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="updates"
+        name="live-updates"
         options={{
           title: t('nav.live_updates'),
           tabBarIcon: ({ color, focused }) => (

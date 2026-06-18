@@ -2,7 +2,6 @@
   "app.name": "RailMate Bangladesh",
   "app.tagline": "Travel Smart. Travel RailMate.",
   "app.sub": "Your all-in-one railway companion for Bangladesh.",
-
   "onboarding.headline": "Travel Smart.\nTravel RailMate.",
   "onboarding.sub": "Your all-in-one railway companion for Bangladesh.",
   "onboarding.get_started": "Get Started",
@@ -29,7 +28,6 @@
   "onboarding.auth_google": "Continue with Google",
   "onboarding.auth_phone": "Continue with Phone",
   "onboarding.auth_guest": "Browse as Guest",
-
   "home.title": "Home",
   "home.greeting_morning": "Good Morning",
   "home.greeting_afternoon": "Good Afternoon",
@@ -55,7 +53,6 @@
   "home.promo_title": "Travel Smarter.",
   "home.promo_body": "Real-time updates coming in the next version.",
   "home.pro_badge": "PRO",
-
   "search.title": "Search Trains",
   "search.from": "From",
   "search.to": "To",
@@ -64,7 +61,6 @@
   "search.swap": "Swap stations",
   "search.placeholder_from": "Departure station",
   "search.placeholder_to": "Destination station",
-
   "results.title": "Search Results",
   "results.found": "{{count}} trains found",
   "results.none": "No trains found",
@@ -72,7 +68,6 @@
   "results.on_time": "On time",
   "results.filter": "Filter",
   "results.sort": "Sort",
-
   "train.detail": "Train Detail",
   "train.journey": "Journey",
   "train.timeline": "Journey Timeline",
@@ -82,13 +77,11 @@
   "train.halt": "Halt: {{minutes}} min",
   "train.duration": "{{hours}}h {{minutes}}m",
   "train.reports_today": "{{count}} reports today",
-
   "station.title": "Station Info",
   "station.search_placeholder": "Search stations...",
   "station.facilities": "Facilities",
   "station.popular_trains": "Popular Trains",
   "station.directions": "Get Directions",
-
   "updates.title": "Live Updates",
   "updates.sub": "RailMate watches over your journeys",
   "updates.filter_all": "All",
@@ -106,7 +99,6 @@
   "updates.leaves_in": "Leaves in {{mins}} minutes",
   "updates.min_delay": "{{mins}} min delay reported",
   "updates.schedule_updated": "Schedule updated",
-
   "community.title": "Community",
   "community.sub": "Live reports from travelers",
   "community.filter_all": "All",
@@ -159,7 +151,6 @@
   "community.just_now": "Just now",
   "community.min_ago": "{{n}} min ago",
   "community.hour_ago": "{{n}}h ago",
-
   "profile.title": "Profile",
   "profile.guest_user": "Guest User",
   "profile.guest_hint": "Sign in to sync your data",
@@ -187,7 +178,6 @@
   "profile.help": "Help & Support",
   "profile.trusted_reporter": "Trusted Reporter",
   "profile.edit": "Edit Profile",
-
   "journey.title": "Journey Tools",
   "journey.trips": "My Trips",
   "journey.upcoming": "Upcoming",
@@ -199,7 +189,6 @@
   "journey.alerts_toggle": "Journey Alerts",
   "journey.no_trips": "No trips yet",
   "journey.no_trips_hint": "Search and save journeys to track them here.",
-
   "badges.title": "Badges & Tiers",
   "badges.your_badges": "Your Badges",
   "badges.progress": "Progress",
@@ -209,7 +198,6 @@
   "badges.diamond": "Elite Reporter",
   "badges.green": "Trusted Reporter",
   "badges.amber": "Delay Master",
-
   "leaderboard.title": "Leaderboard",
   "leaderboard.weekly": "Weekly",
   "leaderboard.monthly": "Monthly",
@@ -217,8 +205,6 @@
   "leaderboard.points": "RailPoints",
   "leaderboard.rank": "Rank",
   "leaderboard.you": "You",
-
-
   "common.add": "Add",
   "common.or": "or",
   "common.loading": "Loading...",
@@ -227,10 +213,8 @@
   "common.back": "Back",
   "common.save": "Save",
   "common.cancel": "Cancel",
-
   "error.generic": "Something went wrong. Please try again.",
   "loading": "Loading...",
-
   "fare.class.SHOVON": "Shovon",
   "fare.class.SHOVON_CHAIR": "Shovon Chair",
   "fare.class.SNIGDHA": "Snigdha",
@@ -239,7 +223,6 @@
   "fare.class.FIRST_BERTH": "First Class Berth",
   "fare.class.FIRST_SEAT": "First Class Seat",
   "fare.class.AC_S_CHAIR": "AC S Chair",
-
   "auth.welcome": "Welcome back",
   "auth.welcome_sub": "Sign in to save routes and get alerts",
   "auth.phone_tab": "Phone",
@@ -271,21 +254,16 @@
   "auth.guest_subtitle": "Sign in to save routes and get personalized alerts",
   "auth.permission_needed": "Permission needed",
   "auth.permission_message": "Please allow photo access to set a profile picture.",
-
   "nav.home": "Home",
   "nav.search": "Search",
   "nav.live_updates": "Live Updates",
   "nav.community": "Community",
   "nav.profile": "Profile",
-
   "search.no_stations_found": "No stations found",
-
   "results.today_all_classes": "Today • All Classes",
   "results.search_again": "Search Again",
   "common.go_back": "Go Back",
-
   "community.crowd_high": "High",
-
   "train.not_found": "Train not found",
   "train.journey_timeline": "Journey Timeline",
   "train.community_insights": "Community Insights",
@@ -300,17 +278,13 @@
   "train.expected": "Expected",
   "train.traveler_reports": "{{count}} traveler reports",
   "train.today": "Today",
-
   "community.type_general": "General",
   "community.type_incident": "Incident",
   "community.trusted": "Trusted",
   "community.fab_share_update": "Share Update",
-
   "updates.info_title": "We'll keep you informed",
   "updates.info_sub": "Get real-time updates so you can travel with confidence.",
-
   "profile.traveler": "Traveler",
-
   "station.zone": "Zone",
   "station.platforms": "Platforms",
   "station.daily_trains": "Daily Trains",
@@ -319,13 +293,11 @@
   "station.facility_food": "Food Court",
   "station.facility_restroom": "Restroom",
   "station.facility_accessibility": "Accessibility",
-
   "journey.add_route": "Add Route",
   "journey.stat_journeys": "Journeys",
   "journey.stat_distance": "Distance",
   "journey.stat_saved_time": "Saved",
   "journey.stat_spent": "Spent",
-
   "badges.speed": "Speed Reporter",
   "badges.stat_earned": "Earned",
   "badges.stat_in_progress": "In Progress",
@@ -337,9 +309,7 @@
   "badges.desc_green": "Maintain 4.5+ trust score",
   "badges.desc_amber": "Report 20 confirmed delays",
   "badges.desc_speed": "First to report on 5 incidents",
-
   "leaderboard.reports_count": "{{count}} reports",
-
   "notifications.title": "Notifications",
   "notifications.delay": "Delays",
   "notifications.crowding": "Crowding",
@@ -348,7 +318,6 @@
   "notifications.empty": "No notifications yet",
   "notifications.all": "All",
   "notifications.unread": "{{count}} unread",
-
   "report.title": "Submit Report",
   "report.type_label": "Report Type",
   "report.delay_label": "Delay Duration (minutes)",
@@ -372,5 +341,11 @@
   "report.crowd_level_full": "Full",
   "report.crowd_level_overcrowded": "Overcrowded",
   "report.condition_rating_label": "Coach Rating (1–5)",
-  "report.location_permission": "Allow location access to tag your report."
+  "report.location_permission": "Allow location access to tag your report.",
+  "home.greeting": "Hello",
+  "community.filter_delay": "Delay",
+  "community.filter_crowding": "Crowding",
+  "community.filter_condition": "Condition",
+  "alerts.title": "Alerts",
+  "alerts.coming_soon": "Alerts coming soon"
 }
