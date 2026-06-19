@@ -1,3 +1,4 @@
+import { getAllStations } from '@/lib/train-search'
 import HeroSection from '@/components/sections/HeroSection'
 import AboutSection from '@/components/sections/AboutSection'
 import FeaturesSection from '@/components/sections/FeaturesSection'
@@ -10,40 +11,33 @@ import { TrustDisclaimer } from '@/components/sections/TrustDisclaimer'
 import LegalSection from '@/components/sections/LegalSection'
 import DownloadCTA from '@/components/sections/DownloadCTA'
 
-export default function Home() {
+// Revalidate station list every hour
+export const revalidate = 3600
+
+export default async function Home() {
+  // Fetch stations server-side so the hero search card has autocomplete
+  // data without a client-side round trip. This must NEVER throw — if
+  // Supabase is unreachable or misconfigured, the homepage still renders
+  // with an empty station list rather than 500ing the entire site.
+  let stations: Awaited<ReturnType<typeof getAllStations>> = []
+  try {
+    stations = await getAllStations()
+  } catch (err) {
+    console.error('[Home] getAllStations failed — rendering with empty list:', err)
+  }
+
   return (
     <>
-      {/* 1. Hero: What it is, primary CTA */}
-      <HeroSection />
-
-      {/* 2. About: Who we are — required for payment gateway review */}
+      <HeroSection stations={stations} />
       <AboutSection />
-
-      {/* 3. Features: Key benefits */}
       <FeaturesSection />
-
-      {/* 3.5 App Screenshots */}
       <ScreenshotsCarousel />
-
-      {/* 4. Community: Live intelligence layer */}
       <CommunitySection />
-
-      {/* 5. Pricing: Free vs Pro + payment methods */}
       <PricingSection />
-
-      {/* 6. For Business: Advertising & partnerships */}
       <BusinessSection />
-
-      {/* 7. FAQ: Reduce conversion friction */}
       <FAQAccordion homepage />
-
-      {/* 8. Trust & Credibility: Disclaimer */}
       <TrustDisclaimer />
-
-      {/* 9. Legal compliance links */}
       <LegalSection />
-
-      {/* 10. Final CTA */}
       <DownloadCTA />
     </>
   )

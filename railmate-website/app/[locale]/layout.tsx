@@ -30,10 +30,11 @@ const notoSansBengali = Noto_Sans_Bengali({
 })
 
 export async function generateMetadata({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
+  const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'metadata' })
 
   return {
@@ -72,11 +73,12 @@ export function generateStaticParams() {
 
 export default async function RootLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }) {
+  const { locale } = await params
   // Fetch messages on the server so NextIntlClientProvider can pass them
   // to the client without an extra round-trip.
   const messages = await getMessages()

@@ -42,13 +42,19 @@ export interface RouteStations {
 // ─── Station queries ──────────────────────────────────────────────────────────
 
 export async function getAllStations(): Promise<StationOption[]> {
-  const { data, error } = await supabase
-    .from('stations')
-    .select('id, code, name_en, name_bn, division, is_intercity_hub')
-    .order('name_en', { ascending: true })
-
-  if (error) throw new Error(`getAllStations: ${error.message}`)
-  return (data ?? []) as StationOption[]
+  try {
+    const { data, error } = await supabase
+      .from('stations')
+      .select('id, code, name_en, name_bn, division, is_intercity_hub')
+      .order('name_en', { ascending: true })
+    if (error) throw new Error(error.message)
+    return (data ?? []) as StationOption[]
+  } catch (err) {
+    // Return empty list rather than crashing the page when Supabase is
+    // unreachable or env vars are not configured yet.
+    console.error('[getAllStations]', err)
+    return []
+  }
 }
 
 export async function getStationsByCodes(

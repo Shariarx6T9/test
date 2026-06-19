@@ -1,25 +1,37 @@
 /**
- * RailMate Bangladesh — Supabase read client (website)
+ * Supabase read-only client for the website.
+ * Points at the same project as the mobile app (train/station data).
+ * Safe to use with anon key — train tables have public-read RLS.
  *
- * This is a lightweight, read-only client that points at the same
- * Supabase project as the mobile app. The anon key is public and safe
- * to use here because the train/station tables have public-read RLS.
- *
- * Only import this in Server Components or server-side lib files.
- * Never import in Client Components — no user auth happens on the website.
+ * Lazy initialisation: the client is created on first use, not at module
+ * load. This prevents a crash at build/startup when env vars are absent
+ * (e.g. during a cold Vercel preview build without secrets configured).
  */
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+let _client: SupabaseClient | null = null
 
-if (!supabaseUrl || !supabaseAnon) {
-  throw new Error(
-    'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY env vars'
-  )
+export function getSupabaseClient(): SupabaseClient {
+  if (_client) return _client
+
+  const url  = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !anon) {
+    throw new Error(
+      '[RailMate] Supabase env vars not set.\n' +
+      'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY ' +
+      'to your Vercel project environment variables.'
+    )
+  }
+
+  _client = createClient(url, anon, { auth: { persistSession: false } })
+  return _client
 }
 
-// Single instance — Next.js module cache means this is safe at module level.
-export const supabase = createClient(supabaseUrl, supabaseAnon, {
-  auth: { persistSession: false }, // no auth on website
+// Convenience re-export so existing callers don't break
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return (getSupabaseClient() as any)[prop]
+  },
 })

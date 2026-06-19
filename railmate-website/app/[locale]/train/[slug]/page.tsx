@@ -36,7 +36,13 @@ export async function generateMetadata({
   const parsed = parseSlug(slug)
   if (!parsed) return { title: 'Train Search | RailMate Bangladesh' }
 
-  const route = await getStationsByCodes(parsed.fromCode, parsed.toCode)
+  let route: Awaited<ReturnType<typeof getStationsByCodes>> = null
+  try {
+    route = await getStationsByCodes(parsed.fromCode, parsed.toCode)
+  } catch (err) {
+    console.error('[generateMetadata] getStationsByCodes failed:', err)
+    return { title: 'Train Schedule | RailMate Bangladesh' }
+  }
   if (!route) return { title: 'Route Not Found | RailMate Bangladesh' }
 
   const from = route.from.name_en
@@ -76,10 +82,45 @@ export default async function TrainRoutePage({
   const parsed = parseSlug(slug)
   if (!parsed) notFound()
 
-  const [route, stations] = await Promise.all([
-    getStationsByCodes(parsed.fromCode, parsed.toCode),
-    getAllStations(),
-  ])
+  let route:    Awaited<ReturnType<typeof getStationsByCodes>> = null
+  let stations: Awaited<ReturnType<typeof getAllStations>>     = []
+  let serviceError = false
+
+  try {
+    const [routeResult, stationsResult] = await Promise.all([
+      getStationsByCodes(parsed.fromCode, parsed.toCode),
+      getAllStations(),
+    ])
+    route    = routeResult
+    stations = stationsResult
+  } catch (err) {
+    console.error('[TrainRoutePage] Supabase query failed:', err)
+    serviceError = true
+  }
+
+  // Genuinely invalid route (codes don't exist) → 404.
+  // Service failure (Supabase unreachable) → friendly error page, not a 404
+  // and not an unhandled 500 — those are different failure modes.
+  if (serviceError) {
+    return (
+      <main className="min-h-screen bg-bg-base pt-28 pb-20 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4 sm:px-6 text-center">
+          <p className="text-text-primary font-bold font-jakarta text-xl mb-2">
+            Schedule data is temporarily unavailable
+          </p>
+          <p className="text-text-secondary font-inter text-sm mb-6">
+            We&apos;re having trouble reaching our train schedule database. Please try again in a moment.
+          </p>
+          <a
+            href={`/${locale}/search`}
+            className="inline-flex items-center h-11 px-5 bg-primary text-white font-bold font-inter text-sm rounded-md hover:bg-primary-dim transition-colors"
+          >
+            Back to search
+          </a>
+        </div>
+      </main>
+    )
+  }
 
   if (!route) notFound()
 
@@ -87,7 +128,12 @@ export default async function TrainRoutePage({
     ? date
     : new Date().toISOString().split('T')[0]
 
-  const results = await searchTrains(parsed.fromCode, parsed.toCode, journeyDate)
+  let results: Awaited<ReturnType<typeof searchTrains>> = []
+  try {
+    results = await searchTrains(parsed.fromCode, parsed.toCode, journeyDate)
+  } catch (err) {
+    console.error('[TrainRoutePage] searchTrains failed — showing zero results:', err)
+  }
 
   const siteUrl    = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'
   const railShebaUrl = 'https://www.railshebashohoz.com'
