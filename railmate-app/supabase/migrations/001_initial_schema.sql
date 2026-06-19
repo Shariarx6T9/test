@@ -4,6 +4,7 @@
 
 -- EXTENSION
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================================
 -- TABLE: stations
@@ -44,6 +45,7 @@ CREATE TABLE trains (
 );
 CREATE INDEX idx_trains_number        ON trains(number);
 CREATE INDEX idx_trains_origin_dest   ON trains(origin_id, destination_id);
+CREATE INDEX idx_trains_days_of_week  ON trains USING GIN(days_of_week);
 
 -- ============================================================
 -- TABLE: train_stops
@@ -80,6 +82,7 @@ CREATE TABLE fares (
 );
 CREATE INDEX idx_fares_route ON fares(from_station_id, to_station_id);
 CREATE INDEX idx_fares_train ON fares(train_id);
+CREATE INDEX idx_fares_class ON fares(class);
 
 -- ============================================================
 -- TABLE: users (mirrors auth.users)

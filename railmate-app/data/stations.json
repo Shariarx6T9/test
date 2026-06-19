@@ -8,8 +8,8 @@
     "confidence": "High for codes/coordinates of major intercity stations. Low for rural/halt stations.",
     "last_verified": "2026-06-10",
     "total_stations_in_bd_railway": 440,
-    "stations_in_this_file": 52,
-    "note": "This file covers the ~52 stations used in intercity train bookings via Shohoz API. The remaining ~388 stations are local/halt stops not served by intercity trains and are not bookable via eticket.railway.gov.bd. See missing_stations.md for the gap list.",
+    "stations_in_this_file": 54,
+    "note": "This file covers the currently known intercity-searchable stations used by RailMate's local data pipeline. The remaining BR network stations are still outside this subset. See missing_stations.md for the remaining gap list.",
     "shohoz_city_code_note": "The Shohoz API uses UPPERCASE full-name city strings (e.g. 'DHAKA', 'CHATTOGRAM') as from_city/to_city params — NOT the 4-letter station codes. Both are included below."
   },
   "stations": [
@@ -751,6 +751,36 @@
       "is_intercity_hub": false,
       "type": "B",
       "note": "Border station — India-Bangladesh land port"
+    },
+    {
+      "id": 53,
+      "name_en": "Dhalarchar",
+      "name_bn": "ধলারচর",
+      "code": "DLC",
+      "shohoz_city": "DHALARCHAR",
+      "zone": "West",
+      "division": "Rajshahi",
+      "gauge": "Broad",
+      "lat": 24.47,
+      "lng": 88.37,
+      "is_intercity_hub": false,
+      "type": "C",
+      "note": "Added from validation/missing_stations.md pending source-level Bengali review."
+    },
+    {
+      "id": 54,
+      "name_en": "Mohonganj",
+      "name_bn": "মোহনগঞ্জ",
+      "code": "MHJ",
+      "shohoz_city": "MOHONGANJ",
+      "zone": "East",
+      "division": "Mymensingh",
+      "gauge": "Meter",
+      "lat": 24.69,
+      "lng": 90.99,
+      "is_intercity_hub": false,
+      "type": "C",
+      "note": "Added from validation/missing_stations.md pending source-level Bengali review."
     }
   ]
 }

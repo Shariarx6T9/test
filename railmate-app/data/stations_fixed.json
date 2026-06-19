@@ -737,5 +737,35 @@
     "is_active": true,
     "station_class": "B",
     "note": "Border station — India-Bangladesh land port"
+  },
+  {
+    "name_en": "Dhalarchar",
+    "name_bn": "ধলারচর",
+    "code": "DLC",
+    "shohoz_city": "DHALARCHAR",
+    "zone": "West",
+    "division": "Rajshahi",
+    "gauge": "Broad",
+    "latitude": 24.47,
+    "longitude": 88.37,
+    "is_major": false,
+    "is_active": true,
+    "station_class": "C",
+    "note": "Added from validation/missing_stations.md pending source-level Bengali review."
+  },
+  {
+    "name_en": "Mohonganj",
+    "name_bn": "মোহনগঞ্জ",
+    "code": "MHJ",
+    "shohoz_city": "MOHONGANJ",
+    "zone": "East",
+    "division": "Mymensingh",
+    "gauge": "Meter",
+    "latitude": 24.69,
+    "longitude": 90.99,
+    "is_major": false,
+    "is_active": true,
+    "station_class": "C",
+    "note": "Added from validation/missing_stations.md pending source-level Bengali review."
   }
 ]

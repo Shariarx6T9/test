@@ -8,7 +8,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "eslint .",
-    "type-check": "tsc"
+    "type-check": "tsc",
+    "typecheck": "tsc",
+    "test:data": "node --test tests/offday-mapping.test.mjs",
+    "generate:seed": "node scripts/generate_canonical_seed.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",
