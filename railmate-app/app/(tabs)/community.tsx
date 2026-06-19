@@ -28,7 +28,7 @@ import { Avatar } from '../../components/ui/Avatar/Avatar';
 import { useCommunityReports, useVoteReport } from '../../hooks/useCommunityReports';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation, TranslationKey } from '../../i18n';
+import { useTranslation } from '../../i18n';
 import type { ReportFilter, ReportType } from '../../types/report.types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -499,11 +499,11 @@ function CommunityContent() {
     vote({ reportId, voteType: 'CONFIRM', existingVote: currentVote, activeFilter: apiFilter });
   }, [isAuthenticated, apiFilter, vote, t]);
 
-  const handleFlag = useCallback((reportId: string) => {
+  const handleFlag = useCallback((_reportId: string) => {
     if (!isAuthenticated) { Alert.alert('', t('auth.sign_in')); return; }
     Alert.alert('Flag Report', 'This report will be reviewed by our team.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Flag', style: 'destructive', onPress: () => {} },
+      { text: 'Flag', style: 'destructive', onPress: () => {/* TODO: wire flag mutation, pass _reportId */} },
     ]);
   }, [isAuthenticated, t]);
 
