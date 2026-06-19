@@ -6,6 +6,7 @@ import {
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colorScheme as nativewindColorScheme } from 'nativewind';
+import * as SplashScreen from 'expo-splash-screen';
 import { queryClient } from '../lib/queryClient';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/authStore';
@@ -13,6 +14,15 @@ import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
 import * as Sentry from '@sentry/react-native';
+
+// Hold the native splash screen (the one configured in app.json under the
+// expo-splash-screen plugin) on screen until we explicitly hide it below.
+// Without this call the native splash auto-hides the instant the JS bundle
+// finishes loading — before initialize() resolves — leaving a blank gap
+// or an abrupt jump straight to the custom JS splash overlay.
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Safe to ignore — only fails if called multiple times (e.g. Fast Refresh).
+});
 
 Sentry.init({
   // DSN sourced from environment — never hardcode secrets in source.
@@ -51,13 +61,17 @@ export default Sentry.wrap(function RootLayout() {
     (async () => {
       await initialize();
       setInitialized(true);
+      // Hand off from the native splash to the JS overlay with zero gap —
+      // both render the same icon.png mark at the same size, so this hide
+      // is visually invisible to the user.
+      await SplashScreen.hideAsync();
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
           duration: 400,
           useNativeDriver: true,
         }).start(() => setSplashDone(true));
-      }, 1800);
+      }, 600);
     })();
   }, []);
 
@@ -67,7 +81,6 @@ export default Sentry.wrap(function RootLayout() {
     const seg0 = segments[0] as string | undefined;
     const inAuthGroup       = seg0 === 'auth';
     const inOnboardingGroup = seg0 === 'onboarding';
-    const inOnboardingRoot  = seg0 === 'onboarding' || segments.join('/') === 'onboarding';
 
     // 1. New user who hasn't completed onboarding → show onboarding
     if (!hasFinishedOnboarding && !inOnboardingGroup && seg0 !== 'onboarding') {
@@ -101,10 +114,14 @@ export default Sentry.wrap(function RootLayout() {
               { opacity: fadeAnim },
             ]}
           >
+            {/* Same icon.png mark + same 200px width as the native splash
+                configured in app.json (expo-splash-screen plugin) — this
+                must visually match exactly, or the native→JS handoff in
+                the effect above will look like a jump/flash. */}
             <Image
-              source={require('../assets/images/splash.png')}
-              style={s.splashImage}
-              resizeMode="cover"
+              source={require('../assets/images/icon.png')}
+              style={s.splashLogo}
+              resizeMode="contain"
             />
           </Animated.View>
         )}
@@ -114,6 +131,6 @@ export default Sentry.wrap(function RootLayout() {
 });
 
 const s = StyleSheet.create({
-  splash:      { zIndex: 9999 },
-  splashImage: { ...StyleSheet.absoluteFillObject },
+  splash:     { zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
+  splashLogo: { width: 200, height: 200 },
 });
