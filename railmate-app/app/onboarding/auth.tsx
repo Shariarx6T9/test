@@ -19,6 +19,15 @@ export default function OnboardingAuthScreen() {
 
   const handleGuest = () => { setGuest(true); finishOnboarding(); router.replace('/(tabs)'); };
 
+  // Phone/Google must also mark onboarding as finished before leaving this
+  // screen — otherwise the root layout guard sees hasFinishedOnboarding still
+  // false and bounces the user straight back to /onboarding/welcome right
+  // after they complete OTP verification or registration.
+  const handlePhoneOrGoogle = () => {
+    finishOnboarding();
+    router.push('/auth/login');
+  };
+
   return (
     <View style={[s.root, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
       <View style={s.content}>
@@ -34,12 +43,12 @@ export default function OnboardingAuthScreen() {
           ))}
         </View>
 
-        <Pressable style={s.googleBtn} onPress={() => router.push('/auth/login')}>
+        <Pressable style={s.googleBtn} onPress={handlePhoneOrGoogle}>
           <GoogleLogo size={20} color={colors['text-primary']} weight="bold" />
           <Text style={s.googleText}>Continue with Google</Text>
         </Pressable>
 
-        <Pressable style={s.phoneBtn} onPress={() => router.push('/auth/login')}>
+        <Pressable style={s.phoneBtn} onPress={handlePhoneOrGoogle}>
           <Phone size={20} color="#fff" weight="fill" />
           <Text style={s.phoneText}>Continue with Phone</Text>
         </Pressable>

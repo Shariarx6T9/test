@@ -9,6 +9,7 @@ import { Input } from '../../components/ui/Input/Input';
 import { Button } from '../../components/ui/Button/Button';
 import { useTranslation } from '../../i18n';
 import { useAuth } from '../../hooks/useAuth';
+import { usePrefsStore } from '../../stores/prefsStore';
 import { supabase } from '../../lib/supabase';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 
@@ -17,6 +18,7 @@ export default function RegisterScreen() {
   const isBengali = locale === 'bn';
   const router = useRouter();
   const { register, user } = useAuth();
+  const { finishOnboarding } = usePrefsStore();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
@@ -64,6 +66,9 @@ export default function RegisterScreen() {
       } else if (avatarUri) avatarUrl = avatarUri;
       const { error: e } = await register(displayName.trim(), avatarUrl);
       if (e) { setError(e); setSubmitting(false); return; }
+      // Defensive: guarantees the root layout guard never bounces the user
+      // back to onboarding right after registration completes.
+      finishOnboarding();
       router.replace('/(tabs)');
     } catch (ex) { setError(String(ex)); setSubmitting(false); }
   };

@@ -7,6 +7,7 @@ import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Button } from '../../components/ui/Button/Button';
 import { useTranslation } from '../../i18n';
 import { useAuth } from '../../hooks/useAuth';
+import { usePrefsStore } from '../../stores/prefsStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 
 const OTP_LENGTH = 6;
@@ -20,6 +21,7 @@ export default function OtpScreen() {
   const contact = params.contact ?? '';
   const contactType = (params.type as 'phone' | 'email') ?? 'phone';
   const { verifyOTP, signInWithPhone, signInWithEmail } = useAuth();
+  const { finishOnboarding } = usePrefsStore();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
@@ -53,6 +55,10 @@ export default function OtpScreen() {
     try {
       const { error: e, isNewUser } = await verifyOTP(contact, otp, contactType);
       if (e) { setError(e); setVerifying(false); setDigits(Array(OTP_LENGTH).fill('')); inputRefs.current[0]?.focus(); return; }
+      // Defensive: guarantees the root layout guard never bounces the user
+      // back to onboarding right after they verify their OTP, regardless of
+      // which screen they entered this flow from.
+      finishOnboarding();
       router.replace(isNewUser ? '/auth/register' as any : '/(tabs)');
     } catch (ex) { setError(String(ex)); setVerifying(false); }
   }, [digits, contact, contactType, verifyOTP, router]);

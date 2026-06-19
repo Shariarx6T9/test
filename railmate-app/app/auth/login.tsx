@@ -8,6 +8,7 @@ import { Input } from '../../components/ui/Input/Input';
 import { Button } from '../../components/ui/Button/Button';
 import { useTranslation } from '../../i18n';
 import { useAuth } from '../../hooks/useAuth';
+import { usePrefsStore } from '../../stores/prefsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 
@@ -19,6 +20,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { signInWithPhone, signInWithEmail } = useAuth();
   const { setGuest } = useAuthStore();
+  const { finishOnboarding } = usePrefsStore();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
@@ -56,7 +58,10 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGuest = () => { setGuest(true); router.replace('/(tabs)'); };
+  // finishOnboarding() is required here — without it the root layout guard
+  // sees hasFinishedOnboarding still false and immediately redirects the
+  // guest back to /onboarding/welcome instead of letting them land on (tabs).
+  const handleGuest = () => { setGuest(true); finishOnboarding(); router.replace('/(tabs)'); };
 
   const fontFamily = isBengali
     ? { regular: 'NotoSansBengali_400Regular', semi: 'NotoSansBengali_600SemiBold' }
