@@ -590,5 +590,43 @@
         "value": "Free Forever"
       }
     ]
+  },
+  "train_search": {
+    "buy_ticket": "Buy Ticket ↗",
+    "buy_ticket_aria": "Buy ticket for {trainName} on Bangladesh Railway e-ticketing",
+    "verified_schedule": "Verified Schedule",
+    "schedule_being_verified": "Schedule details are being verified",
+    "exact_times_not_verified": "Exact times not yet verified",
+    "does_not_run_on": "Does not run on {days}",
+    "fares_in_app": "Fares & seat classes available in the app →",
+    "schedule_last_verified": "Schedule last verified:",
+    "unverified_notice": "This train operates on this route, but RailMate hasn't verified its exact departure and arrival times yet. Confirm timing with the station or official Bangladesh Railway channels before travel.",
+    "no_trains_found": "No trains found",
+    "no_trains_body": "No trains run on this route on {date}. Try a different date.",
+    "schedule_temporarily_unavailable": "Schedule data is temporarily unavailable",
+    "schedule_temporarily_unavailable_body": "We're having trouble reaching our train schedule database. Please try again in a moment.",
+    "back_to_search": "Back to search",
+    "train_schedule_label": "TRAIN SCHEDULE",
+    "trains_on_date": "{count} train on {date}",
+    "trains_on_date_plural": "{count} trains on {date}",
+    "no_trains_on_date": "No trains found on {date}",
+    "get_full_fares": "Get full fare breakdown & live delay reports",
+    "get_full_fares_body": "The RailMate app shows exact fares for all 8 seat classes and real-time delay reports from passengers currently on board.",
+    "download_app": "Download App",
+    "data_notice": "Schedule data sourced from Bangladesh Railway official publications. Always confirm departure times with the station or official channels before travel. RailMate is an independent platform and is not affiliated with Bangladesh Railway.",
+    "related_routes": "Related Routes",
+    "delay_reported": "{minutes} min delay reported",
+    "delay_reports_count": "{count} report",
+    "delay_reports_count_plural": "{count} reports",
+    "class_labels": {
+      "SHOVON": "Shovon",
+      "SHOVON_CHAIR": "Shovon Chair",
+      "SNIGDHA": "Snigdha",
+      "AC_BERTH": "AC Berth",
+      "AC_SEAT": "AC Seat",
+      "FIRST_BERTH": "First Berth",
+      "FIRST_SEAT": "First Seat",
+      "AC_S_CHAIR": "AC S Chair"
+    }
   }
 }

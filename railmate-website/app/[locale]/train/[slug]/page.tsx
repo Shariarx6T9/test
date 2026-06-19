@@ -135,8 +135,10 @@ export default async function TrainRoutePage({
     console.error('[TrainRoutePage] searchTrains failed — showing zero results:', err)
   }
 
-  const siteUrl    = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'
-  const railShebaUrl = 'https://www.railshebashohoz.com'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'
+  // NOTE: The outbound ticket URL is set inside TrainResultCard.
+  // It is https://eticket.railway.gov.bd (official BR e-ticketing portal).
+  // ⚠️  HUMAN REVIEW: verify this URL is current before production launch.
 
   // JSON-LD structured data
   const jsonLd = {
@@ -234,7 +236,6 @@ export default async function TrainRoutePage({
                 <TrainResultCard
                   key={train.train_id}
                   train={train}
-                  railShebaUrl={railShebaUrl}
                   fromStation={route.from.name_en}
                   toStation={route.to.name_en}
                 />

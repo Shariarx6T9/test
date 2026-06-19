@@ -590,5 +590,43 @@
         "value": "চিরকাল ফ্রি"
       }
     ]
+  },
+  "train_search": {
+    "buy_ticket": "টিকিট কিনুন ↗",
+    "buy_ticket_aria": "{trainName} ট্রেনের টিকিট কিনুন",
+    "verified_schedule": "যাচাইকৃত সময়সূচি",
+    "schedule_being_verified": "সময়সূচির বিবরণ যাচাই করা হচ্ছে",
+    "exact_times_not_verified": "সঠিক সময় এখনো যাচাই হয়নি",
+    "does_not_run_on": "{days} চলে না",
+    "fares_in_app": "ভাড়া ও আসন শ্রেণি অ্যাপে পাবেন →",
+    "schedule_last_verified": "সময়সূচি সর্বশেষ যাচাই:",
+    "unverified_notice": "এই ট্রেন এই রুটে চলে, তবে RailMate এখনো সঠিক ছাড়ার ও পৌঁছানোর সময় যাচাই করতে পারেনি। যাত্রার আগে স্টেশন বা বাংলাদেশ রেলওয়ের সরকারি সূত্রে সময় নিশ্চিত করুন।",
+    "no_trains_found": "কোনো ট্রেন পাওয়া যায়নি",
+    "no_trains_body": "{date} তারিখে এই রুটে কোনো ট্রেন চলে না। অন্য তারিখ চেষ্টা করুন।",
+    "schedule_temporarily_unavailable": "সময়সূচির তথ্য সাময়িকভাবে অনুপলব্ধ",
+    "schedule_temporarily_unavailable_body": "আমাদের ট্রেন সময়সূচির ডেটাবেসে সংযোগ করতে সমস্যা হচ্ছে। একটু পরে আবার চেষ্টা করুন।",
+    "back_to_search": "অনুসন্ধানে ফিরুন",
+    "train_schedule_label": "ট্রেনের সময়সূচি",
+    "trains_on_date": "{date} তারিখে {count}টি ট্রেন",
+    "trains_on_date_plural": "{date} তারিখে {count}টি ট্রেন",
+    "no_trains_on_date": "{date} তারিখে কোনো ট্রেন নেই",
+    "get_full_fares": "সম্পূর্ণ ভাড়ার তালিকা ও লাইভ বিলম্বের তথ্য পান",
+    "get_full_fares_body": "RailMate অ্যাপে সব ৮টি আসন শ্রেণির সঠিক ভাড়া এবং যাত্রীদের পাঠানো রিয়েল-টাইম বিলম্বের তথ্য পাওয়া যায়।",
+    "download_app": "অ্যাপ ডাউনলোড করুন",
+    "data_notice": "সময়সূচির তথ্য বাংলাদেশ রেলওয়ের সরকারি প্রকাশনা থেকে সংগ্রহ করা হয়েছে। যাত্রার আগে স্টেশন বা সরকারি সূত্রে সময় নিশ্চিত করুন। RailMate একটি স্বতন্ত্র প্ল্যাটফর্ম এবং বাংলাদেশ রেলওয়ের সাথে সরাসরি সম্পর্কিত নয়।",
+    "related_routes": "সংশ্লিষ্ট রুটসমূহ",
+    "delay_reported": "{minutes} মিনিট বিলম্ব রিপোর্ট",
+    "delay_reports_count": "{count}টি রিপোর্ট",
+    "delay_reports_count_plural": "{count}টি রিপোর্ট",
+    "class_labels": {
+      "SHOVON": "শোভন",
+      "SHOVON_CHAIR": "শোভন চেয়ার",
+      "SNIGDHA": "স্নিগ্ধা",
+      "AC_BERTH": "এসি বার্থ",
+      "AC_SEAT": "এসি সিট",
+      "FIRST_BERTH": "প্রথম শ্রেণি বার্থ",
+      "FIRST_SEAT": "প্রথম শ্রেণি সিট",
+      "AC_S_CHAIR": "এসি এস চেয়ার"
+    }
   }
 }
