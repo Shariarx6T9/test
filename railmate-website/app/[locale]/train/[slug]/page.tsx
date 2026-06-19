@@ -153,8 +153,12 @@ export default async function TrainRoutePage({
         '@type':       'TrainTrip',
         name:           train.train_name_en,
         trainNumber:    String(train.train_number),
-        departureTime:  train.departure_time,
-        arrivalTime:    train.arrival_time,
+        // Only include real, verified times — never fabricate structured
+        // data for routes RailMate hasn't verified the timetable for.
+        ...(train.verified ? {
+          departureTime: train.departure_time,
+          arrivalTime:   train.arrival_time,
+        } : {}),
         departureStation: {
           '@type': 'TrainStation',
           name:    route.from.name_en,
