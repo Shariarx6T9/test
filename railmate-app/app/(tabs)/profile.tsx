@@ -41,7 +41,7 @@ function ProfileContent() {
 
   const { user, isAuthenticated } = useAuthStore();
   const { signOut } = useAuth();
-  const { theme, toggleTheme, language } = usePrefsStore();
+  const { theme, setTheme, language } = usePrefsStore();
   const { savedRoutes } = useSavedRoutes();
   const trustScore = user?.trust_score ?? 0;
   const trustBand = getTrustBand(trustScore);
@@ -83,7 +83,7 @@ function ProfileContent() {
       <View style={[s.heroSection, { paddingTop: insets.top + 20 }]}>
         <Avatar
           name={user?.display_name ?? 'User'}
-          avatarUrl={user?.avatar_url ?? undefined}
+          uri={user?.avatar_url ?? undefined}
           size={76}
         />
         <Text style={s.displayName}>{user?.display_name ?? t('auth.guest_user')}</Text>
@@ -150,7 +150,7 @@ function ProfileContent() {
       <View style={s.section}>
         <Text style={s.sectionTitle}>{t('profile.preferences')}</Text>
         <View style={s.menuCard}>
-          <Pressable style={s.menuRow} onPress={toggleTheme}>
+          <Pressable style={s.menuRow} onPress={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark')}>
             <View style={s.menuIconWrap}>
               {theme === 'dark' ? <Moon size={18} color={colors.primary} /> : <Sun size={18} color={colors.primary} />}
             </View>

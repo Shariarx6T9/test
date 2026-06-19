@@ -168,7 +168,7 @@ function LeaderboardContent() {
             return (
               <View key={entry.id} style={[s.row, isMe && s.rowMe]}>
                 <Text style={s.rank}>#{rank}</Text>
-                <Avatar name={entry.display_name ?? 'U'} size={40} avatarUrl={entry.avatar_url ?? undefined} />
+                <Avatar name={entry.display_name ?? 'U'} size={40} uri={entry.avatar_url ?? undefined} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Text style={s.rowName} numberOfLines={1}>

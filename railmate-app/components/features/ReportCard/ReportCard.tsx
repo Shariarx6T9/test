@@ -37,10 +37,12 @@ function getAccentClass(type: CommunityReport['report_type']): string {
   switch (type) {
     case 'DELAY':
       return 'bg-danger';
-    case 'CROWDING':
+    case 'CROWD':
       return 'bg-accent';
-    case 'COACH_CONDITION':
+    case 'PLATFORM':
       return 'bg-info';
+    default:
+      return 'bg-border';
   }
 }
 
@@ -79,10 +81,10 @@ export default function ReportCard({
   const userConfirmed = report.current_user_vote === 'CONFIRM';
   const userDisputed = report.current_user_vote === 'DISPUTE';
 
-  const trainName = isBengali ? report.train.name_bn : report.train.name_en;
+  const trainName = isBengali ? (report.train?.name_bn ?? '') : (report.train?.name_en ?? '');
   const stationName = isBengali
-    ? report.station.name_bn
-    : report.station.name_en;
+    ? (report.station?.name_bn ?? '')
+    : (report.station?.name_en ?? '');
 
   const time = timeAgo(report.reported_at, isBengali, t as any);
   const reporterName = report.user?.display_name ?? '—';
@@ -96,7 +98,7 @@ export default function ReportCard({
             {t('community.delay_report', { minutes: report.delay_minutes ?? 0 })}
           </Typography>
         );
-      case 'CROWDING': {
+      case 'CROWD': {
         const levelKey = `community.crowd_${report.crowd_level?.toLowerCase()}` as any;
         return (
           <Typography variant="body-sm" className="text-text-primary">
@@ -104,7 +106,7 @@ export default function ReportCard({
           </Typography>
         );
       }
-      case 'COACH_CONDITION':
+      case 'PLATFORM':
         return (
           <View className="gap-1">
             <View className="flex-row items-center gap-2">
@@ -131,9 +133,9 @@ export default function ReportCard({
     switch (report.report_type) {
       case 'DELAY':
         return <Warning {...props} color={currentColors.danger} />;
-      case 'CROWDING':
+      case 'CROWD':
         return <Users {...props} color={currentColors.accent} />;
-      case 'COACH_CONDITION':
+      case 'PLATFORM':
         return <Star {...props} color={currentColors.info} />;
     }
   }
@@ -149,7 +151,7 @@ export default function ReportCard({
           <View className="flex-row items-center gap-2">
             <View className="bg-bg-elevated rounded-full px-2 py-0.5">
               <Typography variant="caption" className="text-text-secondary">
-                {report.train.number}
+                {(report.train?.number ?? '')}
               </Typography>
             </View>
 

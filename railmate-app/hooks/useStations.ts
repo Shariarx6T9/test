@@ -3,7 +3,7 @@ import { getAllStations } from '../api/stations';
 import { Station } from '../types/station.types';
 
 // Major Bangladesh Railway stations as offline fallback
-const FALLBACK_STATIONS: Station[] = [
+const FALLBACK_STATIONS = [
   { id: 'dhaka',       name_en: 'Dhaka',       name_bn: 'ঢাকা',       code: 'DAK',  zone: 'Dhaka',     is_junction: true,  is_active: true, latitude: 23.7104, longitude: 90.4074 },
   { id: 'chattogram',  name_en: 'Chattogram',   name_bn: 'চট্টগ্রাম',   code: 'CTG',  zone: 'Chattogram', is_junction: true,  is_active: true, latitude: 22.3475, longitude: 91.8123 },
   { id: 'sylhet',      name_en: 'Sylhet',       name_bn: 'সিলেট',       code: 'SYL',  zone: 'Dhaka',     is_junction: true,  is_active: true, latitude: 24.8949, longitude: 91.8687 },
@@ -24,7 +24,7 @@ const FALLBACK_STATIONS: Station[] = [
   { id: 'feni',        name_en: 'Feni',         name_bn: 'ফেনী',        code: 'FNI',  zone: 'Chattogram', is_junction: false, is_active: true, latitude: 23.0153, longitude: 91.3976 },
   { id: 'laksham',     name_en: 'Laksham',      name_bn: 'লাকসাম',      code: 'LKS',  zone: 'Chattogram', is_junction: true,  is_active: true, latitude: 23.2378, longitude: 91.1315 },
   { id: 'akhaura',     name_en: 'Akhaura',      name_bn: 'আখাউড়া',     code: 'AKH',  zone: 'Chattogram', is_junction: true,  is_active: true, latitude: 23.8792, longitude: 91.2000 },
-];
+].map((s) => ({ ...s, is_major: s.is_junction })) as Station[];
 
 export const useStations = () =>
   useQuery({

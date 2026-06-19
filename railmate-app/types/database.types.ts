@@ -13,10 +13,13 @@ export interface Station {
   code: string;
   name_en: string;
   name_bn: string;
-  division: string | null;
-  zone: 'East' | 'West' | null;
+  division?: string | null;
+  zone: string | null;
   is_major: boolean;
   is_active: boolean;
+  is_junction?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface Train {

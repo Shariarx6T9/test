@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft, Phone, MapPin, Train, WifiHigh, Coffee,
-  ParkingSign, Toilet, Ticket, Clock, CaretRight,
+  Toilet, Ticket, Clock, CaretRight,
 } from 'phosphor-react-native';
 import { supabase } from '../../lib/supabase';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
@@ -70,7 +70,7 @@ const FACILITY_DEFS = [
   { key: 'has_wifi',           Icon: WifiHigh,     label: 'Wi-Fi' },
   { key: 'has_waiting_room',   Icon: Clock,        label: 'Waiting Room' },
   { key: 'has_food',           Icon: Coffee,       label: 'Food & Drinks' },
-  { key: 'has_parking',        Icon: ParkingSign,  label: 'Parking' },
+  { key: 'has_parking',        Icon: MapPin,  label: 'Parking' },
   { key: 'has_toilet',         Icon: Toilet,       label: 'Toilets' },
   { key: 'has_ticket_counter', Icon: Ticket,       label: 'Ticket Counter' },
 ] as const;

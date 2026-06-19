@@ -16,7 +16,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useSavedRoutes, SavedRoute } from '../../hooks/useSavedRoutes';
 import { useThemeColors, useResolvedTheme, ThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n';
-import { Station } from '../../types/station.types';
+import { Station } from '../../types/database.types';
 
 export default function HomeScreen() {
   const router = useRouter();

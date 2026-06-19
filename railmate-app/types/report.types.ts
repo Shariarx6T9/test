@@ -10,6 +10,8 @@ export type ReportType =
   | 'SCHEDULE'
   | 'GENERAL'
   | 'ACCIDENT';
+export type CrowdLevel = 'EMPTY' | 'MODERATE' | 'FULL' | 'OVERCROWDED';
+
 
 /**
  * Discriminated filter union passed to getCommunityReports / useQuery.

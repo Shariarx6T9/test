@@ -51,7 +51,7 @@ import { router } from 'expo-router';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
-type Step = 'TYPE_SELECT' | 'DELAY' | 'CROWDING' | 'CONDITION' | 'SUCCESS';
+type Step = 'TYPE_SELECT' | 'DELAY' | 'CROWD' | 'CONDITION' | 'SUCCESS';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.88;
@@ -335,8 +335,8 @@ export default function ReportSubmitSheet({
           report_type: selectedType,
           journey_date: today,
           ...(selectedType === 'DELAY' && { delay_minutes: delayMinutes }),
-          ...(selectedType === 'CROWDING' && crowdLevel && { crowd_level: crowdLevel }),
-          ...(selectedType === 'COACH_CONDITION' && {
+          ...(selectedType === 'CROWD' && crowdLevel && { crowd_level: crowdLevel }),
+          ...(selectedType === 'PLATFORM' && {
             condition_rating: conditionRating,
             ...(conditionNote && { condition_note: conditionNote }),
           }),
@@ -361,8 +361,8 @@ export default function ReportSubmitSheet({
   // ── Submit button validity ──────────────────────────────────────────────
   const canSubmit = (() => {
     if (!selectedTrain || !selectedStation) return false;
-    if (selectedType === 'CROWDING' && !crowdLevel) return false;
-    if (selectedType === 'COACH_CONDITION' && conditionRating === 0)
+    if (selectedType === 'CROWD' && !crowdLevel) return false;
+    if (selectedType === 'PLATFORM' && conditionRating === 0)
       return false;
     return true;
   })();
@@ -413,8 +413,8 @@ export default function ReportSubmitSheet({
           icon={<Users size={24} color={currentColors.accent} weight="fill" />}
           accentClass="bg-accent"
           onPress={() => {
-            setSelectedType('CROWDING');
-            setStep('CROWDING');
+            setSelectedType('CROWD');
+            setStep('CROWD');
           }}
         />
         <TypeCard
@@ -422,7 +422,7 @@ export default function ReportSubmitSheet({
           icon={<Star size={24} color={currentColors.info} weight="fill" />}
           accentClass="bg-info"
           onPress={() => {
-            setSelectedType('COACH_CONDITION');
+            setSelectedType('PLATFORM');
             setStep('CONDITION');
           }}
         />
@@ -782,7 +782,7 @@ export default function ReportSubmitSheet({
         return t('community.submit_title');
       case 'DELAY':
         return t('community.type_delay');
-      case 'CROWDING':
+      case 'CROWD':
         return t('community.type_crowding');
       case 'CONDITION':
         return t('community.type_condition');
@@ -857,7 +857,7 @@ export default function ReportSubmitSheet({
           renderTypeSelect()
         ) : step === 'DELAY' ? (
           renderDelayForm()
-        ) : step === 'CROWDING' ? (
+        ) : step === 'CROWD' ? (
           renderCrowdingForm()
         ) : step === 'CONDITION' ? (
           renderConditionForm()

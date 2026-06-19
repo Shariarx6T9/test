@@ -347,5 +347,21 @@
   "journey.add_reminder": "+ অনুস্মারক যোগ করুন",
   "journey.alerts_toggle": "যাত্রা সতর্কতা",
   "journey.no_trips": "এখনও কোনো যাত্রা নেই",
-  "journey.no_trips_hint": "এখানে ট্র্যাক করতে যাত্রা অনুসন্ধান করে সংরক্ষণ করুন।"
+  "journey.no_trips_hint": "এখানে ট্র্যাক করতে যাত্রা অনুসন্ধান করে সংরক্ষণ করুন।",
+  "profile.sign_out_confirm": "আপনি কি সাইন আউট করতে চান?",
+  "profile.guest_title": "সব ফিচার পেতে সাইন ইন করুন",
+  "profile.guest_sub": "ট্রিপ ট্র্যাক করুন, অ্যালার্ট সেট করুন",
+  "profile.helpful": "সহায়ক ভোট",
+  "profile.saved": "সংরক্ষিত রুট",
+  "profile.leaderboard": "লিডারবোর্ড",
+  "profile.preferences": "পছন্দসমূহ",
+  "journey.remove_route": "রুট সরাতে চান?",
+  "journey.sub": "সংরক্ষিত রুট ও যাত্রা",
+  "journey.no_saved_routes": "কোনো সংরক্ষিত রুট নেই",
+  "journey.no_saved_routes_sub": "দ্রুত যাতায়াতের জন্য রুট সংরক্ষণ করুন",
+  "journey.ticket_stub": "যাত্রা সম্পন্ন",
+  "common.remove": "সরান",
+  "community.report_detail": "রিপোর্টের বিস্তারিত",
+  "report.type_platform": "প্ল্যাটফর্ম",
+  "report.type_general": "সাধারণ"
 }

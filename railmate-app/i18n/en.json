@@ -347,5 +347,21 @@
   "community.filter_crowding": "Crowding",
   "community.filter_condition": "Condition",
   "alerts.title": "Alerts",
-  "alerts.coming_soon": "Alerts coming soon"
+  "alerts.coming_soon": "Alerts coming soon",
+  "profile.sign_out_confirm": "Are you sure you want to sign out?",
+  "profile.guest_title": "Sign in to unlock all features",
+  "profile.guest_sub": "Track your trips, set alerts and more",
+  "profile.helpful": "Helpful votes",
+  "profile.saved": "Saved routes",
+  "profile.leaderboard": "Leaderboard",
+  "profile.preferences": "Preferences",
+  "journey.remove_route": "Remove route?",
+  "journey.sub": "Your saved routes and trips",
+  "journey.no_saved_routes": "No saved routes",
+  "journey.no_saved_routes_sub": "Save your frequent routes for one-tap access",
+  "journey.ticket_stub": "Journey complete",
+  "common.remove": "Remove",
+  "community.report_detail": "Report detail",
+  "report.type_platform": "Platform",
+  "report.type_general": "General"
 }

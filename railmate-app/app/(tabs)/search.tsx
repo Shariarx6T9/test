@@ -20,7 +20,7 @@ import { useSearchStore } from '../../stores/searchStore';
 import { useStations } from '../../hooks/useStations';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n';
-import { Station } from '../../types/station.types';
+import { Station } from '../../types/database.types';
 
 export default function SearchScreen() {
   return <ErrorBoundary name="Search"><SearchScreenInner /></ErrorBoundary>;
