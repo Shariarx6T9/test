@@ -62,8 +62,8 @@ export default Sentry.wrap(function RootLayout() {
       await initialize();
       setInitialized(true);
       // Hand off from the native splash to the JS overlay with zero gap —
-      // both render the same icon.png mark at the same size, so this hide
-      // is visually invisible to the user.
+      // both render splash.png with the same resizeMode='cover' treatment,
+      // so this hide is visually invisible to the user.
       await SplashScreen.hideAsync();
       setTimeout(() => {
         Animated.timing(fadeAnim, {
@@ -114,14 +114,14 @@ export default Sentry.wrap(function RootLayout() {
               { opacity: fadeAnim },
             ]}
           >
-            {/* Same icon.png mark + same 200px width as the native splash
+            {/* Same splash.png + same resizeMode='cover' as the native splash
                 configured in app.json (expo-splash-screen plugin) — this
                 must visually match exactly, or the native→JS handoff in
                 the effect above will look like a jump/flash. */}
             <Image
-              source={require('../assets/images/icon.png')}
-              style={s.splashLogo}
-              resizeMode="contain"
+              source={require('../assets/images/splash.png')}
+              style={s.splashImage}
+              resizeMode="cover"
             />
           </Animated.View>
         )}
@@ -131,6 +131,6 @@ export default Sentry.wrap(function RootLayout() {
 });
 
 const s = StyleSheet.create({
-  splash:     { zIndex: 9999, alignItems: 'center', justifyContent: 'center' },
-  splashLogo: { width: 200, height: 200 },
+  splash:      { zIndex: 9999 },
+  splashImage: { ...StyleSheet.absoluteFillObject },
 });
