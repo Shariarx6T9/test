@@ -2,8 +2,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  invertOffDays,
   readJson,
+  resolveDaysOfWeek,
   sqlBoolean,
   sqlDate,
   sqlIntArray,
@@ -47,8 +47,12 @@ function stopUuid(trainNumber, sequence) {
   return `uuid_generate_v5(uuid_ns_url(), 'stop:${trainNumber}:${sequence}')`;
 }
 
+function trainNameEn(train) {
+  return train.name_en ?? train.name;
+}
+
 function trainNameBn(train) {
-  return train.name_bn ?? train.name;
+  return train.name_bn ?? train.name_en ?? train.name;
 }
 
 function trainOriginCity(train) {
@@ -90,15 +94,24 @@ function buildTrainRows() {
       throw new Error(`Train ${train.number} references unknown route ${originCity} -> ${destinationCity}`);
     }
 
+    const nameEn = trainNameEn(train);
+    const nameBn = trainNameBn(train);
+    if (!nameEn) {
+      throw new Error(`Train ${train.number} has no resolvable name_en — refusing to write NULL into a NOT NULL column.`);
+    }
+    if (!nameBn) {
+      throw new Error(`Train ${train.number} has no resolvable name_bn — refusing to write NULL into a NOT NULL column.`);
+    }
+
     return [
       trainUuid(train.number),
       sqlQuote(String(train.number)),
-      sqlQuote(train.name),
-      sqlQuote(trainNameBn(train)),
+      sqlQuote(nameEn),
+      sqlQuote(nameBn),
       sqlQuote(toCanonicalTrainType(trainTypeValue(train))),
       stationUuid(originStation.code),
       stationUuid(destinationStation.code),
-      sqlIntArray(invertOffDays(train.off_days)),
+      sqlIntArray(resolveDaysOfWeek(train)),
       'true',
       sqlQuote(train.note ?? null),
       sqlDate(train.last_verified ?? trainsPayload?._meta?.last_verified ?? null),

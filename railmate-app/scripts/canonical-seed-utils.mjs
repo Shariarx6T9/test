@@ -63,6 +63,35 @@ export function invertOffDays(offDays) {
   return ALL_DAYS.filter((day) => !blockedDays.has(day));
 }
 
+/**
+ * Resolve a train's canonical days_of_week (inclusion list, Sunday=0).
+ *
+ * trains_fixed.json already stores `days_of_week` directly (computed
+ * upstream) for every current record — this is the preferred source and
+ * must be used as-is, never recomputed. `off_days` (exclusion list of day
+ * names) is kept ONLY as a fallback for older/legacy source records that
+ * predate that conversion. Silently defaulting to "runs every day" when
+ * neither field is present is not acceptable — that's wrong data, not
+ * missing data, so this throws instead of guessing.
+ */
+export function resolveDaysOfWeek(train) {
+  if (Array.isArray(train.days_of_week)) {
+    const days = train.days_of_week
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6);
+    if (days.length !== train.days_of_week.length) {
+      throw new Error(`Train ${train.number} has an invalid days_of_week entry: ${JSON.stringify(train.days_of_week)}`);
+    }
+    return [...new Set(days)].sort((a, b) => a - b);
+  }
+
+  if (Array.isArray(train.off_days)) {
+    return invertOffDays(train.off_days);
+  }
+
+  throw new Error(`Train ${train.number} has neither days_of_week nor off_days — refusing to default to "runs every day".`);
+}
+
 export function toCanonicalTrainType(value) {
   const canonical = TRAIN_TYPE_MAP.get(String(value).trim().toLowerCase());
   if (!canonical) {

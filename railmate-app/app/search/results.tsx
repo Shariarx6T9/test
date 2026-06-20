@@ -21,10 +21,10 @@ function ResultsScreen() {
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
 
-  // Route params are always strings in Expo Router; station ids are numeric
-  // in the real schema (SERIAL PK), so convert once here.
-  const fromStationId = fromId ? Number(fromId) : undefined;
-  const toStationId   = toId   ? Number(toId)   : undefined;
+  // Route params are always strings in Expo Router; station ids are UUID
+  // strings in the canonical schema too, so use them directly.
+  const fromStationId = fromId || undefined;
+  const toStationId   = toId   || undefined;
 
   const { data: stations } = useStations();
   const { data: trains, isLoading, error } = useSearchTrains({ fromStationId, toStationId, date });

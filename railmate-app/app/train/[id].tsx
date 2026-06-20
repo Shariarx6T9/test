@@ -59,9 +59,9 @@ function TrainDetailContent() {
   const { date } = useSearchStore();
   const { savedRoutes, saveRoute, deleteRoute, isRouteSaved } = useSavedRoutes();
 
-  // `id` here is the train number (real schema join key), not a UUID —
-  // TrainCard now navigates with String(train.train_number).
-  const trainNumber = id ? Number(id) : undefined;
+  // `id` here is the train number (display/join key, e.g. "735"), not a UUID —
+  // TrainCard navigates with String(train.train_number).
+  const trainNumber = id;
   const { data: train, isLoading } = useTrainDetail(trainNumber!);
   const { data: fares, isLoading: faresLoading } = useTrainFares({
     trainId: id, fromStationId: fromId || '', toStationId: toId || '',
@@ -75,15 +75,14 @@ function TrainDetailContent() {
       const r = savedRoutes.find((r) => r.fromStation.id === fromId && r.toStation.id === toId);
       if (r) await deleteRoute(r.id);
     } else {
-      // station.id is numeric (real schema) — saved routes store it as
-      // string, so stringify at this boundary rather than changing
-      // SavedRoute's own shape (which may already be persisted for users).
-      const origin = train.stops.find((s) => String(s.station.id) === fromId)?.station;
-      const dest   = train.stops.find((s) => String(s.station.id) === toId)?.station;
+      // station.id is a UUID string in the canonical schema, matching what
+      // saved routes already store.
+      const origin = train.stops.find((s) => s.station.id === fromId)?.station;
+      const dest   = train.stops.find((s) => s.station.id === toId)?.station;
       if (origin && dest) {
         await saveRoute(
-          { id: String(origin.id), name_en: origin.name_en, name_bn: origin.name_bn, code: origin.code },
-          { id: String(dest.id),   name_en: dest.name_en,   name_bn: dest.name_bn,   code: dest.code },
+          { id: origin.id, name_en: origin.name_en, name_bn: origin.name_bn, code: origin.code },
+          { id: dest.id,   name_en: dest.name_en,   name_bn: dest.name_bn,   code: dest.code },
         );
       }
     }
@@ -111,11 +110,12 @@ function TrainDetailContent() {
     );
   }
 
-  // train.name (real schema) — name_en/name_bn only exist on stations, not trains.
-  const trainTitle = `${train.name} #${train.number}`;
-  // origin_city/destination_city are plain text city names on the real schema
-  // (e.g. 'DHAKA'), not joined Station objects — display as-is.
-  const routeStr = `${train.origin_city} → ${train.destination_city}`;
+  // Bilingual train name (canonical schema has name_en/name_bn, not a single name field).
+  const trainTitle = `${isBengali ? train.name_bn : train.name_en} #${train.number}`;
+  // origin/destination are joined Station objects on the canonical schema.
+  const originName = train.origin ? (isBengali ? train.origin.name_bn : train.origin.name_en) : '';
+  const destName    = train.destination ? (isBengali ? train.destination.name_bn : train.destination.name_en) : '';
+  const routeStr = `${originName} → ${destName}`;
 
   // Tier 1 / Tier 2: a train with zero stops rows has no verified timetable
   // yet. This is NOT an error state — show the route-confirmed notice
@@ -172,16 +172,16 @@ function TrainDetailContent() {
               const isFirst = index === 0;
               const isLast  = index === train.stops.length - 1;
               const isMid   = !isFirst && !isLast;
-              const time = isFirst ? formatTime(stop.depart_time) : formatTime(stop.arrive_time);
+              const time = isFirst ? formatTime(stop.departure_time) : formatTime(stop.arrival_time);
               const stationName = isBengali ? stop.station.name_bn : stop.station.name_en;
               // Halt duration is derived from two real timestamps on the same
               // verified row — not fabricated, just arithmetic on real data.
-              const haltMinutes = isMid && stop.arrive_time && stop.depart_time
-                ? minutesBetween(stop.arrive_time, stop.depart_time)
+              const haltMinutes = isMid && stop.arrival_time && stop.departure_time
+                ? minutesBetween(stop.arrival_time, stop.departure_time)
                 : 0;
 
               return (
-                <View key={`${stop.train_number}-${stop.station_code}`} style={s.stopRow}>
+                <View key={stop.id} style={s.stopRow}>
                   {/* Time */}
                   <Text style={[s.stopTime, (isFirst || isLast) && s.stopTimeEnd]}>{time}</Text>
 
@@ -198,14 +198,14 @@ function TrainDetailContent() {
                     {isFirst && <Text style={s.stopRole}>{t('train.departure')}</Text>}
                     {isLast  && <Text style={s.stopRole}>{t('train.arrival')}</Text>}
                     {isMid && haltMinutes > 0 && (
-                      <Text style={s.stopHalt}>{formatTime(stop.arrive_time)} • {t('train.halt', { minutes: haltMinutes })}</Text>
+                      <Text style={s.stopHalt}>{formatTime(stop.arrival_time)} • {t('train.halt', { minutes: haltMinutes })}</Text>
                     )}
                   </View>
                 </View>
               );
             })
           ) : (
-            // Tier 1 only: route confirmed via trains.origin_city/destination_city,
+            // Tier 1 only: route confirmed via trains.origin_id/destination_id,
             // but no verified train_stops yet. Never show an estimated timeline.
             <View style={s.unverifiedTimeline}>
               <Text style={s.unverifiedTimelineTitle}>{t('results.schedule_being_verified')}</Text>

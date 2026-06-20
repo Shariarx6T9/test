@@ -1,21 +1,17 @@
 import { supabase } from '../lib/supabase';
-import type { Station, Train, TrainSearchResult, TrainDetailWithStops } from '../types/database.types';
+import type { Station, TrainSearchResult, TrainDetailWithStops } from '../types/database.types';
 
 /**
  * TIER 1 / TIER 2 TRAIN SEARCH (mobile)
  * ───────────────────────────────────────────────────────────────────────────
- * This mirrors the website's lib/train-search.ts exactly — same join keys,
- * same truth standard, same result shape. The previous implementation
- * called a `search_trains` Postgres RPC that exists only in
- * migrations/001_initial_schema.sql (a UUID-based schema that was never
- * applied to production). The function does not exist in the actual
- * deployed schema (supabase/schema.sql), so every call here previously
- * failed silently or threw — this was broken in production independent of
- * the website issue.
+ * Mirrors railmate-website/lib/train-search.ts exactly — same join keys
+ * (UUID origin_id/destination_id/station_id), same truth standard, same
+ * result shape. Both clients query the canonical schema in
+ * migrations/001_initial_schema.sql.
  *
- * Tier 1 — route existence: trains.origin_city / destination_city matched
- *          against the searched stations' shohoz_city. Works for ALL
- *          trains in the `trains` table, no verified timetable required.
+ * Tier 1 — route existence: trains.origin_id / destination_id matched
+ *          against the searched stations' UUIDs. Works for ALL trains in
+ *          the `trains` table, no verified timetable required.
  * Tier 2 — verified timetable: only added when train_stops has a row for
  *          both stations with correct sequence ordering. Never estimated,
  *          never interpolated.
@@ -27,12 +23,12 @@ import type { Station, Train, TrainSearchResult, TrainDetailWithStops } from '..
 // ─── Station lookup ─────────────────────────────────────────────────────────
 
 export async function getStationsByIds(
-  fromStationId: number,
-  toStationId:   number
+  fromStationId: string,
+  toStationId:   string
 ): Promise<{ from: Station; to: Station } | null> {
   const { data, error } = await supabase
     .from('stations')
-    .select('id, code, name_en, name_bn, division, shohoz_city, is_intercity_hub')
+    .select('id, code, name_en, name_bn, division, zone, is_major')
     .in('id', [fromStationId, toStationId]);
 
   if (error || !data || data.length < 2) return null;
@@ -47,23 +43,23 @@ export async function getStationsByIds(
 // ─── Tier 1: route existence ────────────────────────────────────────────────
 
 interface RouteTrain {
-  id:               number;
-  number:           number;
-  name:             string;
-  train_type:       string;
-  off_days:         string[];
-  is_active:        boolean;
+  id:            string; // UUID
+  number:        string;
+  name_en:       string;
+  type:          string;
+  days_of_week:  number[];
+  is_active:     boolean;
 }
 
 async function getTrainsForRoute(
-  fromCity: string,
-  toCity:   string
+  fromStationId: string,
+  toStationId:   string
 ): Promise<RouteTrain[]> {
   const { data, error } = await supabase
     .from('trains')
-    .select('id, number, name, train_type, off_days, is_active')
-    .eq('origin_city', fromCity.toUpperCase())
-    .eq('destination_city', toCity.toUpperCase())
+    .select('id, number, name_en, type, days_of_week, is_active')
+    .eq('origin_id', fromStationId)
+    .eq('destination_id', toStationId)
     .eq('is_active', true);
 
   if (error) {
@@ -76,23 +72,23 @@ async function getTrainsForRoute(
 // ─── Tier 2: verified timetable enrichment ──────────────────────────────────
 
 interface StopTiming {
-  depart_time: string | null;
-  arrive_time: string | null;
+  departure_time: string | null;
+  arrival_time:   string | null;
 }
 
 async function getVerifiedTimings(
-  trainNumbers: number[],
-  fromCode:     string,
-  toCode:       string
-): Promise<Map<number, StopTiming>> {
-  const result = new Map<number, StopTiming>();
-  if (!trainNumbers.length) return result;
+  trainIds:      string[],
+  fromStationId: string,
+  toStationId:   string
+): Promise<Map<string, StopTiming>> {
+  const result = new Map<string, StopTiming>();
+  if (!trainIds.length) return result;
 
   const { data: fromStops, error: fromErr } = await supabase
     .from('train_stops')
-    .select('train_number, stop_sequence, depart_time')
-    .eq('station_code', fromCode.toUpperCase())
-    .in('train_number', trainNumbers);
+    .select('train_id, sequence, departure_time')
+    .eq('station_id', fromStationId)
+    .in('train_id', trainIds);
 
   if (fromErr) {
     console.error('[getVerifiedTimings] from query failed:', fromErr.message);
@@ -102,9 +98,9 @@ async function getVerifiedTimings(
 
   const { data: toStops, error: toErr } = await supabase
     .from('train_stops')
-    .select('train_number, stop_sequence, arrive_time')
-    .eq('station_code', toCode.toUpperCase())
-    .in('train_number', trainNumbers);
+    .select('train_id, sequence, arrival_time')
+    .eq('station_id', toStationId)
+    .in('train_id', trainIds);
 
   if (toErr) {
     console.error('[getVerifiedTimings] to query failed:', toErr.message);
@@ -114,12 +110,12 @@ async function getVerifiedTimings(
 
   for (const toStop of toStops as any[]) {
     const fromStop = (fromStops as any[]).find(
-      (f) => f.train_number === toStop.train_number && f.stop_sequence < toStop.stop_sequence
+      (f) => f.train_id === toStop.train_id && f.sequence < toStop.sequence
     );
     if (fromStop) {
-      result.set(toStop.train_number, {
-        depart_time: fromStop.depart_time,
-        arrive_time: toStop.arrive_time,
+      result.set(toStop.train_id, {
+        departure_time: fromStop.departure_time,
+        arrival_time:   toStop.arrival_time,
       });
     }
   }
@@ -129,42 +125,40 @@ async function getVerifiedTimings(
 // ─── Combined search ─────────────────────────────────────────────────────────
 
 /**
- * Tier 1 + Tier 2 combined search, by station id (mobile uses numeric ids
- * directly from the stations picker, unlike the website which works from
- * station codes in the URL).
+ * Tier 1 + Tier 2 combined search, by station UUID (mobile's station picker
+ * already deals in the same UUIDs the rest of the schema uses).
  *
  * Returns [] ONLY when no train in the `trains` table operates this route,
  * or every matching train is off on this specific day of week — the only
  * two conditions under which the UI may say "No trains found."
  */
 export const searchTrains = async (params: {
-  fromStationId: number;
-  toStationId:   number;
+  fromStationId: string;
+  toStationId:   string;
   date:          string; // "YYYY-MM-DD"
 }): Promise<TrainSearchResult[]> => {
   const route = await getStationsByIds(params.fromStationId, params.toStationId);
   if (!route) return [];
 
-  const routeTrains = await getTrainsForRoute(route.from.shohoz_city, route.to.shohoz_city);
+  const routeTrains = await getTrainsForRoute(route.from.id, route.to.id);
   if (!routeTrains.length) return [];
 
-  const date    = new Date(params.date + 'T00:00:00');
-  const dowName = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][date.getDay()];
-  const runningTrains = routeTrains.filter((t) => {
-    const offDays = Array.isArray(t.off_days) ? t.off_days : [];
-    return !offDays.includes(dowName);
-  });
+  // Day-of-week filter (INCLUSION list, Sunday=0 — Part 07 §7.2).
+  const dayNumber = new Date(params.date + 'T00:00:00').getDay();
+  const runningTrains = routeTrains.filter(
+    (t) => Array.isArray(t.days_of_week) && t.days_of_week.includes(dayNumber)
+  );
   if (!runningTrains.length) return [];
 
-  const trainNumbers = runningTrains.map((t) => t.number);
-  const timings = await getVerifiedTimings(trainNumbers, route.from.code, route.to.code);
+  const trainIds = runningTrains.map((t) => t.id);
+  const timings = await getVerifiedTimings(trainIds, route.from.id, route.to.id);
 
   const results: TrainSearchResult[] = runningTrains.map((train) => {
-    const timing = timings.get(train.number);
+    const timing = timings.get(train.id);
 
-    if (timing?.depart_time && timing?.arrive_time) {
-      const depart = timing.depart_time.slice(0, 5);
-      const arrive = timing.arrive_time.slice(0, 5);
+    if (timing?.departure_time && timing?.arrival_time) {
+      const depart = timing.departure_time.slice(0, 5);
+      const arrive = timing.arrival_time.slice(0, 5);
       const [dh, dm] = depart.split(':').map(Number);
       const [ah, am] = arrive.split(':').map(Number);
       const departMins = dh * 60 + dm;
@@ -177,12 +171,12 @@ export const searchTrains = async (params: {
         verified:         true,
         train_id:         train.id,
         train_number:     train.number,
-        train_name_en:    train.name,
-        train_type:       train.train_type ?? '',
+        train_name_en:    train.name_en,
+        train_type:       train.type ?? '',
         departure_time:   depart,
         arrival_time:     arrive,
         duration_minutes: duration,
-        off_days:         Array.isArray(train.off_days) ? train.off_days : [],
+        days_of_week:     Array.isArray(train.days_of_week) ? train.days_of_week : [],
       };
     }
 
@@ -191,31 +185,33 @@ export const searchTrains = async (params: {
       verified:      false,
       train_id:      train.id,
       train_number:  train.number,
-      train_name_en: train.name,
-      train_type:    train.train_type ?? '',
-      off_days:      Array.isArray(train.off_days) ? train.off_days : [],
+      train_name_en: train.name_en,
+      train_type:    train.type ?? '',
+      days_of_week:  Array.isArray(train.days_of_week) ? train.days_of_week : [],
     };
   });
 
   return results.sort((a, b) => {
     if (a.verified !== b.verified) return a.verified ? -1 : 1;
     if (a.verified && b.verified) return a.departure_time.localeCompare(b.departure_time);
-    return a.train_number - b.train_number;
+    return a.train_number.localeCompare(b.train_number, undefined, { numeric: true });
   });
 };
 
 // ─── Train detail with full stop list (Tier 2 only) ─────────────────────────
 
 /**
- * Full intermediate-stop timeline for a single train. This is ONLY
- * meaningful when the train has verified train_stops data — callers MUST
- * check `stops.length > 0` before rendering a timeline; an empty array
- * here means "not verified yet," not "this train has no stops."
+ * Full intermediate-stop timeline for a single train, looked up by train
+ * number (the display key, e.g. "735") since that's what TrainCard
+ * navigates with. This is ONLY meaningful when the train has verified
+ * train_stops data — callers MUST check `stops.length > 0` before
+ * rendering a timeline; an empty array here means "not verified yet," not
+ * "this train has no stops."
  */
-export const getTrainWithStops = async (trainNumber: number): Promise<TrainDetailWithStops | null> => {
+export const getTrainWithStops = async (trainNumber: string): Promise<TrainDetailWithStops | null> => {
   const { data: train, error: trainError } = await supabase
     .from('trains')
-    .select('id, number, name, train_type, off_days, origin_city, destination_city, is_active')
+    .select('id, number, name_en, name_bn, type, days_of_week, origin_id, destination_id, is_active')
     .eq('number', trainNumber)
     .single();
 
@@ -226,42 +222,49 @@ export const getTrainWithStops = async (trainNumber: number): Promise<TrainDetai
 
   const { data: stops, error: stopsError } = await supabase
     .from('train_stops')
-    .select('train_number, station_code, stop_sequence, arrive_time, depart_time')
-    .eq('train_number', trainNumber)
-    .order('stop_sequence', { ascending: true });
+    .select('id, train_id, station_id, sequence, arrival_time, departure_time, halt_minutes')
+    .eq('train_id', (train as any).id)
+    .order('sequence', { ascending: true });
+
+  const [originRes, destRes] = await Promise.all([
+    supabase.from('stations').select('id, code, name_en, name_bn, division, zone, is_major').eq('id', (train as any).origin_id).maybeSingle(),
+    supabase.from('stations').select('id, code, name_en, name_bn, division, zone, is_major').eq('id', (train as any).destination_id).maybeSingle(),
+  ]);
+  const origin = (originRes.data ?? null) as Station | null;
+  const destination = (destRes.data ?? null) as Station | null;
 
   if (stopsError) {
     console.error('[getTrainWithStops] stops query failed:', stopsError.message);
     // Train metadata is still valid even if stops fail to load — return it
     // with an empty stop list rather than failing the whole detail screen.
-    return { ...(train as Train), stops: [] };
+    return { ...(train as any), stops: [], origin, destination };
   }
 
   if (!stops?.length) {
     // No verified timetable for this train yet — not an error.
-    return { ...(train as Train), stops: [] };
+    return { ...(train as any), stops: [], origin, destination };
   }
 
   // Join station details for each stop
-  const stationCodes = [...new Set((stops as any[]).map((s) => s.station_code))];
+  const stationIds = [...new Set((stops as any[]).map((s) => s.station_id))];
   const { data: stationRows, error: stationErr } = await supabase
     .from('stations')
-    .select('id, code, name_en, name_bn, division, shohoz_city, is_intercity_hub')
-    .in('code', stationCodes);
+    .select('id, code, name_en, name_bn, division, zone, is_major')
+    .in('id', stationIds);
 
   if (stationErr) {
     console.error('[getTrainWithStops] station join failed:', stationErr.message);
-    return { ...(train as Train), stops: [] };
+    return { ...(train as any), stops: [], origin, destination };
   }
 
-  const stationByCode = new Map((stationRows as Station[]).map((s) => [s.code, s]));
+  const stationById = new Map((stationRows as Station[]).map((s) => [s.id, s]));
   const stopsWithStation = (stops as any[])
     .map((stop) => {
-      const station = stationByCode.get(stop.station_code);
+      const station = stationById.get(stop.station_id);
       if (!station) return null;
       return { ...stop, station };
     })
     .filter((s): s is NonNullable<typeof s> => s !== null);
 
-  return { ...(train as Train), stops: stopsWithStation };
+  return { ...(train as any), stops: stopsWithStation, origin, destination };
 };

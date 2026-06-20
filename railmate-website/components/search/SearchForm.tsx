@@ -243,7 +243,7 @@ function stationName(stations: StationOption[], code: string): string {
 function filterStations(stations: StationOption[], query: string): StationOption[] {
   if (!query.trim()) {
     // Show hubs first when no query
-    return [...stations].sort((a, b) => Number(b.is_intercity_hub) - Number(a.is_intercity_hub))
+    return [...stations].sort((a, b) => Number(b.is_major) - Number(a.is_major))
   }
   const q = query.toLowerCase()
   return stations.filter(

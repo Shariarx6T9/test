@@ -9,7 +9,7 @@
 
 | Item | Risk Level | Status | Action Required |
 |------|-----------|--------|-----------------|
-| Shohoz API usage | 🟡 Medium | No explicit ToS available | Contact Shohoz before monetizing |
+| Shohoz API usage | 🔴 High | **PROHIBITED without written partnership** | See Master Reference Part 02 §2.1 — do not call, cache, or build schema around it |
 | OpenStreetMap tiles | 🟢 Low | ODbL — attribution required | Add attribution notice |
 | Nominatim geocoding | 🟢 Low | Free with usage limits | Seed DB once, then don't re-query |
 | GitHub MIT repos (trains data) | 🟢 Low | MIT License | Keep license attribution |
@@ -23,25 +23,36 @@
 
 ## 1. Shohoz API
 
-### Risk: 🟡 MEDIUM
+### Risk: 🔴 HIGH — PROHIBITED, not a portfolio-only exception
+
+**Correction (2026-06-20):** an earlier version of this document rated this
+🟡 Medium and treated unauthorized use as acceptable for "portfolio" or demo
+purposes. That contradicts the project's own Master Reference, Part 02 §2.1,
+which lists "Reverse-engineering Shohoz/Rail Sheba API without explicit
+written partnership" and "Reproducing Shohoz schedule data without licensing
+agreement" as **strictly forbidden**, with no demo/portfolio carve-out. The
+Master Reference is the source of truth for this project; this document was
+wrong, not the other way around.
 
 **Situation:**
 - The Shohoz Bangladesh Railway API (`railspaapi.shohoz.com`) is used by the official BR e-ticket portal
-- Multiple community open-source projects use these endpoints publicly
+- Other, unrelated open-source projects use these endpoints — that does not
+  extend any permission to this project, and "other projects haven't been
+  sued yet" is not a license
 - No explicit "Public API" documentation or ToS was found (shohoz.com/terms returns 404 as of 2026-06-10)
-- Community projects explicitly state: "This project does not engage in illegal web scraping. It interacts with publicly accessible endpoints provided by the Bangladesh Railway e-Ticketing platform (Shohoz Railway API) that do not require any reverse-engineering, bypassing of authentication, or scraping of HTML content."
 
-**Current Community Position:**
-Widely accepted as legitimate. 64+ stars on nishatrhythm's repo. No takedown notices documented.
-
-**For Portfolio Use:** ✅ Safe. This is a demo project.
-
-**For Public/Commercial Launch:**
-- ⚠️ Contact Shohoz before launching a commercial product
+**Project Policy:**
+- 🚫 No code in this repository may call `railspaapi.shohoz.com` or any
+  Shohoz endpoint, in any environment, for any reason, including caching,
+  fare lookups, or seat availability — until Part 2.5's partnership status
+  changes from "Pending" to a signed written agreement
+- 🚫 No database column may be designed around a Shohoz-specific identifier
+  (e.g. a city-name string matching their API's expected format) — that
+  couples the schema to a dependency we're not permitted to use
+- Partnership outreach (Appendix A's template) is the correct path forward,
+  not implementation-first/permission-later
 - Shohoz website: https://www.shohoz.com
 - BD Railway IT department: railway.gov.bd
-- Do not call the API more than necessary — implement caching
-- Do not automate ticket purchases without explicit permission
 
 ---
 
@@ -153,7 +164,7 @@ Map data © OpenStreetMap contributors, ODbL
 Before making RailMate public:
 
 - [ ] Add OSM attribution to all map views
-- [ ] Review Shohoz API usage — contact them for commercial permission
+- [ ] Confirm zero Shohoz API calls anywhere in the codebase (`grep -ri "shohoz" --include=*.ts --include=*.tsx` across all runtime code, not docs) — must return nothing until a written partnership exists
 - [ ] Add Privacy Policy page (if collecting user data)
 - [ ] Add Terms of Service page
 - [ ] Implement rate limiting to avoid API abuse

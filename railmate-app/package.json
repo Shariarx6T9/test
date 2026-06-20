@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "type-check": "tsc",
     "typecheck": "tsc",
-    "test:data": "node --test tests/offday-mapping.test.mjs",
+    "test:data": "node --test tests/*.test.mjs",
     "generate:seed": "node scripts/generate_canonical_seed.mjs"
   },
   "dependencies": {

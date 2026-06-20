@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getTrainWithStops } from '../api/trains';
 import { getFares } from '../api/fares';
 
-export const useTrainDetail = (trainNumber: number) =>
+export const useTrainDetail = (trainNumber: string) =>
   useQuery({
     queryKey: ['train', trainNumber],
     queryFn: () => getTrainWithStops(trainNumber),

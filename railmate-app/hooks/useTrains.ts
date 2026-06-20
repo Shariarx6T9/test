@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { searchTrains } from '../api/trains';
 
 export const useSearchTrains = (params: {
-  fromStationId: number | undefined;
-  toStationId:   number | undefined;
+  fromStationId: string | undefined;
+  toStationId:   string | undefined;
   date:          string;
 }) =>
   useQuery({

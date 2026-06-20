@@ -56,7 +56,7 @@ export default function HeroSection({ stations }: Props) {
   function filterStations(query: string, exclude?: string): StationOption[] {
     const candidates = stations.filter((s) => s.code !== exclude)
     if (!query.trim()) {
-      return [...candidates].sort((a, b) => Number(b.is_intercity_hub) - Number(a.is_intercity_hub)).slice(0, 8)
+      return [...candidates].sort((a, b) => Number(b.is_major) - Number(a.is_major)).slice(0, 8)
     }
     const q = query.toLowerCase()
     return candidates.filter(
