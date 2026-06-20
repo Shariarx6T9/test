@@ -35,6 +35,16 @@ const FARE_ICONS: Record<string, any> = {
   FIRST_SEAT: Armchair, AC_S_CHAIR: Snowflake,
 };
 
+// Computes minutes between two "HH:MM:SS" timestamps from the SAME verified
+// train_stops row — this is arithmetic on real data, not estimation.
+function minutesBetween(arriveTime: string, departTime: string): number {
+  const [ah, am] = arriveTime.slice(0, 5).split(':').map(Number);
+  const [dh, dm] = departTime.slice(0, 5).split(':').map(Number);
+  const arriveMins = ah * 60 + am;
+  const departMins = dh * 60 + dm;
+  return departMins >= arriveMins ? departMins - arriveMins : 0;
+}
+
 function TrainDetailContent() {
   const router = useRouter();
   const { id, fromId, toId } = useLocalSearchParams<{ id: string; fromId?: string; toId?: string }>();
@@ -49,7 +59,10 @@ function TrainDetailContent() {
   const { date } = useSearchStore();
   const { savedRoutes, saveRoute, deleteRoute, isRouteSaved } = useSavedRoutes();
 
-  const { data: train, isLoading } = useTrainDetail(id);
+  // `id` here is the train number (real schema join key), not a UUID —
+  // TrainCard now navigates with String(train.train_number).
+  const trainNumber = id ? Number(id) : undefined;
+  const { data: train, isLoading } = useTrainDetail(trainNumber!);
   const { data: fares, isLoading: faresLoading } = useTrainFares({
     trainId: id, fromStationId: fromId || '', toStationId: toId || '',
   });
@@ -62,12 +75,15 @@ function TrainDetailContent() {
       const r = savedRoutes.find((r) => r.fromStation.id === fromId && r.toStation.id === toId);
       if (r) await deleteRoute(r.id);
     } else {
-      const origin = train.stops.find((s) => s.station_id === fromId)?.station;
-      const dest   = train.stops.find((s) => s.station_id === toId)?.station;
+      // station.id is numeric (real schema) — saved routes store it as
+      // string, so stringify at this boundary rather than changing
+      // SavedRoute's own shape (which may already be persisted for users).
+      const origin = train.stops.find((s) => String(s.station.id) === fromId)?.station;
+      const dest   = train.stops.find((s) => String(s.station.id) === toId)?.station;
       if (origin && dest) {
         await saveRoute(
-          { id: origin.id, name_en: origin.name_en, name_bn: origin.name_bn, code: origin.code },
-          { id: dest.id,   name_en: dest.name_en,   name_bn: dest.name_bn,   code: dest.code },
+          { id: String(origin.id), name_en: origin.name_en, name_bn: origin.name_bn, code: origin.code },
+          { id: String(dest.id),   name_en: dest.name_en,   name_bn: dest.name_bn,   code: dest.code },
         );
       }
     }
@@ -95,14 +111,16 @@ function TrainDetailContent() {
     );
   }
 
-  const trainTitle = `${isBengali ? train.name_bn : train.name_en} #${train.number}`;
-  const originName = train.origin
-    ? (isBengali ? train.origin.name_bn : train.origin.name_en)
-    : '';
-  const destName = train.destination
-    ? (isBengali ? train.destination.name_bn : train.destination.name_en)
-    : '';
-  const routeStr = `${originName} → ${destName}`;
+  // train.name (real schema) — name_en/name_bn only exist on stations, not trains.
+  const trainTitle = `${train.name} #${train.number}`;
+  // origin_city/destination_city are plain text city names on the real schema
+  // (e.g. 'DHAKA'), not joined Station objects — display as-is.
+  const routeStr = `${train.origin_city} → ${train.destination_city}`;
+
+  // Tier 1 / Tier 2: a train with zero stops rows has no verified timetable
+  // yet. This is NOT an error state — show the route-confirmed notice
+  // instead of an empty/broken timeline.
+  const hasVerifiedTimeline = train.stops.length > 0;
 
   const dayStr = new Date(date).toLocaleDateString(isBengali ? 'bn-BD' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -148,37 +166,53 @@ function TrainDetailContent() {
             <Text style={s.cardTitle}>{t('train.journey_timeline')}</Text>
           </View>
 
-          {train.stops.map((stop, index) => {
-            const isFirst = index === 0;
-            const isLast  = index === train.stops.length - 1;
-            const isMid   = !isFirst && !isLast;
-            const time = isFirst ? formatTime(stop.departure_time) : formatTime(stop.arrival_time);
-            const stationName = isBengali ? stop.station.name_bn : stop.station.name_en;
+          {hasVerifiedTimeline ? (
+            // Tier 2: real train_stops data — every time/stop shown is verified.
+            train.stops.map((stop, index) => {
+              const isFirst = index === 0;
+              const isLast  = index === train.stops.length - 1;
+              const isMid   = !isFirst && !isLast;
+              const time = isFirst ? formatTime(stop.depart_time) : formatTime(stop.arrive_time);
+              const stationName = isBengali ? stop.station.name_bn : stop.station.name_en;
+              // Halt duration is derived from two real timestamps on the same
+              // verified row — not fabricated, just arithmetic on real data.
+              const haltMinutes = isMid && stop.arrive_time && stop.depart_time
+                ? minutesBetween(stop.arrive_time, stop.depart_time)
+                : 0;
 
-            return (
-              <View key={stop.id} style={s.stopRow}>
-                {/* Time */}
-                <Text style={[s.stopTime, (isFirst || isLast) && s.stopTimeEnd]}>{time}</Text>
+              return (
+                <View key={`${stop.train_number}-${stop.station_code}`} style={s.stopRow}>
+                  {/* Time */}
+                  <Text style={[s.stopTime, (isFirst || isLast) && s.stopTimeEnd]}>{time}</Text>
 
-                {/* Line + dot */}
-                <View style={s.stopLine}>
-                  <View style={{ width: 2, flex: isFirst ? 0 : 1, backgroundColor: isFirst ? 'transparent' : colors.primary, opacity: 0.4 }} />
-                  <View style={[s.stopDot, isFirst && s.stopDotFirst, isLast && s.stopDotLast]} />
-                  {!isLast && <View style={{ width: 2, flex: 1, minHeight: 32, backgroundColor: colors.primary, opacity: 0.4 }} />}
+                  {/* Line + dot */}
+                  <View style={s.stopLine}>
+                    <View style={{ width: 2, flex: isFirst ? 0 : 1, backgroundColor: isFirst ? 'transparent' : colors.primary, opacity: 0.4 }} />
+                    <View style={[s.stopDot, isFirst && s.stopDotFirst, isLast && s.stopDotLast]} />
+                    {!isLast && <View style={{ width: 2, flex: 1, minHeight: 32, backgroundColor: colors.primary, opacity: 0.4 }} />}
+                  </View>
+
+                  {/* Station info */}
+                  <View style={s.stopInfo}>
+                    <Text style={[s.stopName, (isFirst || isLast) && s.stopNameEnd]}>{stationName}</Text>
+                    {isFirst && <Text style={s.stopRole}>{t('train.departure')}</Text>}
+                    {isLast  && <Text style={s.stopRole}>{t('train.arrival')}</Text>}
+                    {isMid && haltMinutes > 0 && (
+                      <Text style={s.stopHalt}>{formatTime(stop.arrive_time)} • {t('train.halt', { minutes: haltMinutes })}</Text>
+                    )}
+                  </View>
                 </View>
-
-                {/* Station info */}
-                <View style={s.stopInfo}>
-                  <Text style={[s.stopName, (isFirst || isLast) && s.stopNameEnd]}>{stationName}</Text>
-                  {isFirst && <Text style={s.stopRole}>{t('train.departure')}</Text>}
-                  {isLast  && <Text style={s.stopRole}>{t('train.arrival')}</Text>}
-                  {isMid && stop.halt_minutes > 0 && (
-                    <Text style={s.stopHalt}>{formatTime(stop.arrival_time)} • {t('train.halt', { minutes: stop.halt_minutes })}</Text>
-                  )}
-                </View>
-              </View>
-            );
-          })}
+              );
+            })
+          ) : (
+            // Tier 1 only: route confirmed via trains.origin_city/destination_city,
+            // but no verified train_stops yet. Never show an estimated timeline.
+            <View style={s.unverifiedTimeline}>
+              <Text style={s.unverifiedTimelineTitle}>{t('results.schedule_being_verified')}</Text>
+              <Text style={s.unverifiedTimelineBody}>{routeStr}</Text>
+              <Text style={s.unverifiedTimelineHint}>{t('train.timetable_not_verified_hint')}</Text>
+            </View>
+          )}
         </View>
 
         {/* ── Fares ────────────────────── */}
@@ -282,6 +316,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   stopNameEnd:   { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: colors['text-primary'] },
   stopRole:      { fontFamily: 'Inter_500Medium', fontSize: 12, color: colors.primary, marginTop: 2 },
   stopHalt:      { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'], marginTop: 2 },
+  unverifiedTimeline:      { paddingVertical: 16, alignItems: 'center' },
+  unverifiedTimelineTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors.accent, marginBottom: 6 },
+  unverifiedTimelineBody:  { fontFamily: 'Inter_500Medium', fontSize: 16, color: colors['text-primary'], marginBottom: 8, textAlign: 'center' },
+  unverifiedTimelineHint:  { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], textAlign: 'center', lineHeight: 18 },
   fareRow:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 13 },
   fareIconBox:   { width: 36, height: 36, borderRadius: 8, backgroundColor: colors['bg-elevated'], alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   fareClass:     { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-primary'] },

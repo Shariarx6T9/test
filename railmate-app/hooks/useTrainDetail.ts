@@ -2,18 +2,18 @@ import { useQuery } from '@tanstack/react-query';
 import { getTrainWithStops } from '../api/trains';
 import { getFares } from '../api/fares';
 
-export const useTrainDetail = (trainId: string) =>
+export const useTrainDetail = (trainNumber: number) =>
   useQuery({
-    queryKey: ['train', trainId],
-    queryFn: () => getTrainWithStops(trainId),
-    enabled: !!trainId,
+    queryKey: ['train', trainNumber],
+    queryFn: () => getTrainWithStops(trainNumber),
+    enabled: !!trainNumber,
     staleTime: 10 * 60 * 1000,
   });
 
 export const useTrainFares = (params: {
-  trainId: string;
+  trainId:       string;
   fromStationId: string;
-  toStationId: string;
+  toStationId:   string;
 }) =>
   useQuery({
     queryKey: ['fares', params],

@@ -21,11 +21,16 @@ function ResultsScreen() {
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
 
-  const { data: stations } = useStations();
-  const { data: trains, isLoading, error } = useSearchTrains({ fromStationId: fromId, toStationId: toId, date });
+  // Route params are always strings in Expo Router; station ids are numeric
+  // in the real schema (SERIAL PK), so convert once here.
+  const fromStationId = fromId ? Number(fromId) : undefined;
+  const toStationId   = toId   ? Number(toId)   : undefined;
 
-  const fromStation = stations?.find((s) => s.id === fromId);
-  const toStation   = stations?.find((s) => s.id === toId);
+  const { data: stations } = useStations();
+  const { data: trains, isLoading, error } = useSearchTrains({ fromStationId, toStationId, date });
+
+  const fromStation = stations?.find((s) => s.id === fromStationId);
+  const toStation   = stations?.find((s) => s.id === toStationId);
 
   const routeTitle = fromStation && toStation
     ? `${isBengali ? fromStation.name_bn : fromStation.name_en} → ${isBengali ? toStation.name_bn : toStation.name_en}`
@@ -71,7 +76,7 @@ function ResultsScreen() {
       ) : trains && trains.length > 0 ? (
         <FlatList
           data={trains}
-          keyExtractor={(item) => item.train_id}
+          keyExtractor={(item) => String(item.train_id)}
           renderItem={({ item }) => <TrainCard train={item} fromId={fromId} toId={toId} />}
           ListHeaderComponent={ListHeader}
           showsVerticalScrollIndicator={false}

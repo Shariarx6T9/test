@@ -363,5 +363,8 @@
   "common.remove": "সরান",
   "community.report_detail": "রিপোর্টের বিস্তারিত",
   "report.type_platform": "প্ল্যাটফর্ম",
-  "report.type_general": "সাধারণ"
+  "report.type_general": "সাধারণ",
+  "results.verified_schedule": "যাচাইকৃত সময়সূচী",
+  "results.schedule_being_verified": "সময়সূচীর বিবরণ যাচাই করা হচ্ছে",
+  "train.timetable_not_verified_hint": "রেলমেট এখনো এই ট্রেনের সঠিক সময় যাচাই করেনি। যাত্রার আগে স্টেশন বা বাংলাদেশ রেলওয়ের অফিসিয়াল মাধ্যমে সময় নিশ্চিত করুন।"
 }

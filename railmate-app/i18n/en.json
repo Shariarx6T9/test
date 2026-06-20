@@ -363,5 +363,8 @@
   "common.remove": "Remove",
   "community.report_detail": "Report detail",
   "report.type_platform": "Platform",
-  "report.type_general": "General"
+  "report.type_general": "General",
+  "results.verified_schedule": "Verified Schedule",
+  "results.schedule_being_verified": "Schedule details are being verified",
+  "train.timetable_not_verified_hint": "RailMate hasn't verified this train's exact stop times yet. Confirm timing with the station or official Bangladesh Railway channels before travel."
 }

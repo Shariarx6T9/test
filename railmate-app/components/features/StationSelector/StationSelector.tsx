@@ -90,7 +90,7 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
         ) : (
           <FlatList
             data={filteredStations}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => String(item.id)}
             renderItem={renderStationItem}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
