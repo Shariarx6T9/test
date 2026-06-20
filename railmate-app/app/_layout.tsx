@@ -19,7 +19,14 @@ import * as Sentry from '@sentry/react-native';
 // expo-splash-screen plugin) on screen until we explicitly hide it below.
 // Without this call the native splash auto-hides the instant the JS bundle
 // finishes loading — before initialize() resolves — leaving a blank gap
-// or an abrupt jump straight to the custom JS splash overlay.
+// before the JS splash overlay mounts.
+//
+// NOTE: the native splash config intentionally has NO image — Android has
+// a known bug (expo/expo#37915, #33138) where resizeMode: cover is ignored
+// and the image renders tiny and centered instead of full-screen. The native
+// splash is now just the solid backgroundColor (#080D17); the actual
+// splash.png artwork only ever renders via the JS overlay below, which is
+// not subject to that native rendering bug.
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Safe to ignore — only fails if called multiple times (e.g. Fast Refresh).
 });
@@ -61,9 +68,11 @@ export default Sentry.wrap(function RootLayout() {
     (async () => {
       await initialize();
       setInitialized(true);
-      // Hand off from the native splash to the JS overlay with zero gap —
-      // both render splash.png with the same resizeMode='cover' treatment,
-      // so this hide is visually invisible to the user.
+      // Hide the native splash (solid color, no image — see note above) and
+      // reveal the JS overlay below, which renders the actual splash.png
+      // artwork full-bleed via resizeMode="cover". Since native has no image
+      // to swap out, there's no flash/jump here, just background color to
+      // background color underneath the already-mounted JS Image.
       await SplashScreen.hideAsync();
       setTimeout(() => {
         Animated.timing(fadeAnim, {
