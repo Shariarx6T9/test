@@ -3,6 +3,7 @@ import { notFound }      from 'next/navigation'
 import { getStationsByCodes, searchTrains, TOP_ROUTES, formatDuration, getAllStations } from '@/lib/train-search'
 import SearchForm from '@/components/search/SearchForm'
 import TrainResultCard   from './TrainResultCard'
+import NoDirectTrainGuidance from './NoDirectTrainGuidance'
 
 // ─── Caching ─────────────────────────────────────────────────────────────────
 // ISR: revalidate every hour for on-demand routes.
@@ -207,7 +208,7 @@ export default async function TrainRoutePage({
             <p className="text-text-secondary font-inter text-sm mt-2">
               {results.length > 0
                 ? `${results.length} train${results.length === 1 ? '' : 's'} on ${formatDisplayDate(journeyDate)}`
-                : `No trains found on ${formatDisplayDate(journeyDate)}`
+                : `No direct train on ${formatDisplayDate(journeyDate)}`
               }
             </p>
           </div>
@@ -224,12 +225,15 @@ export default async function TrainRoutePage({
 
           {/* Results */}
           {results.length === 0 ? (
-            <div className="text-center py-16 bg-bg-elevated rounded-xl border border-border-subtle">
-              <p className="text-text-primary font-semibold font-jakarta text-lg mb-2">No trains found</p>
-              <p className="text-text-secondary font-inter text-sm">
-                No trains run on this route on {formatDisplayDate(journeyDate)}. Try a different date.
-              </p>
-            </div>
+            <NoDirectTrainGuidance
+              locale={locale}
+              fromCode={parsed.fromCode}
+              toCode={parsed.toCode}
+              fromLabel={route.from.name_en}
+              toLabel={route.to.name_en}
+              fromDivision={route.from.division}
+              toDivision={route.to.division}
+            />
           ) : (
             <div className="space-y-4">
               {results.map((train) => (
@@ -322,6 +326,9 @@ const STATION_LABELS: Record<string, string> = {
   AKH:  'Akhaura',
   BNP:  'Benapole',
   PCG:  'Panchagarh',
+  IWD:  'Ishwardi',
+  STH:  'Santahar',
+  PBP:  'Parbatipur',
 }
 
 function getRelatedRoutes(fromCode: string, toCode: string) {
