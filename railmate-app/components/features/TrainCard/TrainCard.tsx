@@ -47,7 +47,7 @@ export const TrainCard: React.FC<TrainCardProps> = ({
     router.push({ pathname: '/train/[id]', params: { id: String(train.train_number), fromId, toId } });
 
   // days_of_week is an inclusion list: [0,1,2,3,4,5,6] = daily
-  const daysOfWeek: number[] = (train as any).days_of_week ?? ALL_DAYS;
+  const daysOfWeek: number[] = train.days_of_week ?? ALL_DAYS;
   const isDaily = daysOfWeek.length === ALL_DAYS.length;
   const runsLabel = isDaily
     ? 'Daily'
