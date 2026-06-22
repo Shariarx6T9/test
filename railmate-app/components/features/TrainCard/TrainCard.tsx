@@ -1,69 +1,95 @@
 import React, { useMemo } from 'react';
 import { View, Pressable, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
-import { Clock, Warning, CheckCircle, Users } from 'phosphor-react-native';
-import { TrainSearchResult } from '../../../types/train.types';
+import { Clock, Warning, CheckCircle, CalendarBlank, CaretRight } from 'phosphor-react-native';
+import { TrainSearchResult, TrainClass } from '../../../types/train.types';
+import { TrainDelayStatus } from '../../../api/community';
 import { formatTime } from '../../../utils/formatTime';
 import { formatDuration } from '../../../utils/formatDuration';
+import { trainClassLabel } from '../../../utils/trainClassLabel';
 import { useThemeColors, ThemeColors } from '../../../hooks/useThemeColors';
 import { useTranslation } from '../../../i18n';
+import { Spacing } from '../../../constants/spacing';
+import { Typography } from '../../../constants/typography';
+import { Radius } from '../../../constants/radius';
 
-// Generate a stable accent color from train name (used for the emblem only —
-// independent of light/dark theme so emblems stay legible on both).
-const EMBLEM_COLORS = ['#1A5C3A', '#1A3A5C', '#5C1A3A', '#3A1A5C', '#5C3A1A'];
-function emblemColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return EMBLEM_COLORS[Math.abs(hash) % EMBLEM_COLORS.length];
+interface TrainCardProps {
+  train: TrainSearchResult;
+  fromId?: string;
+  toId?: string;
+  /** Real, route-batched fare classes for this train_number — see
+   *  useFareClassesForRoute. Undefined while loading; empty array means the
+   *  `fares` table genuinely has no rows for this train+route yet. */
+  availableClasses?: TrainClass[];
+  /** Real, batched delay enrichment for this train_number on the searched
+   *  date — see useTrainDelayStatus. Undefined = no community report found
+   *  (render the verified/unverified badge only, never a fabricated status). */
+  delayStatus?: TrainDelayStatus;
 }
 
-interface TrainCardProps { train: TrainSearchResult; fromId?: string; toId?: string; }
+const DAY_LABELS: Record<string, string> = {
+  sunday: 'Sun', monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
+  thursday: 'Thu', friday: 'Fri', saturday: 'Sat',
+};
 
-export const TrainCard: React.FC<TrainCardProps> = ({ train, fromId, toId }) => {
-  const { t, locale } = useTranslation();
-  const isBengali = locale === 'bn';
+export const TrainCard: React.FC<TrainCardProps> = ({
+  train, fromId, toId, availableClasses, delayStatus,
+}) => {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const s = useMemo(() => createStyles(colors), [colors]);
 
   const handlePress = () =>
     router.push({ pathname: '/train/[id]', params: { id: String(train.train_number), fromId, toId } });
 
-  const initials = train.train_name_en
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('');
-
-  const emblemBg = emblemColor(train.train_name_en);
-
-  // Community enrichment (delay/crowding reports) is not part of
-  // TrainSearchResult — it's a separate feature, kept as-is via unsafe cast
-  // pending that feature's own type definition. Not touched by the Tier
-  // 1/Tier 2 search fix.
-  const hasDelay = (train as any).delay_minutes > 0;
-  const hasCrowding = (train as any).crowd_level === 'HIGH' || (train as any).crowd_level === 'OVERCROWDED';
-
-  const fromName = isBengali ? (train as any).from_station_name_bn : (train as any).from_station_name_en;
-  const toName   = isBengali ? (train as any).to_station_name_bn   : (train as any).to_station_name_en;
-
-  const crowdLevel = (train as any).crowd_level === 'OVERCROWDED'
-    ? t('community.crowd_overcrowded')
-    : t('community.crowd_high');
+  const runsLabel = train.off_days.length === 0
+    ? 'Daily'
+    : train.off_days.map((d) => DAY_LABELS[d] ?? d).join(', ');
+  const offDayLabel = train.off_days.length === 0
+    ? 'None'
+    : train.off_days.map((d) => DAY_LABELS[d] ?? d).join(', ');
 
   return (
     <Pressable onPress={handlePress} style={({ pressed }) => [s.card, pressed && s.pressed]}>
-      {/* Green left accent border */}
-      <View style={s.accent} />
+      {/* Top row: train number badge + type badge */}
+      <View style={s.topRow}>
+        <View style={s.numberBadge}>
+          <Text style={s.numberBadgeText}>#{train.train_number}</Text>
+        </View>
+        {!!train.train_type && (
+          <View style={s.typeBadge}>
+            <Text style={s.typeBadgeText}>{train.train_type}</Text>
+          </View>
+        )}
+      </View>
 
-      {/* Header row: emblem + name + number + verification badge */}
-      <View style={s.headerRow}>
-        <View style={[s.emblem, { backgroundColor: emblemBg }]}>
-          <Text style={s.emblemText}>{initials}</Text>
-        </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={s.trainName}>{train.train_name_en}</Text>
-        </View>
-        <Text style={s.trainNum}>#{train.train_number}</Text>
+      {/* Name — Bengali name omitted: TrainSearchResult has no name_bn field
+          (see delivery notes — not present anywhere in the trains schema). */}
+      <Text style={s.trainName}>{train.train_name_en}</Text>
+
+      {/* Status pill: community delay report takes priority over the
+          verified/unverified badge when present; otherwise fall back to it. */}
+      <View style={s.statusRow}>
+        {delayStatus ? (
+          <View style={[s.statusPill, { backgroundColor: colors['danger-subtle'] }]}>
+            <Clock size={12} color={colors.danger} weight="fill" />
+            <Text style={[s.statusPillText, { color: colors.danger }]}>
+              {t('community.delay_report', { minutes: delayStatus.delayMinutes })}
+            </Text>
+          </View>
+        ) : train.verified ? (
+          <View style={[s.statusPill, { backgroundColor: colors['success-subtle'] }]}>
+            <CheckCircle size={12} color={colors.success} weight="fill" />
+            <Text style={[s.statusPillText, { color: colors.success }]}>{t('results.on_time')}</Text>
+          </View>
+        ) : (
+          <View style={[s.statusPill, { backgroundColor: colors['accent-subtle'] }]}>
+            <Warning size={12} color={colors.accent} weight="fill" />
+            <Text style={[s.statusPillText, { color: colors.accent }]}>
+              {t('results.schedule_being_verified')}
+            </Text>
+          </View>
+        )}
       </View>
 
       {train.verified ? (
@@ -71,21 +97,18 @@ export const TrainCard: React.FC<TrainCardProps> = ({ train, fromId, toId }) => 
         <View style={s.timeRow}>
           <View style={{ alignItems: 'flex-start' }}>
             <Text style={s.time}>{formatTime(train.departure_time)}</Text>
-            {!!fromName && <Text style={s.stationSmall}>{fromName}</Text>}
+            <Text style={s.timeLabel}>{t('train.depart')}</Text>
           </View>
-          <View style={s.arrow}>
-            <Text style={s.arrowText}>→</Text>
-          </View>
-          <View style={s.durationBadge}>
-            <Clock size={12} color={colors['text-tertiary']} />
-            <Text style={s.durationText}>{formatDuration(train.duration_minutes)}</Text>
-          </View>
-          <View style={s.arrow}>
-            <Text style={s.arrowText}>→</Text>
+          <View style={s.durationCol}>
+            <View style={s.durationLine} />
+            <View style={s.durationBadge}>
+              <Clock size={11} color={colors['text-tertiary']} />
+              <Text style={s.durationText}>{formatDuration(train.duration_minutes)}</Text>
+            </View>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={s.time}>{formatTime(train.arrival_time)}</Text>
-            {!!toName && <Text style={s.stationSmall}>{toName}</Text>}
+            <Text style={s.timeLabel}>{t('train.arrive')}</Text>
           </View>
         </View>
       ) : (
@@ -96,36 +119,33 @@ export const TrainCard: React.FC<TrainCardProps> = ({ train, fromId, toId }) => 
         </View>
       )}
 
-      {/* Verification badge */}
-      <View style={s.statusRow}>
-        {train.verified ? (
-          <>
-            <CheckCircle size={14} color={colors.primary} weight="fill" />
-            <Text style={[s.statusText, { color: colors.primary }]}>{t('results.verified_schedule')}</Text>
-          </>
-        ) : (
-          <>
-            <Warning size={14} color={colors.accent} weight="fill" />
-            <Text style={[s.statusText, { color: colors.accent }]}>{t('results.schedule_being_verified')}</Text>
-          </>
-        )}
-      </View>
-
-      {/* Community status overrides verification badge when present */}
-      {hasDelay && (
-        <View style={s.statusRow}>
-          <Warning size={14} color={colors.accent} weight="fill" />
-          <Text style={[s.statusText, { color: colors.accent }]}>
-            {t('community.delay_report', { minutes: (train as any).delay_minutes })}
-          </Text>
+      {/* Runs / Off day */}
+      <Pressable style={s.runsRow} onPress={handlePress}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] }}>
+          <CalendarBlank size={13} color={colors['text-tertiary']} />
+          <Text style={s.runsText}>Runs: {runsLabel}</Text>
         </View>
-      )}
-      {hasCrowding && (
-        <View style={s.statusRow}>
-          <Users size={14} color={colors.danger} weight="fill" />
-          <Text style={[s.statusText, { color: colors.danger }]}>
-            {t('community.crowding_report', { level: crowdLevel })}
-          </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] }}>
+          <Clock size={13} color={colors['text-tertiary']} />
+          <Text style={s.runsText}>Off Day: {offDayLabel}</Text>
+        </View>
+        <CaretRight size={13} color={colors['text-tertiary']} />
+      </Pressable>
+
+      {/* Available Classes — real data only; renders nothing extra when the
+          fares table has no rows for this train+route yet (no fabricated
+          "Seats Available" count — see delivery notes, no such field/table
+          exists anywhere in the schema). */}
+      {availableClasses && availableClasses.length > 0 && (
+        <View style={s.classesSection}>
+          <Text style={s.classesLabel}>Available Classes</Text>
+          <View style={s.classesRow}>
+            {availableClasses.map((cls) => (
+              <View key={cls} style={s.classChip}>
+                <Text style={s.classChipText}>{trainClassLabel(cls)}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       )}
     </Pressable>
@@ -133,24 +153,38 @@ export const TrainCard: React.FC<TrainCardProps> = ({ train, fromId, toId }) => 
 };
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  card:        { backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors['border'], marginBottom: 14, overflow: 'hidden', paddingHorizontal: 18, paddingVertical: 16, paddingLeft: 22 },
-  accent:      { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: colors.primary },
-  pressed:     { opacity: 0.88, transform: [{ scale: 0.985 }] },
-  headerRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  emblem:      { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  emblemText:  { fontFamily: 'Inter_700Bold', fontSize: 14, color: colors['text-inverse'] },
-  trainName:   { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: colors['text-primary'] },
-  trainNameBn: { fontFamily: 'NotoSansBengali_400Regular', fontSize: 12, color: colors['text-secondary'], marginTop: 1 },
-  trainNum:    { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-tertiary'] },
-  timeRow:     { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  time:        { fontFamily: 'JetBrainsMono_500Medium', fontSize: 24, color: colors['text-primary'], letterSpacing: -1 },
-  stationSmall:{ fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-secondary'], marginTop: 2 },
-  arrow:       { flex: 1, alignItems: 'center' },
-  arrowText:   { fontSize: 20, color: colors.primary },
-  durationBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors['bg-elevated'], borderRadius: 20, paddingVertical: 5, paddingHorizontal: 10 },
-  durationText:{ fontFamily: 'JetBrainsMono_400Regular', fontSize: 11, color: colors['text-secondary'] },
-  unverifiedRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: colors['bg-elevated'], borderRadius: 10 },
-  unverifiedText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'] },
-  statusRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  statusText:  { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  card:        { backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, marginBottom: Spacing['space-4'], padding: Spacing['space-5'] },
+  pressed:     { opacity: 0.88 },
+
+  topRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing['space-3'] },
+  numberBadge: { borderWidth: 1, borderColor: colors.primary, borderRadius: Radius['radius-sm'], paddingHorizontal: Spacing['space-2'], paddingVertical: 3 },
+  numberBadgeText: { ...Typography['mono'], color: colors.primary },
+  typeBadge:   { borderWidth: 1, borderColor: colors.primary, borderRadius: Radius['radius-sm'], paddingHorizontal: Spacing['space-2'], paddingVertical: 3 },
+  typeBadgeText: { ...Typography['label'], color: colors.primary },
+
+  trainName:   { ...Typography['h3'], color: colors['text-primary'], marginBottom: Spacing['space-2'] },
+
+  statusRow:   { flexDirection: 'row', marginBottom: Spacing['space-3'] },
+  statusPill:  { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-1'], borderRadius: Radius['radius-sm'], paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  statusPillText: { ...Typography['label'] },
+
+  timeRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing['space-3'] },
+  time:        { ...Typography['display-lg'], fontSize: 28, lineHeight: 32, color: colors['text-primary'] },
+  timeLabel:   { ...Typography['caption'], color: colors.primary, marginTop: 2 },
+  durationCol: { flex: 1, alignItems: 'center', marginHorizontal: Spacing['space-3'] },
+  durationLine:{ height: 1, backgroundColor: colors.border, width: '100%', marginBottom: Spacing['space-2'] },
+  durationBadge:{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors['bg-elevated'], borderRadius: Radius['radius-full'], paddingVertical: 4, paddingHorizontal: Spacing['space-2'] },
+  durationText:{ ...Typography['caption'], color: colors['text-secondary'] },
+
+  unverifiedRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], marginBottom: Spacing['space-3'], paddingVertical: Spacing['space-3'], paddingHorizontal: Spacing['space-3'], backgroundColor: colors['bg-elevated'], borderRadius: Radius['radius-md'] },
+  unverifiedText: { ...Typography['body-sm'], color: colors['text-secondary'] },
+
+  runsRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: Spacing['space-3'], borderTopWidth: 1, borderTopColor: colors.border },
+  runsText:    { ...Typography['caption'], color: colors['text-tertiary'] },
+
+  classesSection: { marginTop: Spacing['space-3'], paddingTop: Spacing['space-3'], borderTopWidth: 1, borderTopColor: colors.border },
+  classesLabel:   { ...Typography['caption'], color: colors['text-tertiary'], marginBottom: Spacing['space-2'] },
+  classesRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing['space-2'] },
+  classChip:      { borderWidth: 1, borderColor: colors.primary, borderRadius: Radius['radius-sm'], paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  classChipText:  { ...Typography['label'], color: colors.primary },
 });

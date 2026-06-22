@@ -62,10 +62,10 @@
   "search.placeholder_from": "Departure station",
   "search.placeholder_to": "Destination station",
   "results.title": "Search Results",
-  "results.found": "{{count}} trains found",
-  "results.none": "No trains found",
-  "results.none_hint": "Try a different date or check nearby stations.",
-  "results.on_time": "On time",
+  "results.found": "{{count}} Trains Found",
+  "results.none": "No Trains Found",
+  "results.none_hint": "Try adjusting your search or selecting a different date.",
+  "results.on_time": "On Time",
   "results.filter": "Filter",
   "results.sort": "Sort",
   "train.detail": "Train Detail",
@@ -383,5 +383,12 @@
   "home.coming_soon_title": "Coming Soon",
   "home.coming_soon_body": "This feature is on its way. Stay tuned!",
   "home.notifications_label": "Notifications",
-  "home.no_live_updates": "No live updates yet"
+  "home.no_live_updates": "No live updates yet",
+  "common.not_found": "Not Found",
+  "results.community_verified": "Community Verified",
+  "results.community_verified_body": "Delay and status updates are based on real-time reports from fellow travelers.",
+  "search.date_of_journey": "Date of Journey",
+  "search.select_stations": "Please select departure and arrival stations.",
+  "train.depart": "Depart",
+  "train.arrive": "Arrive"
 }

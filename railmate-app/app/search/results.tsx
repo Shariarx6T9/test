@@ -1,119 +1,288 @@
-import React, { useMemo } from 'react';
-import { View, FlatList, ActivityIndicator, Pressable, StyleSheet, Text, StatusBar } from 'react-native';
+// app/search/results.tsx
+// Matches the Search_Results.png reference: header with From/To summary,
+// Filter/Sort controls, train cards (rebuilt TrainCard), and a real
+// "Community Verified" banner sourced from the live community report feed.
+
+import React, { useMemo, useState } from 'react';
+import {
+  View, FlatList, ActivityIndicator, Pressable, StyleSheet, Text, Modal,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Faders, Train, MagnifyingGlass } from 'phosphor-react-native';
-import { TrainCard } from '../../components/features/TrainCard/TrainCard';
-import { useSearchTrains } from '../../hooks/useTrains';
-import { useStations } from '../../hooks/useStations';
-import { useThemeColors, useResolvedTheme, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation } from '../../i18n';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+import {
+  ArrowLeft, Funnel, ArrowsDownUp, MapPin, ShieldCheck, CaretRight,
+} from 'phosphor-react-native';
 
-function ResultsScreen() {
-  const router = useRouter();
+import { useSearchTrains, useFareClassesForRoute } from '../../hooks/useTrains';
+import { useTrainDelayStatus, useCommunityReports } from '../../hooks/useCommunityReports';
+import { useSearchStore } from '../../stores/searchStore';
+import { TrainCard } from '../../components/features/TrainCard/TrainCard';
+import { Avatar } from '../../components/ui/Avatar/Avatar';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
+import { useTranslation } from '../../i18n';
+import { Spacing } from '../../constants/spacing';
+import { Typography } from '../../constants/typography';
+import { Radius } from '../../constants/radius';
+import { ALL_TRAIN_CLASSES, trainClassLabel } from '../../utils/trainClassLabel';
+import { TrainClass } from '../../types/database.types';
+import { TrainSearchResult } from '../../types/train.types';
+
+type SortKey = 'departure' | 'train_number';
+
+function ResultsContent() {
   const { fromId, toId, date } = useLocalSearchParams<{ fromId: string; toId: string; date: string }>();
+  const router = useRouter();
   const { t, locale } = useTranslation();
   const isBengali = locale === 'bn';
-
   const colors = useThemeColors();
-  const theme = useResolvedTheme();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
 
-  // Route params are always strings in Expo Router; station ids are UUID
-  // strings in the canonical schema too, so use them directly.
-  const fromStationId = fromId || undefined;
-  const toStationId   = toId   || undefined;
+  const { fromStation, toStation } = useSearchStore();
 
-  const { data: stations } = useStations();
-  const { data: trains, isLoading, error } = useSearchTrains({ fromStationId, toStationId, date });
+  const fromIdNum = fromId ? Number(fromId) : undefined;
+  const toIdNum = toId ? Number(toId) : undefined;
 
-  const fromStation = stations?.find((s) => s.id === fromStationId);
-  const toStation   = stations?.find((s) => s.id === toStationId);
+  const { data: trains, isLoading } = useSearchTrains({
+    fromStationId: fromIdNum, toStationId: toIdNum, date: date ?? '',
+  });
+  const { data: classesByTrain } = useFareClassesForRoute({
+    fromStationId: fromIdNum, toStationId: toIdNum,
+  });
+  const trainNumbers = useMemo(() => (trains ?? []).map((tr) => tr.train_number), [trains]);
+  const { data: delayByTrain } = useTrainDelayStatus(trainNumbers, date ?? '');
 
-  const routeTitle = fromStation && toStation
-    ? `${isBengali ? fromStation.name_bn : fromStation.name_en} → ${isBengali ? toStation.name_bn : toStation.name_en}`
-    : t('results.title');
+  // Real "active reporters" count + avatars, sourced from the live community
+  // feed (same hook the Home/Community screens use) — not a fabricated number.
+  const { data: liveReports } = useCommunityReports(null);
+  const activeReporters = useMemo(() => {
+    if (!liveReports) return [];
+    const seen = new Map<string, NonNullable<typeof liveReports[number]['user']>>();
+    for (const r of liveReports) {
+      if (r.user && !seen.has(r.user.id)) seen.set(r.user.id, r.user);
+    }
+    return Array.from(seen.values());
+  }, [liveReports]);
 
-  const ListHeader = () => (
-    <View style={s.badge}>
-      <Train size={14} color={colors.primary} weight="fill" />
-      <Text style={s.badgeText}>{t('results.found', { count: trains?.length ?? 0 })}</Text>
-    </View>
-  );
+  const [sortKey, setSortKey] = useState<SortKey>('departure');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [filterClass, setFilterClass] = useState<TrainClass | null>(null);
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+
+  const filteredSorted: TrainSearchResult[] = useMemo(() => {
+    let list = trains ?? [];
+    if (filterClass) {
+      list = list.filter((tr) => (classesByTrain?.get(tr.train_number) ?? []).includes(filterClass));
+    }
+    return [...list].sort((a, b) => {
+      if (sortKey === 'train_number') return a.train_number - b.train_number;
+      // departure: verified trains with real times first (by time), then unverified by number
+      if (a.verified && b.verified) return a.departure_time.localeCompare(b.departure_time);
+      if (a.verified !== b.verified) return a.verified ? -1 : 1;
+      return a.train_number - b.train_number;
+    });
+  }, [trains, filterClass, classesByTrain, sortKey]);
+
+  const fromName = fromStation?.name_en ?? '';
+  const toName = toStation?.name_en ?? '';
+  const fromNameBn = fromStation?.name_bn ?? '';
+  const toNameBn = toStation?.name_bn ?? '';
+
+  const dateLabel = useMemo(() => {
+    if (!date) return '';
+    const d = new Date(date);
+    const today = new Date();
+    const isToday = d.toDateString() === today.toDateString();
+    if (isToday) return `Today, ${d.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`;
+    return d.toLocaleDateString(isBengali ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'long' });
+  }, [date, isBengali]);
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors['bg-base']} />
-
       {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+      <View style={[s.header, { paddingTop: insets.top + Spacing['space-3'] }]}>
         <Pressable style={s.backBtn} onPress={() => router.back()}>
           <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
         </Pressable>
-        <View style={{ flex: 1, marginHorizontal: 14 }}>
-          <Text style={s.headerTitle}>{routeTitle}</Text>
-          <Text style={s.headerSub}>{t('results.today_all_classes')}</Text>
+        <View style={{ flex: 1, marginLeft: Spacing['space-3'] }}>
+          <Text style={s.title}>{t('results.title')}</Text>
+          <Text style={s.subtitle}>{t('results.found', { count: filteredSorted.length })}</Text>
         </View>
-        <Pressable style={s.filterBtn}>
-          <Faders size={18} color={colors['text-secondary']} />
+        <Pressable style={s.headerIconBtn} onPress={() => setFilterMenuOpen(true)}>
+          <Funnel size={16} color={colors['text-primary']} />
+          <Text style={s.headerIconBtnText}>{t('results.filter')}</Text>
+        </Pressable>
+        <Pressable style={s.headerIconBtn} onPress={() => setSortMenuOpen(true)}>
+          <ArrowsDownUp size={16} color={colors['text-primary']} />
+          <Text style={s.headerIconBtnText}>{t('results.sort')}</Text>
         </Pressable>
       </View>
 
+      {/* From/To summary — tap to go back and edit */}
+      <Pressable style={s.routeCard} onPress={() => router.push('/(tabs)/search' as any)}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.routeLabel}>{t('search.from')}</Text>
+          <View style={s.routeValueRow}>
+            <MapPin size={14} color={colors.primary} weight="fill" />
+            <Text style={s.routeValue} numberOfLines={1}>{fromName}</Text>
+          </View>
+          <Text style={s.routeSub} numberOfLines={1}>{fromNameBn}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.routeLabel}>{t('search.to')}</Text>
+          <View style={s.routeValueRow}>
+            <MapPin size={14} color={colors.primary} weight="fill" />
+            <Text style={s.routeValue} numberOfLines={1}>{toName}</Text>
+          </View>
+          <Text style={s.routeSub} numberOfLines={1}>{toNameBn}</Text>
+        </View>
+        <CaretRight size={16} color={colors['text-tertiary']} />
+      </Pressable>
+
+      <View style={s.metaRow}>
+        <Text style={s.metaText}>{t('search.date')}: {dateLabel}</Text>
+        <Text style={s.metaText}>
+          {filterClass ? trainClassLabel(filterClass) : t('results.today_all_classes').split('•')[1]?.trim() ?? 'All Classes'}
+        </Text>
+      </View>
+
+      {/* Results */}
       {isLoading ? (
-        <View style={s.center}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <Text style={[s.loadingText, { marginTop: 12 }]}>{t('loading')}</Text>
+        <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: Spacing['space-10'] }} />
+      ) : filteredSorted.length === 0 ? (
+        <View style={s.emptyState}>
+          <Text style={s.emptyTitle}>{t('results.none')}</Text>
+          <Text style={s.emptyHint}>{t('results.none_hint')}</Text>
         </View>
-      ) : error ? (
-        <View style={s.center}>
-          <Text style={s.errorText}>{t('error.generic')}</Text>
-          <Pressable style={s.retryBtn} onPress={() => router.back()}>
-            <Text style={s.retryText}>{t('common.go_back')}</Text>
-          </Pressable>
-        </View>
-      ) : trains && trains.length > 0 ? (
-        <FlatList
-          data={trains}
-          keyExtractor={(item) => String(item.train_id)}
-          renderItem={({ item }) => <TrainCard train={item} fromId={fromId} toId={toId} />}
-          ListHeaderComponent={ListHeader}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
-        />
       ) : (
-        <View style={s.center}>
-          <MagnifyingGlass size={48} color={colors['text-tertiary']} weight="thin" />
-          <Text style={s.noResultTitle}>{t('results.none')}</Text>
-          <Text style={s.noResultHint}>{t('results.none_hint')}</Text>
-          <Pressable style={s.retryBtn} onPress={() => router.back()}>
-            <Text style={s.retryText}>{t('results.search_again')}</Text>
-          </Pressable>
-        </View>
+        <FlatList
+          data={filteredSorted}
+          keyExtractor={(item) => String(item.train_number)}
+          contentContainerStyle={{ padding: Spacing['space-5'], paddingBottom: Spacing['space-10'] }}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TrainCard
+              train={item}
+              fromId={fromId}
+              toId={toId}
+              availableClasses={classesByTrain?.get(item.train_number)}
+              delayStatus={delayByTrain?.get(item.train_number)}
+            />
+          )}
+          ListFooterComponent={
+            activeReporters.length > 0 ? (
+              <View style={s.communityBanner}>
+                <View style={s.communityIconWrap}>
+                  <ShieldCheck size={20} color={colors.primary} weight="fill" />
+                </View>
+                <View style={{ flex: 1, marginLeft: Spacing['space-3'] }}>
+                  <Text style={s.communityTitle}>{t('results.community_verified')}</Text>
+                  <Text style={s.communityBody}>{t('results.community_verified_body')}</Text>
+                </View>
+                <View style={s.avatarStack}>
+                  {activeReporters.slice(0, 3).map((u, i) => (
+                    <View key={u.id} style={[s.avatarWrap, { marginLeft: i === 0 ? 0 : -10 }]}>
+                      <Avatar name={u.display_name ?? 'U'} uri={u.avatar_url ?? undefined} size={28} />
+                    </View>
+                  ))}
+                  {activeReporters.length > 3 && (
+                    <View style={[s.avatarWrap, s.avatarMore, { marginLeft: -10 }]}>
+                      <Text style={s.avatarMoreText}>+{activeReporters.length - 3}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            ) : null
+          }
+        />
       )}
+
+      {/* Sort menu */}
+      <Modal visible={sortMenuOpen} transparent animationType="fade" onRequestClose={() => setSortMenuOpen(false)}>
+        <Pressable style={s.modalBackdrop} onPress={() => setSortMenuOpen(false)}>
+          <View style={s.sheet}>
+            <Text style={s.sheetTitle}>{t('results.sort')}</Text>
+            {([
+              { key: 'departure' as SortKey, label: t('train.depart') },
+              { key: 'train_number' as SortKey, label: '#' + t('results.title') },
+            ]).map(({ key, label }) => (
+              <Pressable
+                key={key}
+                style={s.sheetRow}
+                onPress={() => { setSortKey(key); setSortMenuOpen(false); }}
+              >
+                <Text style={[s.sheetRowText, sortKey === key && { color: colors.primary }]}>{label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Filter menu — real class filter against the live fares data fetched above */}
+      <Modal visible={filterMenuOpen} transparent animationType="fade" onRequestClose={() => setFilterMenuOpen(false)}>
+        <Pressable style={s.modalBackdrop} onPress={() => setFilterMenuOpen(false)}>
+          <View style={s.sheet}>
+            <Text style={s.sheetTitle}>{t('results.filter')}</Text>
+            <Pressable style={s.sheetRow} onPress={() => { setFilterClass(null); setFilterMenuOpen(false); }}>
+              <Text style={[s.sheetRowText, !filterClass && { color: colors.primary }]}>All Classes</Text>
+            </Pressable>
+            {ALL_TRAIN_CLASSES.map((cls) => (
+              <Pressable
+                key={cls}
+                style={s.sheetRow}
+                onPress={() => { setFilterClass(cls); setFilterMenuOpen(false); }}
+              >
+                <Text style={[s.sheetRowText, filterClass === cls && { color: colors.primary }]}>
+                  {trainClassLabel(cls)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
-export default function SearchResultsScreen() {
-  return <ErrorBoundary name="Search Results"><ResultsScreen /></ErrorBoundary>;
+export default function ResultsScreen() {
+  return <ErrorBoundary name="Search Results"><ResultsContent /></ErrorBoundary>;
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:          { flex: 1, backgroundColor: colors['bg-base'] },
-  header:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
-  backBtn:       { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors['border'], alignItems: 'center', justifyContent: 'center' },
-  headerTitle:   { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: colors['text-primary'] },
-  headerSub:     { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
-  filterBtn:     { width: 40, height: 40, borderRadius: 10, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors['border'], alignItems: 'center', justifyContent: 'center' },
-  badge:         { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors['primary-subtle'], borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-start', marginBottom: 16 },
-  badgeText:     { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors.primary },
-  center:        { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
-  loadingText:   { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'] },
-  errorText:     { fontFamily: 'Inter_500Medium', fontSize: 16, color: colors.danger, textAlign: 'center' },
-  noResultTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 20, color: colors['text-primary'], marginTop: 12 },
-  noResultHint:  { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], textAlign: 'center' },
-  retryBtn:      { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12, marginTop: 8 },
-  retryText:     { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
+  root:             { flex: 1, backgroundColor: colors['bg-base'] },
+  header:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing['space-5'], paddingBottom: Spacing['space-3'], gap: Spacing['space-2'] },
+  backBtn:          { width: 40, height: 40, borderRadius: Radius['radius-full'], backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  title:            { ...Typography['h2'], color: colors['text-primary'] },
+  subtitle:         { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
+  headerIconBtn:    { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: colors.border, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-2'], paddingVertical: Spacing['space-2'] },
+  headerIconBtnText:{ ...Typography['caption'], color: colors['text-primary'] },
+
+  routeCard:        { flexDirection: 'row', alignItems: 'center', marginHorizontal: Spacing['space-5'], backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
+  routeLabel:       { ...Typography['caption'], color: colors['text-tertiary'] },
+  routeValueRow:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  routeValue:       { ...Typography['h4'], color: colors['text-primary'], flexShrink: 1 },
+  routeSub:         { ...Typography['caption'], color: colors['text-tertiary'], marginTop: 1 },
+
+  metaRow:          { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: Spacing['space-5'], marginTop: Spacing['space-3'], marginBottom: Spacing['space-2'] },
+  metaText:         { ...Typography['caption'], color: colors['text-secondary'] },
+
+  emptyState:       { alignItems: 'center', paddingTop: Spacing['space-12'], paddingHorizontal: Spacing['space-6'] },
+  emptyTitle:       { ...Typography['h3'], color: colors['text-primary'], marginBottom: Spacing['space-2'] },
+  emptyHint:        { ...Typography['body-sm'], color: colors['text-secondary'], textAlign: 'center' },
+
+  communityBanner:  { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['primary-subtle'], borderWidth: 1, borderColor: colors.primary, borderRadius: Radius['radius-lg'], padding: Spacing['space-4'], marginTop: Spacing['space-2'] },
+  communityIconWrap:{ width: 40, height: 40, borderRadius: Radius['radius-full'], backgroundColor: colors['bg-card'], alignItems: 'center', justifyContent: 'center' },
+  communityTitle:   { ...Typography['label-lg'], color: colors.primary },
+  communityBody:    { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
+  avatarStack:      { flexDirection: 'row', alignItems: 'center' },
+  avatarWrap:       { borderWidth: 2, borderColor: colors['bg-base'], borderRadius: Radius['radius-full'] },
+  avatarMore:       { width: 28, height: 28, borderRadius: 14, backgroundColor: colors['bg-elevated'], alignItems: 'center', justifyContent: 'center' },
+  avatarMoreText:   { ...Typography['caption'], color: colors['text-secondary'] },
+
+  modalBackdrop:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet:            { backgroundColor: colors['bg-card'], borderTopLeftRadius: Radius['radius-xl'], borderTopRightRadius: Radius['radius-xl'], padding: Spacing['space-5'], paddingBottom: Spacing['space-8'] },
+  sheetTitle:       { ...Typography['h3'], color: colors['text-primary'], marginBottom: Spacing['space-4'] },
+  sheetRow:         { paddingVertical: Spacing['space-3'], borderBottomWidth: 1, borderBottomColor: colors.border },
+  sheetRowText:     { ...Typography['body'], color: colors['text-primary'] },
 });

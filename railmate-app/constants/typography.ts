@@ -71,6 +71,18 @@ export const Typography = {
     fontFamily: 'JetBrainsMono_400Regular',
     fontSize: 13,
   },
+  /** Smaller mono variant used for reference IDs, codes. */
+  'mono-sm': {
+    fontFamily: 'JetBrainsMono_400Regular',
+    fontSize: 11,
+  },
+  /** Primary action button label. */
+  'button': {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
+    lineHeight: 22.4,
+    letterSpacing: 0.16,
+  },
 };
 
 export const TypographyFamilies = {

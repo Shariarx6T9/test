@@ -66,7 +66,45 @@ export interface CommunityReport {
   } | null;
 }
 
-export interface ReportSubmitData {
+/**
+ * A user who cast a CONFIRM vote on a report — backs the "Verified by" /
+ * "User Confirmations" sections of the Report Detail screen. Sourced from
+ * report_votes joined to users (see getReportVerifiers in api/community.ts);
+ * this is real per-report voter data, not a fabricated avatar list.
+ */
+export interface ReportVerifier {
+  user_id: string;
+  voted_at: string;
+  user: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    is_trusted: boolean;
+  } | null;
+}
+
+/**
+ * Mirrors the approved trust-tier system already shown on Profile/Badges
+ * (Explorer → Contributor → Verified Traveler → Station Expert →
+ * RailMate Ambassador). Duplicated here rather than imported from
+ * app/(tabs)/profile.tsx, which doesn't currently export it and is out of
+ * scope for this change — a shared `lib/trustTiers.ts` would be the right
+ * home for this if/when profile.tsx is next touched.
+ */
+const REPORTER_TIERS = [
+  { min: 0,  max: 20,  label: 'Explorer' },
+  { min: 20, max: 50,  label: 'Contributor' },
+  { min: 50, max: 75,  label: 'Verified Traveler' },
+  { min: 75, max: 90,  label: 'Station Expert' },
+  { min: 90, max: 101, label: 'RailMate Ambassador' },
+] as const;
+
+export function getReporterTier(trustScore: number): string {
+  return (
+    REPORTER_TIERS.find((b) => trustScore >= b.min && trustScore < b.max) ??
+    REPORTER_TIERS[0]
+  ).label;
+}
   train_id?: string | null;
   station_id?: string | null;
   report_type: ReportType;

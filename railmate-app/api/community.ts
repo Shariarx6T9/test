@@ -12,6 +12,7 @@ import type {
   StationOption,
   TrainOption,
   VoteType,
+  ReportVerifier,
 } from '../types/report.types';
 
 // ─── Reports ─────────────────────────────────────────────────────────────────
@@ -233,6 +234,7 @@ export interface ReportComment {
     display_name: string | null;
     avatar_url: string | null;
     is_trusted: boolean;
+    trust_score: number;
   };
 }
 
@@ -252,7 +254,8 @@ export async function getReportComments(
         id,
         display_name,
         avatar_url,
-        is_trusted
+        is_trusted,
+        trust_score
       )
       `,
     )
@@ -274,4 +277,100 @@ export async function addReportComment(
     body: body.trim(),
   });
   if (error) throw new Error(`addReportComment: ${error.message}`);
+}
+
+// ─── Report verifiers ───────────────────────────────────────────────────────
+
+/**
+ * Real, per-report list of users who cast a CONFIRM vote — backs the
+ * "Verified by" avatar stack and "User Confirmations" rows on the Report
+ * Detail screen. Capped at 20 (the UI only ever shows a handful + "+N").
+ */
+export async function getReportVerifiers(
+  reportId: string,
+): Promise<ReportVerifier[]> {
+  const { data, error } = await supabase
+    .from('report_votes')
+    .select(
+      `
+      user_id,
+      voted_at:created_at,
+      user:users!report_votes_user_id_fkey (
+        id,
+        display_name,
+        avatar_url,
+        is_trusted
+      )
+      `,
+    )
+    .eq('report_id', reportId)
+    .eq('vote_type', 'CONFIRM')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error('getReportVerifiers:', error.message);
+    return [];
+  }
+  return (data ?? []) as unknown as ReportVerifier[];
+}
+
+// ─── Delay status enrichment for search results ──────────────────────────────
+
+export interface TrainDelayStatus {
+  delayMinutes: number;
+  reportedAt: string;
+}
+
+/**
+ * ⚠️ ARCHITECTURAL CAUTION — see delivery notes.
+ *
+ * community_reports.train_id is a UUID FK into a `trains` table reached via
+ * the `community_reports_train_id_fkey` constraint. The Tier 1/Tier 2 train
+ * search (api/trains.ts) was deliberately rebuilt against a *different*,
+ * numeric-PK `trains` table after discovering the UUID-based schema in
+ * migrations/001_initial_schema.sql was "never applied to production."
+ * It is NOT confirmed whether the UUID `trains` table this query joins to
+ * is the same physical table, a still-live legacy table, or absent entirely
+ * in the production database.
+ *
+ * This function is written defensively: it never throws, and if the join
+ * fails or the joined `trains.number` doesn't line up with real-world train
+ * numbers, it simply returns an empty map — callers render no delay pill
+ * rather than a wrong one. Bridging is attempted via `trains.number` (the
+ * real-world train number), NOT via UUID id, since `number` is the one
+ * field both the Tier 1/2 schema and this join claim to share.
+ */
+export async function getDelayStatusForTrains(
+  trainNumbers: number[],
+  journeyDate: string,
+): Promise<Map<number, TrainDelayStatus>> {
+  const result = new Map<number, TrainDelayStatus>();
+  if (!trainNumbers.length) return result;
+
+  try {
+    const { data, error } = await supabase
+      .from('community_reports')
+      .select('delay_minutes, created_at, train:trains!community_reports_train_id_fkey(number)')
+      .eq('report_type', 'DELAY')
+      .eq('journey_date', journeyDate)
+      .not('delay_minutes', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[getDelayStatusForTrains]', error.message);
+      return result;
+    }
+
+    for (const row of (data ?? []) as any[]) {
+      const num = row.train?.number;
+      if (typeof num !== 'number' || !trainNumbers.includes(num)) continue;
+      if (result.has(num)) continue; // already have the most recent (sorted desc)
+      result.set(num, { delayMinutes: row.delay_minutes, reportedAt: row.created_at });
+    }
+  } catch (err) {
+    console.error('[getDelayStatusForTrains] unexpected error:', err);
+  }
+
+  return result;
 }

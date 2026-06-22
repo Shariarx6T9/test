@@ -14,7 +14,10 @@ import {
   voteOnReport,
   getReportComments,
   addReportComment,
+  getReportVerifiers,
+  getDelayStatusForTrains,
   type ReportComment,
+  type TrainDelayStatus,
 } from '../api/community';
 import { useAuthStore } from '../stores/authStore';
 import type {
@@ -22,6 +25,7 @@ import type {
   ReportFilter,
   ReportSubmitData,
   VoteType,
+  ReportVerifier,
 } from '../types/report.types';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
@@ -197,6 +201,19 @@ export function useAddComment(reportId: string, activeFilter: ReportFilter) {
   });
 }
 
+/**
+ * Real, per-report list of CONFIRM voters — powers the "Verified by" avatar
+ * stack and "User Confirmations" checkmarks on the Report Detail screen.
+ */
+export function useReportVerifiers(reportId: string) {
+  return useQuery<ReportVerifier[]>({
+    queryKey: ['report_verifiers', reportId],
+    queryFn: () => getReportVerifiers(reportId),
+    enabled: !!reportId,
+    staleTime: 30_000,
+  });
+}
+
 // ─── Train / Station search hooks (for submit sheet selectors) ────────────────
 
 export function useTrainSearch(query: string) {
@@ -219,3 +236,18 @@ export function useStationSearch(query: string) {
 
 // Re-export ReportComment type for consumers
 export type { ReportComment };
+
+/**
+ * Batched delay-status lookup for a list of search-result trains. See the
+ * caution comment on getDelayStatusForTrains in api/community.ts — this can
+ * legitimately return an empty map if the community↔trains join doesn't
+ * resolve, and callers must treat that as "no info," not an error.
+ */
+export function useTrainDelayStatus(trainNumbers: number[], journeyDate: string) {
+  return useQuery<Map<number, TrainDelayStatus>>({
+    queryKey: ['train_delay_status', trainNumbers.slice().sort(), journeyDate],
+    queryFn: () => getDelayStatusForTrains(trainNumbers, journeyDate),
+    enabled: trainNumbers.length > 0 && !!journeyDate,
+    staleTime: 60_000,
+  });
+}
