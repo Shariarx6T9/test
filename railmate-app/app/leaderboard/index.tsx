@@ -42,13 +42,37 @@ interface LeaderEntry {
   is_trusted: boolean;
 }
 
-async function fetchLeaderboard(sortCol: SortKey): Promise<LeaderEntry[]> {
-  const { data, error } = await supabase
+async function fetchLeaderboard(sortCol: SortKey, filter: FilterKey): Promise<LeaderEntry[]> {
+  // Build date filter for weekly/monthly — previously the filter state was
+  // ignored and all three tabs always returned all-time rankings.
+  let createdAfter: string | null = null;
+  if (filter === 'weekly') {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    createdAfter = d.toISOString();
+  } else if (filter === 'monthly') {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    createdAfter = d.toISOString();
+  }
+
+  let query = supabase
     .from('users')
     .select('id, display_name, avatar_url, trust_score, helpful_vote_count, report_count, is_trusted')
     .order(sortCol, { ascending: false })
     .limit(20);
 
+  // For time-based filters we rank by activity within the window.
+  // The users table stores cumulative counts so we approximate by filtering
+  // users who updated their profile (or were created) within the period.
+  // This is imprecise but correct until a separate leaderboard_periods table
+  // is added. For now it ensures the Weekly/Monthly chips show different data
+  // from All Time by narrowing to recently-active contributors.
+  if (createdAfter) {
+    query = query.gte('updated_at', createdAfter);
+  }
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []) as LeaderEntry[];
 }
@@ -67,12 +91,12 @@ function LeaderboardContent() {
   const [sortCol, setSortCol] = useState<SortKey>('trust_score');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['leaderboard', sortCol],
-    queryFn: () => fetchLeaderboard(sortCol),
+    queryKey: ['leaderboard', sortCol, filter],
+    queryFn: () => fetchLeaderboard(sortCol, filter),
     staleTime: 60_000,
   });
 
-  const currentSortMeta = SORT_COLS.find(c => c.key === sortCol)!;
+  const _currentSortMeta = SORT_COLS.find(c => c.key === sortCol)!;
 
   const formatVal = (entry: LeaderEntry) => {
     if (sortCol === 'trust_score') return `${entry.trust_score.toFixed(1)}/5`;

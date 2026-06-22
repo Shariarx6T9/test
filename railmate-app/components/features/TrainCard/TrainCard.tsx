@@ -27,10 +27,14 @@ interface TrainCardProps {
   delayStatus?: TrainDelayStatus;
 }
 
-const DAY_LABELS: Record<string, string> = {
-  sunday: 'Sun', monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
-  thursday: 'Thu', friday: 'Fri', saturday: 'Sat',
+// days_of_week: canonical SMALLINT[] inclusion list (Sunday=0, Saturday=6)
+// Matches the canonical schema in migrations/001_initial_schema.sql.
+// The old schema used off_days text[] (exclusion, day names) — that column
+// no longer exists.
+const DAY_LABELS: Record<number, string> = {
+  0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat',
 };
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 export const TrainCard: React.FC<TrainCardProps> = ({
   train, fromId, toId, availableClasses, delayStatus,
@@ -42,12 +46,16 @@ export const TrainCard: React.FC<TrainCardProps> = ({
   const handlePress = () =>
     router.push({ pathname: '/train/[id]', params: { id: String(train.train_number), fromId, toId } });
 
-  const runsLabel = train.off_days.length === 0
+  // days_of_week is an inclusion list: [0,1,2,3,4,5,6] = daily
+  const daysOfWeek: number[] = (train as any).days_of_week ?? ALL_DAYS;
+  const isDaily = daysOfWeek.length === ALL_DAYS.length;
+  const runsLabel = isDaily
     ? 'Daily'
-    : train.off_days.map((d) => DAY_LABELS[d] ?? d).join(', ');
-  const offDayLabel = train.off_days.length === 0
+    : daysOfWeek.map((d) => DAY_LABELS[d] ?? String(d)).join(', ');
+  const offDays = ALL_DAYS.filter((d) => !daysOfWeek.includes(d));
+  const offDayLabel = offDays.length === 0
     ? 'None'
-    : train.off_days.map((d) => DAY_LABELS[d] ?? d).join(', ');
+    : offDays.map((d) => DAY_LABELS[d] ?? String(d)).join(', ');
 
   return (
     <Pressable onPress={handlePress} style={({ pressed }) => [s.card, pressed && s.pressed]}>

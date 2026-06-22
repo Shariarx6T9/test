@@ -29,7 +29,8 @@ import { useCommunityReports, useVoteReport } from '../../hooks/useCommunityRepo
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 import { useTranslation } from '../../i18n';
-import type { ReportFilter, ReportType } from '../../types/report.types';
+import type { ReportFilter } from '../../types/report.types';
+import { supabase } from '../../lib/supabase';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -265,9 +266,10 @@ function TierCarousel({ colors, isBengali, s }: { colors: ThemeColors; isBengali
 // ─── ReportCard ───────────────────────────────────────────────────────────────
 // Actions: Confirm + Dispute only. No comments. No share. No likes.
 
-function ReportCard({ item, colors, isBengali, s, onConfirm, onFlag }: {
+function ReportCard({ item, colors, isBengali, s, onConfirm, onDispute, onFlag }: {
   item: any; colors: ThemeColors; isBengali: boolean; s: ReturnType<typeof createStyles>;
   onConfirm: (id: string, current: any) => void;
+  onDispute: (id: string, current: any) => void;
   onFlag: (id: string) => void;
 }) {
   const typeColor   = TYPE_COLORS[item.report_type] ?? colors['text-tertiary'];
@@ -358,7 +360,7 @@ function ReportCard({ item, colors, isBengali, s, onConfirm, onFlag }: {
 
           <Pressable
             style={[s.actionBtn, hasDisputed && { backgroundColor: colors['danger-subtle'], borderColor: colors.danger }]}
-            onPress={() => {/* TODO: wire dispute mutation */}}
+            onPress={() => onDispute(item.id, item.current_user_vote)}
           >
             <WarningCircle size={15} color={hasDisputed ? colors.danger : colors['text-secondary']} weight={hasDisputed ? 'fill' : 'regular'} />
             <Text style={[s.actionTxt, hasDisputed && { color: colors.danger }]}>Dispute</Text>
@@ -483,10 +485,15 @@ function CommunityContent() {
   const { user, isAuthenticated }   = useAuthStore();
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('verified');
   const [showTrust, setShowTrust]   = useState(false);
-  const isBengali                   = false; // hook into useTranslation locale when ready
+  // FIXED: was hardcoded `false` — now reads from the i18n hook so language
+  // switching takes effect throughout the Community screen.
+  const { isBengali }               = useTranslation();
 
   const apiFilter: ReportFilter = useMemo(() => {
-    if (feedFilter === 'verified') return { type: 'VERIFIED' as ReportType };
+    // FIXED: 'VERIFIED' is a status column value, not a report_type.
+    // The old code passed { type: 'VERIFIED' as ReportType } which always
+    // returned 0 rows because no report has report_type = 'VERIFIED'.
+    if (feedFilter === 'verified') return { status: 'VERIFIED' };
     if (feedFilter === 'mine' && user?.id) return { userId: user.id };
     return null;
   }, [feedFilter, user?.id]);
@@ -499,13 +506,37 @@ function CommunityContent() {
     vote({ reportId, voteType: 'CONFIRM', existingVote: currentVote, activeFilter: apiFilter });
   }, [isAuthenticated, apiFilter, vote, t]);
 
-  const handleFlag = useCallback((_reportId: string) => {
+  // FIXED: was () => {/* TODO: wire dispute mutation */}
+  const handleDispute = useCallback((reportId: string, currentVote: any) => {
     if (!isAuthenticated) { Alert.alert('', t('auth.sign_in')); return; }
-    Alert.alert('Flag Report', 'This report will be reviewed by our team.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Flag', style: 'destructive', onPress: () => {/* TODO: wire flag mutation, pass _reportId */} },
-    ]);
-  }, [isAuthenticated, t]);
+    vote({ reportId, voteType: 'DISPUTE', existingVote: currentVote, activeFilter: apiFilter });
+  }, [isAuthenticated, apiFilter, vote, t]);
+
+  const handleFlag = useCallback((reportId: string) => {
+    if (!isAuthenticated) { Alert.alert('', t('auth.sign_in')); return; }
+    Alert.alert(
+      isBengali ? 'রিপোর্ট ফ্ল্যাগ করুন' : 'Flag Report',
+      isBengali ? 'এই রিপোর্টটি আমাদের টিম পর্যালোচনা করবে।' : 'This report will be reviewed by our team.',
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: isBengali ? 'ফ্ল্যাগ করুন' : 'Flag',
+          style: 'destructive',
+          onPress: async () => {
+              try {
+                const { error } = await supabase
+                  .from('community_reports')
+                  .update({ status: 'DISPUTED' })
+                  .eq('id', reportId);
+                if (error) throw error;
+              } catch (err: any) {
+                Alert.alert(isBengali ? 'ত্রুটি' : 'Error', err?.message ?? 'Could not flag report.');
+              }
+            },
+        },
+      ],
+    );
+  }, [isAuthenticated, isBengali, t]);
 
   const FILTER_LABELS: Record<FeedFilter, string> = {
     all:      isBengali ? 'সব' : 'All',
@@ -514,8 +545,8 @@ function CommunityContent() {
   };
 
   const renderReport = useCallback(({ item }: { item: any }) => (
-    <ReportCard item={item} colors={colors} isBengali={isBengali} s={s} onConfirm={handleConfirm} onFlag={handleFlag} />
-  ), [colors, isBengali, s, handleConfirm, handleFlag]);
+    <ReportCard item={item} colors={colors} isBengali={isBengali} s={s} onConfirm={handleConfirm} onDispute={handleDispute} onFlag={handleFlag} />
+  ), [colors, isBengali, s, handleConfirm, handleDispute, handleFlag]);
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>

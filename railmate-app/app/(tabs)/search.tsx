@@ -106,8 +106,8 @@ function SearchContent() {
       return;
     }
     await addRecentSearch(
-      { id: fromStation.id as number, name_en: fromStation.name_en, name_bn: fromStation.name_bn, code: fromStation.code },
-      { id: toStation.id as number, name_en: toStation.name_en, name_bn: toStation.name_bn, code: toStation.code },
+      { id: fromStation.id, name_en: fromStation.name_en, name_bn: fromStation.name_bn, code: fromStation.code },
+      { id: toStation.id, name_en: toStation.name_en, name_bn: toStation.name_bn, code: toStation.code },
       date,
       selectedClass,
     );

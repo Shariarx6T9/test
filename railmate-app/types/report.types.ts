@@ -15,14 +15,21 @@ export type CrowdLevel = 'EMPTY' | 'MODERATE' | 'FULL' | 'OVERCROWDED';
 
 /**
  * Discriminated filter union passed to getCommunityReports / useQuery.
- *   null              → no filter (all active reports)
- *   { type }          → filter by report_type column
+ *   null              → no filter (all active/verified reports)
+ *   { type }          → filter by report_type column (DELAY, CROWD, etc.)
  *   { userId }        → filter by user_id column (My Reports tab)
+ *   { status }        → filter by status column (VERIFIED tab)
+ *
+ * NOTE: { status: 'VERIFIED' } and { type: ReportType } are intentionally
+ * separate variants — 'VERIFIED' is a status, not a report type. Using
+ * { type: 'VERIFIED' } was the original bug that made the Verified tab
+ * always return empty results.
  */
 export type ReportFilter =
   | null
   | { type: ReportType }
-  | { userId: string };
+  | { userId: string }
+  | { status: 'VERIFIED' | 'ACTIVE' | 'DISPUTED' };
 
 export interface CommunityReport {
   id: string;
@@ -105,6 +112,8 @@ export function getReporterTier(trustScore: number): string {
     REPORTER_TIERS[0]
   ).label;
 }
+
+export interface ReportSubmitPayload {
   train_id?: string | null;
   station_id?: string | null;
   report_type: ReportType;
@@ -113,6 +122,10 @@ export function getReporterTier(trustScore: number): string {
   crowd_level?: string | null;
   journey_date?: string | null;
 }
+
+/** Alias kept for backward compatibility with api/community.ts and
+ *  hooks/useCommunityReports.ts which import this name. */
+export type ReportSubmitData = ReportSubmitPayload;
 
 export interface TrainOption {
   id: string;

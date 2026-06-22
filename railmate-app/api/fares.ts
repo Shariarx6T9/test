@@ -37,23 +37,23 @@ export const getFares = async (params: {
  * absent/empty, never a fabricated class list.
  */
 export const getFareClassesForRoute = async (params: {
-  fromStationId: number;
-  toStationId: number;
-}): Promise<Map<number, TrainClass[]>> => {
+  fromStationId: string;
+  toStationId: string;
+}): Promise<Map<string, TrainClass[]>> => {
   const { data, error } = await supabase
     .from('fares')
     .select('train_number, class')
     .eq('from_station_id', params.fromStationId)
     .eq('to_station_id', params.toStationId);
 
-  const result = new Map<number, TrainClass[]>();
+  const result = new Map<string, TrainClass[]>();
   if (error) {
     console.error('[getFareClassesForRoute]', error.message);
     return result; // fail safe: callers render "no class data" rather than crash
   }
 
-  for (const row of (data ?? []) as { train_number: number | null; class: TrainClass }[]) {
-    if (row.train_number == null) continue; // route-general fare, not train-specific
+  for (const row of (data ?? []) as { train_number: string | null; class: TrainClass }[]) {
+    if (row.train_number == null) continue;
     const existing = result.get(row.train_number) ?? [];
     if (!existing.includes(row.class)) existing.push(row.class);
     result.set(row.train_number, existing);

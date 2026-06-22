@@ -26,7 +26,7 @@ function toBengaliNumerals(value: number): string {
 export function timeAgo(
   isoString: string,
   isBengali: boolean,
-  t: (key: string, vars?: Record<string, unknown>) => string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
 ): string {
   const diffMs = Date.now() - new Date(isoString).getTime();
   const diffMinutes = Math.floor(diffMs / 60_000);

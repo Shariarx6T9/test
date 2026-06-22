@@ -243,8 +243,8 @@ export type { ReportComment };
  * legitimately return an empty map if the community↔trains join doesn't
  * resolve, and callers must treat that as "no info," not an error.
  */
-export function useTrainDelayStatus(trainNumbers: number[], journeyDate: string) {
-  return useQuery<Map<number, TrainDelayStatus>>({
+export function useTrainDelayStatus(trainNumbers: string[], journeyDate: string) {
+  return useQuery<Map<string, TrainDelayStatus>>({
     queryKey: ['train_delay_status', trainNumbers.slice().sort(), journeyDate],
     queryFn: () => getDelayStatusForTrains(trainNumbers, journeyDate),
     enabled: trainNumbers.length > 0 && !!journeyDate,

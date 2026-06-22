@@ -203,6 +203,31 @@ export function useAuth() {
     return { error: null };
   }, [clearAuth]);
 
+  /**
+   * Permanently deletes the authenticated user's account.
+   * Supabase RLS policy on the users table cascades the delete to all
+   * user-owned rows (saved_routes, alerts, etc.) via ON DELETE CASCADE.
+   * Community reports are anonymized (user_id SET NULL) per Part 14 §14.3.
+   */
+  const deleteAccount = useCallback(async () => {
+    const currentSession = useAuthStore.getState().session;
+    if (!currentSession?.user?.id) throw new Error('No active session');
+
+    // Mark reports as anonymous before deleting the user row
+    await supabase
+      .from('community_reports')
+      .update({ user_id: null })
+      .eq('user_id', currentSession.user.id);
+
+    const { error } = await supabase.rpc('delete_user');
+    if (error) throw new Error(error.message);
+
+    subscriptionRef.current?.unsubscribe();
+    subscriptionRef.current = null;
+    useAuthStore.getState().setGuest(false);
+    clearAuth();
+  }, [clearAuth]);
+
   return {
     user,
     session,
@@ -214,5 +239,6 @@ export function useAuth() {
     verifyOTP,
     register,
     signOut,
+    deleteAccount,
   };
 }

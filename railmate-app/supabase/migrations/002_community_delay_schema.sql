@@ -114,3 +114,33 @@ JOIN trains t ON t.id = cr.train_id
 WHERE cr.status IN ('ACTIVE', 'VERIFIED')
   AND cr.journey_date >= CURRENT_DATE - INTERVAL '7 days'
 GROUP BY t.number, t.name_en, t.name_bn, cr.journey_date;
+
+-- ─── Storage: report-photos bucket ───────────────────────────────────────────
+-- Required by uploadReportPhoto() in api/community.ts.
+-- Without this bucket the photo upload call always fails with a 404.
+-- Public bucket: photos are embedded in community cards visible to all users.
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'report-photos',
+  'report-photos',
+  true,
+  5242880,  -- 5MB limit per photo
+  ARRAY['image/jpeg', 'image/png', 'image/webp']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- RLS policy: authenticated users can upload to their own folder (user_id/*)
+CREATE POLICY "Auth users upload own report photos"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'report-photos'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Public read for all report photos (they appear in community feed)
+CREATE POLICY "Public read report photos"
+  ON storage.objects FOR SELECT
+  TO public
+  USING (bucket_id = 'report-photos');

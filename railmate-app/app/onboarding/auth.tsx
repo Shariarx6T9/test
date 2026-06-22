@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Phone, User, GoogleLogo } from 'phosphor-react-native';
+import { Phone, User } from 'phosphor-react-native';
 import { useAuthStore } from '../../stores/authStore';
 import { usePrefsStore } from '../../stores/prefsStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
@@ -43,14 +43,9 @@ export default function OnboardingAuthScreen() {
           ))}
         </View>
 
-        <Pressable style={s.googleBtn} onPress={handlePhoneOrGoogle}>
-          <GoogleLogo size={20} color={colors['text-primary']} weight="bold" />
-          <Text style={s.googleText}>Continue with Google</Text>
-        </Pressable>
-
         <Pressable style={s.phoneBtn} onPress={handlePhoneOrGoogle}>
           <Phone size={20} color="#fff" weight="fill" />
-          <Text style={s.phoneText}>Continue with Phone</Text>
+          <Text style={s.phoneText}>Continue with Phone or Email</Text>
         </Pressable>
 
         <View style={s.divider}>
@@ -81,8 +76,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   stat:       { flex: 1, alignItems: 'center', paddingVertical: 20 },
   statVal:    { fontFamily: 'PlusJakartaSans_800ExtraBold', fontSize: 20, color: PRIMARY },
   statLabel:  { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-secondary'], marginTop: 4 },
-  googleBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingVertical: 18, marginBottom: 12 },
-  googleText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: colors['text-primary'] },
   phoneBtn:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: PRIMARY, borderRadius: 16, paddingVertical: 18, marginBottom: 24 },
   phoneText:  { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: '#fff' },
   divider:    { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },

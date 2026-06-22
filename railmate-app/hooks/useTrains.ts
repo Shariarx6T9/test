@@ -24,10 +24,10 @@ export const useSearchTrains = (params: {
  * one getFares() call per card. See getFareClassesForRoute in api/fares.ts.
  */
 export const useFareClassesForRoute = (params: {
-  fromStationId: number | undefined;
-  toStationId:   number | undefined;
+  fromStationId: string | undefined;
+  toStationId:   string | undefined;
 }) =>
-  useQuery<Map<number, TrainClass[]>>({
+  useQuery<Map<string, TrainClass[]>>({
     queryKey: ['fares', 'classes', params.fromStationId, params.toStationId],
     queryFn: () => getFareClassesForRoute({
       fromStationId: params.fromStationId!,

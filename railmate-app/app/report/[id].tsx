@@ -50,7 +50,7 @@ const MAX_CONFIRM_DOTS = 5;
 function ReportDetailContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, isBengali } = useTranslation();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
@@ -340,7 +340,7 @@ function ReportDetailContent() {
                       <View style={[s.tierPill, { backgroundColor: tierColor + '20' }]}>
                         <Text style={[s.tierPillText, { color: tierColor }]}>{tier}</Text>
                       </View>
-                      <Text style={s.commentTime}>{timeAgo(c.created_at, t)}</Text>
+                      <Text style={s.commentTime}>{timeAgo(c.created_at, isBengali, t as (key: string, vars?: Record<string, string | number>) => string)}</Text>
                     </View>
                     <Text style={s.commentBody}>{c.body}</Text>
                   </View>

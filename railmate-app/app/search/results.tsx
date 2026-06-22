@@ -41,14 +41,14 @@ function ResultsContent() {
 
   const { fromStation, toStation } = useSearchStore();
 
-  const fromIdNum = fromId ? Number(fromId) : undefined;
-  const toIdNum = toId ? Number(toId) : undefined;
+  const fromStationId = fromId as string | undefined;
+  const toStationId   = toId   as string | undefined;
 
   const { data: trains, isLoading } = useSearchTrains({
-    fromStationId: fromIdNum, toStationId: toIdNum, date: date ?? '',
+    fromStationId, toStationId, date: date ?? '',
   });
   const { data: classesByTrain } = useFareClassesForRoute({
-    fromStationId: fromIdNum, toStationId: toIdNum,
+    fromStationId, toStationId,
   });
   const trainNumbers = useMemo(() => (trains ?? []).map((tr) => tr.train_number), [trains]);
   const { data: delayByTrain } = useTrainDelayStatus(trainNumbers, date ?? '');
@@ -76,11 +76,11 @@ function ResultsContent() {
       list = list.filter((tr) => (classesByTrain?.get(tr.train_number) ?? []).includes(filterClass));
     }
     return [...list].sort((a, b) => {
-      if (sortKey === 'train_number') return a.train_number - b.train_number;
+      if (sortKey === 'train_number') return a.train_number.localeCompare(b.train_number);
       // departure: verified trains with real times first (by time), then unverified by number
       if (a.verified && b.verified) return a.departure_time.localeCompare(b.departure_time);
       if (a.verified !== b.verified) return a.verified ? -1 : 1;
-      return a.train_number - b.train_number;
+      return a.train_number.localeCompare(b.train_number);
     });
   }, [trains, filterClass, classesByTrain, sortKey]);
 

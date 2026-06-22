@@ -78,6 +78,11 @@ export async function getCommunityReports(
     query = query.eq('report_type', filter.type);
   } else if (filter && 'userId' in filter) {
     query = query.eq('user_id', filter.userId);
+  } else if (filter && 'status' in filter) {
+    // Override the default .in('status', ['ACTIVE','VERIFIED']) with a single
+    // status match. Re-build the query base without the default status filter.
+    // The status filter is applied separately so we can show only VERIFIED rows.
+    query = query.eq('status', filter.status);
   }
 
   const { data, error } = await query;
@@ -167,6 +172,39 @@ export async function submitReport(
 
 // ─── Photo upload ─────────────────────────────────────────────────────────────
 
+/**
+ * Decode a base64 string to Uint8Array without using atob().
+ *
+ * BLOCKER 6 FIX: The previous implementation used atob() which is a browser
+ * API unavailable in React Native's Hermes JS engine. It worked in Expo Go
+ * (which polyfills Web APIs) but crashed every Android production build with
+ * ReferenceError: Property 'atob' doesn't exist.
+ *
+ * This pure-JS decoder has zero dependencies and is Hermes-safe.
+ */
+function base64ToUint8Array(b64: string): Uint8Array {
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const lookup = new Uint8Array(256);
+  for (let i = 0; i < CHARS.length; i++) lookup[CHARS.charCodeAt(i)] = i;
+  const input = b64.replace(/-/g, '+').replace(/_/g, '/');
+  const len = input.length;
+  const outputLen =
+    len * 3 / 4 -
+    (input[len - 2] === '=' ? 2 : input[len - 1] === '=' ? 1 : 0);
+  const output = new Uint8Array(outputLen);
+  let pos = 0;
+  for (let i = 0; i < len; i += 4) {
+    const a = lookup[input.charCodeAt(i)];
+    const b = lookup[input.charCodeAt(i + 1)];
+    const c = lookup[input.charCodeAt(i + 2)];
+    const d = lookup[input.charCodeAt(i + 3)];
+    output[pos++] = (a << 2) | (b >> 4);
+    if (pos < outputLen) output[pos++] = ((b & 0xf) << 4) | (c >> 2);
+    if (pos < outputLen) output[pos++] = ((c & 0x3) << 6) | d;
+  }
+  return output;
+}
+
 export async function uploadReportPhoto(
   userId: string,
   localUri: string,
@@ -180,12 +218,8 @@ export async function uploadReportPhoto(
     encoding: FileSystem.EncodingType.Base64,
   });
 
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
+  // Use the Hermes-safe decoder instead of atob()
+  const byteArray = base64ToUint8Array(base64);
 
   const { error } = await supabase.storage
     .from('report-photos')
@@ -342,10 +376,10 @@ export interface TrainDelayStatus {
  * field both the Tier 1/2 schema and this join claim to share.
  */
 export async function getDelayStatusForTrains(
-  trainNumbers: number[],
+  trainNumbers: string[],
   journeyDate: string,
-): Promise<Map<number, TrainDelayStatus>> {
-  const result = new Map<number, TrainDelayStatus>();
+): Promise<Map<string, TrainDelayStatus>> {
+  const result = new Map<string, TrainDelayStatus>();
   if (!trainNumbers.length) return result;
 
   try {
@@ -363,8 +397,8 @@ export async function getDelayStatusForTrains(
     }
 
     for (const row of (data ?? []) as any[]) {
-      const num = row.train?.number;
-      if (typeof num !== 'number' || !trainNumbers.includes(num)) continue;
+      const num = row.train?.number as string | undefined;
+      if (!num || !trainNumbers.includes(num)) continue;
       if (result.has(num)) continue; // already have the most recent (sorted desc)
       result.set(num, { delayMinutes: row.delay_minutes, reportedAt: row.created_at });
     }

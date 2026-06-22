@@ -23,11 +23,11 @@ const MAX_RECENT = 10;
 
 export interface RecentSearch {
   id: string;
-  fromStation: { id: number; name_en: string; name_bn: string; code: string };
-  toStation: { id: number; name_en: string; name_bn: string; code: string };
-  date: string; // ISO date string YYYY-MM-DD, the journey date searched
+  fromStation: { id: string; name_en: string; name_bn: string; code: string };
+  toStation:   { id: string; name_en: string; name_bn: string; code: string };
+  date: string;         // ISO date string YYYY-MM-DD
   selectedClass: TrainClass | null;
-  searchedAt: string; // ISO timestamp, when the search was run
+  searchedAt: string;   // ISO timestamp
 }
 
 export const useRecentSearches = () => {
