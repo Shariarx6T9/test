@@ -1,318 +1,175 @@
-// app/badges/index.tsx
-// Badges & Achievements screen — matches Image 2 exactly.
-// Core Badges: Explorer, Contributor, Verified Traveler, Station Expert, RailMate Ambassador
-// Achievement Badges: First Report, 10 Reports, 50 Reports, 100 Reports,
-//                     Delay Master, Helpful Traveler, Diamond Contributor
-
-import React, { useMemo } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Pressable,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// app/badges-reputation.tsx
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, CheckCircle, Star } from 'phosphor-react-native';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useAuthStore } from '../../stores/authStore';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-// ─── Badge Definitions ────────────────────────────────────────────────────────
-// Exactly matching Image 2
+const LEVELS = [
+  { num: 1, name: 'Rookie Reporter', range: '0 - 99', done: true, color: C.text2 },
+  { num: 2, name: 'Active Reporter', range: '100 - 299', done: true, color: C.green },
+  { num: 3, name: 'Reliable Reporter', range: '300 - 599', done: true, color: C.blue },
+  { num: 4, name: 'Trusted Reporter', range: '600 - 999', current: true, color: C.purple },
+  { num: 5, name: 'Expert Reporter', range: '1000+', color: C.gold },
+];
 
-const CORE_BADGES = [
-  {
-    id: 'explorer',
-    label: 'Explorer',
-    emoji: '🗺️',
-    color: '#4EA8E0',
-    desc: 'Started your RailMate journey',
-    shape: 'shield' as const,
-  },
-  {
-    id: 'contributor',
-    label: 'Contributor',
-    emoji: '🤝',
-    color: '#00A859',
-    desc: 'Helped fellow travelers with reports',
-    shape: 'shield' as const,
-  },
-  {
-    id: 'verified_traveler',
-    label: 'Verified Traveler',
-    emoji: '✅',
-    color: '#00A859',
-    desc: 'Reached high accuracy on reports',
-    shape: 'shield' as const,
-  },
-  {
-    id: 'station_expert',
-    label: 'Station Expert',
-    emoji: '🏛️',
-    color: '#F5A623',
-    desc: 'Top contributor at a specific station',
-    shape: 'shield' as const,
-  },
-  {
-    id: 'ambassador',
-    label: 'RailMate Ambassador',
-    emoji: '👑',
-    color: '#A855F7',
-    desc: 'Elite community leader',
-    shape: 'shield' as const,
-  },
-] as const;
+const BADGES = [
+  { name: 'First Reporter', desc: 'Submit your first verified report', earned: 'Earned on May 10, 2025', color: C.green, bg: C.greenTint, locked: false },
+  { name: 'Trusted Reporter', desc: 'Reach Level 4 Trust Score', earned: 'Earned on May 21, 2025', color: C.purple, bg: C.purpleTint, locked: false },
+  { name: 'Delay Master', desc: 'Report delays 20 times', earned: 'Earned on Jun 02, 2025', color: C.red, bg: C.redTint, locked: false },
+  { name: 'Helpful Traveler', desc: 'Receive 50 helpful votes', earned: 'Earned on Jun 05, 2025', color: C.blue, bg: C.blueTint, locked: false },
+  { name: 'Diamond Contributor', desc: 'Reach Level 5 Trust Score', earned: 'Locked', color: C.gold, bg: `${C.gold}20`, locked: true },
+  { name: 'Community Voice', desc: 'Add 100 comments or replies', earned: 'Locked', color: C.text2, bg: C.surface2, locked: true },
+];
 
-const ACHIEVEMENT_BADGES = [
-  {
-    id: 'first_report',
-    label: 'First Report',
-    emoji: '📝',
-    color: '#00A859',
-    desc: 'Submitted your first report',
-    threshold: 1,
-    field: 'report_count' as const,
-  },
-  {
-    id: 'reports_10',
-    label: '10 Reports',
-    emoji: '🥈',
-    color: '#8FA3C0',
-    desc: 'Submitted 10 reports',
-    threshold: 10,
-    field: 'report_count' as const,
-  },
-  {
-    id: 'reports_50',
-    label: '50 Reports',
-    emoji: '🥇',
-    color: '#F5A623',
-    desc: 'Submitted 50 reports',
-    threshold: 50,
-    field: 'report_count' as const,
-  },
-  {
-    id: 'reports_100',
-    label: '100 Reports',
-    emoji: '💎',
-    color: '#F5A623',
-    desc: 'Submitted 100 reports',
-    threshold: 100,
-    field: 'report_count' as const,
-  },
-  {
-    id: 'delay_master',
-    label: 'Delay Master',
-    emoji: '⏱️',
-    color: '#E8394B',
-    desc: 'Accurate delay reporter',
-    threshold: 10,
-    field: 'report_count' as const,
-  },
-  {
-    id: 'helpful_traveler',
-    label: 'Helpful Traveler',
-    emoji: '👍',
-    color: '#00A859',
-    desc: 'Received helpful votes from travelers',
-    threshold: 10,
-    field: 'helpful_vote_count' as const,
-  },
-  {
-    id: 'diamond_contributor',
-    label: 'Diamond Contributor',
-    emoji: '💠',
-    color: '#A855F7',
-    desc: 'Elite community member',
-    threshold: 100,
-    field: 'helpful_vote_count' as const,
-  },
-] as const;
-
-// Determine which core badge the user holds based on trust score
-function getCoreBadgeId(trustScore: number): string {
-  if (trustScore >= 90) return 'ambassador';
-  if (trustScore >= 75) return 'station_expert';
-  if (trustScore >= 50) return 'verified_traveler';
-  if (trustScore >= 20) return 'contributor';
-  return 'explorer';
-}
-
-function BadgesContent() {
+export default function BadgesReputationScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const colors = useThemeColors();
-  const s = useMemo(() => createStyles(colors), [colors]);
-  const { user } = useAuthStore();
-
-  const trustScore = user?.trust_score ?? 0;
-  const reportCount = user?.report_count ?? 0;
-  const helpfulCount = user?.helpful_vote_count ?? 0;
-  const currentCoreBadgeId = getCoreBadgeId(trustScore);
-
-  const isAchievementUnlocked = (badge: typeof ACHIEVEMENT_BADGES[number]) => {
-    const val = badge.field === 'report_count' ? reportCount : helpfulCount;
-    return val >= badge.threshold;
-  };
-
   return (
-    <View style={s.root}>
-      {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <Text style={s.title}>Badges & Achievements</Text>
-          <Text style={s.sub}>Every journey. Every report. Every impact.</Text>
+    <SafeAreaView style={br.root}>
+      <View style={br.header}>
+        <TouchableOpacity style={br.backBtn} onPress={() => router.back()} />
+        <View>
+          <Text style={br.title}>Badges & Reputation</Text>
+          <Text style={br.subtitle}>Track your progress and unlock badges</Text>
         </View>
+        <TouchableOpacity style={br.infoBtn} />
       </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-      >
-        {/* Current tier card */}
-        {(() => {
-          const current = CORE_BADGES.find(b => b.id === currentCoreBadgeId)!;
-          return (
-            <View style={[s.tierCard, { borderColor: current.color + '40', backgroundColor: current.color + '10' }]}>
-              <Text style={s.tierEmoji}>{current.emoji}</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.tierLabel, { color: current.color }]}>{current.label}</Text>
-                <Text style={s.tierDesc}>Your current tier — keep contributing!</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={br.scroll}>
+        {/* Trust Score */}
+        <View style={br.card}>
+          <View style={br.tsRow}>
+            <View style={br.tsLeft}>
+              <View style={br.tsTitleRow}>
+                <Text style={br.tsTitle}>Trust Score</Text>
+                <View style={br.tsVerified} />
               </View>
-              <View style={[s.trustPill, { backgroundColor: current.color + '20' }]}>
-                <Star size={12} color={current.color} weight="fill" />
-                <Text style={[s.trustPillText, { color: current.color }]}>{trustScore}/100</Text>
+              <View style={br.tsNumRow}>
+                <Text style={br.tsNum}>810</Text>
+                <Text style={br.tsMax}> / 1000</Text>
               </View>
+              <Text style={br.tsLevel}>Level 4  •  Trusted Reporter</Text>
+              <View style={br.tsBarBg}><View style={br.tsBarFill} /></View>
+              <Text style={br.tsProgress}>190 points to reach Level 5</Text>
             </View>
-          );
-        })()}
-
-        {/* ── Core Badges ── */}
-        <Text style={s.sectionLabel}>CORE BADGES</Text>
-        <View style={s.coreGrid}>
-          {CORE_BADGES.map((badge) => {
-            const earned = getCoreBadgeId(trustScore) === badge.id ||
-              CORE_BADGES.findIndex(b => b.id === currentCoreBadgeId) >=
-              CORE_BADGES.findIndex(b => b.id === badge.id);
-            return (
-              <View
-                key={badge.id}
-                style={[
-                  s.coreBadge,
-                  { borderColor: earned ? badge.color + '50' : colors.border },
-                  !earned && s.coreBadgeLocked,
-                ]}
-              >
-                {/* Shield shape top bar */}
-                <View style={[s.shieldAccent, { backgroundColor: earned ? badge.color : colors['text-tertiary'] }]} />
-                <Text style={[s.badgeEmoji, !earned && { opacity: 0.3 }]}>{badge.emoji}</Text>
-                <Text style={[s.badgeName, { color: earned ? badge.color : colors['text-tertiary'] }]}>
-                  {badge.label}
-                </Text>
-                {earned && (
-                  <View style={s.earnedDot}>
-                    <CheckCircle size={14} color={badge.color} weight="fill" />
+            <View style={br.tsStats}>
+              {[['Reports', '63', C.blueTint], ['Verifications', '159', C.greenTint], ['Helpful Votes', '278', C.purpleTint]].map(([l, v, bg]) => (
+                <View key={l} style={br.tsStat}>
+                  <View style={[br.tsStatIcon, { backgroundColor: bg as string }]} />
+                  <View>
+                    <Text style={br.tsStatLabel}>{l}</Text>
+                    <Text style={br.tsStatVal}>{v}</Text>
                   </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
-
-        {/* ── Achievement Badges ── */}
-        <Text style={[s.sectionLabel, { marginTop: 24 }]}>ACHIEVEMENT BADGES</Text>
-        <View style={s.achievementGrid}>
-          {ACHIEVEMENT_BADGES.map((badge) => {
-            const unlocked = isAchievementUnlocked(badge);
-            return (
-              <View
-                key={badge.id}
-                style={[
-                  s.achieveBadge,
-                  { borderColor: unlocked ? badge.color + '50' : colors.border },
-                  !unlocked && s.coreBadgeLocked,
-                ]}
-              >
-                <View style={[
-                  s.achieveCircle,
-                  { borderColor: unlocked ? badge.color : colors['text-tertiary'] + '40',
-                    backgroundColor: unlocked ? badge.color + '15' : colors['bg-elevated'] },
-                ]}>
-                  <Text style={[s.achieveEmoji, !unlocked && { opacity: 0.3 }]}>{badge.emoji}</Text>
                 </View>
-                <Text style={[s.badgeName, { color: unlocked ? badge.color : colors['text-tertiary'] }]}>
-                  {badge.label}
-                </Text>
-                <Text style={s.badgeDesc}>{badge.desc}</Text>
-                {unlocked && (
-                  <View style={[s.unlockedPill, { backgroundColor: badge.color + '20' }]}>
-                    <Text style={[s.unlockedText, { color: badge.color }]}>Earned</Text>
-                  </View>
-                )}
-              </View>
-            );
-          })}
+              ))}
+            </View>
+          </View>
         </View>
-
-        {/* Progress hint */}
-        <View style={s.progressHint}>
-          <Text style={s.progressHintText}>
-            Submit reports and help travelers to unlock more badges.
-          </Text>
+        {/* Progress levels */}
+        <View style={br.card}>
+          <View style={br.sectionHeader}>
+            <Text style={br.sectionTitle}>Your Progress</Text>
+            <TouchableOpacity><Text style={br.viewAll}>How it works?  ›</Text></TouchableOpacity>
+          </View>
+          <View style={br.levelsRow}>
+            {LEVELS.map(lv => (
+              <View key={lv.num} style={br.levelItem}>
+                {lv.current && <View style={br.currentBadge}><Text style={br.currentText}>Current</Text></View>}
+                <View style={[br.levelBadge, { borderColor: lv.color, backgroundColor: lv.current ? C.purpleTint : lv.done ? C.greenTint : C.surface2 }]}>
+                  <Text style={[br.levelStar, { color: lv.color }]}>★</Text>
+                </View>
+                <Text style={br.levelNum}>Level {lv.num}</Text>
+                <Text style={[br.levelName, lv.current && { color: lv.color }]}>{lv.name}</Text>
+                <Text style={br.levelRange}>{lv.range}</Text>
+                {lv.done && <View style={br.doneCheck} />}
+              </View>
+            ))}
+          </View>
+        </View>
+        {/* Badges */}
+        <View style={br.card}>
+          <View style={br.sectionHeader}>
+            <Text style={br.sectionTitle}>Your Badges</Text>
+            <Text style={br.earnedCount}>6 / 12 Badges Earned</Text>
+          </View>
+          <View style={br.badgesGrid}>
+            {BADGES.map((badge, i) => (
+              <View key={badge.name} style={[br.badgeCard, { borderColor: badge.locked ? C.border : badge.color }]}>
+                {!badge.locked && <View style={br.checkMark} />}
+                <View style={[br.badgeIcon, { backgroundColor: badge.bg, borderColor: badge.color }]}>
+                  <Text style={[br.badgeStar, { color: badge.color }]}>★</Text>
+                </View>
+                <Text style={[br.badgeName, badge.locked && { color: C.text2 }]}>{badge.name}</Text>
+                <Text style={br.badgeDesc}>{badge.desc}</Text>
+                <Text style={[br.badgeEarned, badge.locked && { color: C.text3 }]}>
+                  {badge.locked ? '🔒 Locked' : badge.earned}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        {/* CTA */}
+        <View style={br.cta}>
+          <View style={br.ctaIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={br.ctaText}>Your contributions help thousands of travelers make better journey decisions every day.</Text>
+          </View>
+          <TouchableOpacity style={br.ctaBtn}><Text style={br.ctaBtnText}>Keep Contributing!  ›</Text></TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
-export default function BadgesScreen() {
-  return <ErrorBoundary name="Badges"><BadgesContent /></ErrorBoundary>;
-}
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    root:           { flex: 1, backgroundColor: colors['bg-base'] },
-    header:         { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingBottom: 16 },
-    backBtn:        { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-    title:          { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 22, color: colors['text-primary'] },
-    sub:            { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
-
-    tierCard:       { flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1.5, borderRadius: 16, padding: 18, marginBottom: 24 },
-    tierEmoji:      { fontSize: 36 },
-    tierLabel:      { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18 },
-    tierDesc:       { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
-    trustPill:      { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
-    trustPillText:  { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
-
-    sectionLabel:   { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: colors['text-tertiary'], letterSpacing: 1.2, marginBottom: 12, textAlign: 'center' },
-
-    // Core badge grid — 5 across
-    coreGrid:       { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
-    coreBadge:      {
-      width: '18%', minWidth: 56, alignItems: 'center', gap: 6,
-      borderWidth: 1.5, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 4,
-      backgroundColor: colors['bg-card'], overflow: 'hidden',
-    },
-    coreBadgeLocked:{ opacity: 0.45 },
-    shieldAccent:   { position: 'absolute', top: 0, left: 0, right: 0, height: 3, borderRadius: 2 },
-    badgeEmoji:     { fontSize: 26 },
-    badgeName:      { fontFamily: 'Inter_600SemiBold', fontSize: 10, textAlign: 'center', lineHeight: 14 },
-    earnedDot:      { position: 'absolute', top: 6, right: 6 },
-
-    // Achievement badge grid — 3–4 across
-    achievementGrid:{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    achieveBadge:   {
-      width: '30%', flexGrow: 1, alignItems: 'center', gap: 6,
-      borderWidth: 1.5, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 8,
-      backgroundColor: colors['bg-card'],
-    },
-    achieveCircle:  { width: 58, height: 58, borderRadius: 29, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-    achieveEmoji:   { fontSize: 28 },
-    badgeDesc:      { fontFamily: 'Inter_400Regular', fontSize: 10, color: colors['text-tertiary'], textAlign: 'center', lineHeight: 14 },
-    unlockedPill:   { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
-    unlockedText:   { fontFamily: 'Inter_600SemiBold', fontSize: 10 },
-
-    progressHint:   { marginTop: 24, padding: 16, backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors.border },
-    progressHintText:{ fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], textAlign: 'center', lineHeight: 20 },
-  });
+const br = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 17, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  infoBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  tsRow: { flexDirection: 'row', gap: S.lg },
+  tsLeft: { flex: 1, gap: S.sm },
+  tsTitleRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  tsTitle: { fontSize: 14, fontWeight: '600', color: C.white },
+  tsVerified: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 10 },
+  tsNumRow: { flexDirection: 'row', alignItems: 'baseline' },
+  tsNum: { fontSize: 38, fontWeight: '800', color: C.green },
+  tsMax: { fontSize: 16, color: C.text2 },
+  tsLevel: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  tsBarBg: { width: '100%', height: 8, backgroundColor: C.surface2, borderRadius: 4 },
+  tsBarFill: { width: '81%', height: 8, backgroundColor: C.green, borderRadius: 4 },
+  tsProgress: { fontSize: T.sm, color: C.text2 },
+  tsStats: { gap: S.md },
+  tsStat: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  tsStatIcon: { width: 24, height: 24, borderRadius: 12 },
+  tsStatLabel: { fontSize: T.xs, color: C.text2 },
+  tsStatVal: { fontSize: T.md, fontWeight: '700', color: C.white },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  earnedCount: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  levelsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  levelItem: { alignItems: 'center', gap: 6, width: 64 },
+  currentBadge: { backgroundColor: C.purple, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
+  currentText: { fontSize: 8, fontWeight: '700', color: C.white },
+  levelBadge: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  levelStar: { fontSize: 20 },
+  levelNum: { fontSize: T.xs, fontWeight: '700', color: C.white, textAlign: 'center' },
+  levelName: { fontSize: 8, color: C.text2, textAlign: 'center' },
+  levelRange: { fontSize: 8, color: C.text3, textAlign: 'center' },
+  doneCheck: { width: 14, height: 14, backgroundColor: C.greenTint, borderRadius: 7, borderWidth: 1, borderColor: C.green },
+  badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
+  badgeCard: { width: '31%', backgroundColor: C.surface2, borderRadius: 14, borderWidth: 1, padding: S.md, alignItems: 'center', gap: S.xs },
+  checkMark: { width: 20, height: 20, backgroundColor: C.green, borderRadius: 10, alignSelf: 'flex-end' },
+  badgeIcon: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  badgeStar: { fontSize: 24 },
+  badgeName: { fontSize: T.xs, fontWeight: '700', color: C.white, textAlign: 'center' },
+  badgeDesc: { fontSize: 8, color: C.text2, textAlign: 'center' },
+  badgeEarned: { fontSize: 8, fontWeight: '600', color: C.green, textAlign: 'center' },
+  cta: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
+  ctaIcon: { width: 44, height: 44, backgroundColor: C.greenDark, borderRadius: 22 },
+  ctaText: { fontSize: T.sm, color: C.text2 },
+  ctaBtn: { backgroundColor: C.greenDark, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: S.sm },
+  ctaBtnText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+});

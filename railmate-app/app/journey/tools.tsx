@@ -1,144 +1,154 @@
-import React, { useMemo, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Suitcase, BookmarkSimple, BellSimple, ChartBar, Plus, Train, CaretRight } from 'phosphor-react-native';
+// app/journey-tools.tsx
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation, TranslationKey } from '../../i18n';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-// Mock journey data — placeholder pending live trips/stats API
-const UPCOMING = [
-  { id: '1', train: 'Subarna Express', from: 'Dhaka', to: 'Chattogram', date: '15 Jun', time: '06:40', fareClass: 'SHOVON_CHAIR' },
-  { id: '2', train: 'Turna Express', from: 'Sylhet', to: 'Dhaka', date: '20 Jun', time: '08:00', fareClass: 'AC_BERTH' },
+const TRIPS = [
+  { id: '1', from: 'Dhaka', to: 'Chattogram', train: 'Subarna Express #721', date: '21 June 2026', time: '06:40 AM' },
+  { id: '2', from: 'Dhaka', to: 'Sylhet', train: 'Parabat Express #717', date: '28 June 2026', time: '07:15 AM' },
 ];
-const SAVED = [
-  { id: '1', from: 'Dhaka', to: 'Chattogram', alerts: true },
-  { id: '2', from: 'Dhaka', to: 'Sylhet', alerts: false },
-  { id: '3', from: 'Rajshahi', to: 'Dhaka', alerts: true },
+const SAVED_ROUTES = [
+  { from: 'D', to: 'C', name: 'Dhaka → Chattogram', sub: 'Today, 7:45 PM', trains: '8 Trains' },
+  { from: 'D', to: 'S', name: 'Dhaka → Sylhet', sub: '2 days ago', trains: '7 Trains' },
+  { from: 'D', to: 'R', name: 'Dhaka → Rajshahi', sub: '5 days ago', trains: '6 Trains' },
+];
+const REMINDERS = [
+  { train: 'Subarna Express #721', route: 'Dhaka → Chattogram  •  21 June 2026', when: '2 hours before departure', on: true },
+  { train: 'Parabat Express #717', route: 'Dhaka → Sylhet  •  28 June 2026', when: '1 day before departure', on: true },
+];
+const STATS = [
+  { icon: C.greenTint, val: '12', label: 'Total Trips', sub: 'This Year' },
+  { icon: C.blueTint, val: '3,245 km', label: 'Distance', sub: 'This Year' },
+  { icon: C.purpleTint, val: '48h 32m', label: 'Travel Time', sub: 'This Year' },
+  { icon: C.orangeTint, val: '87', label: 'Reports', sub: 'This Year' },
 ];
 
 export default function JourneyToolsScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
-  const [tab, setTab] = useState<'upcoming' | 'completed'>('upcoming');
-
-  const STATS = [
-    ['42', t('journey.stat_journeys')],
-    ['1,240 km', t('journey.stat_distance')],
-    ['8h 20m', t('journey.stat_saved_time')],
-    ['৳12,400', t('journey.stat_spent')],
-  ];
-
   return (
-    <View style={s.root}>
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={20} color={colors['text-primary']} weight="bold" /></Pressable>
-        <Text style={s.title}>{t('journey.title')}</Text>
-        <View style={{ width: 40 }} />
-      </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-
-        {/* My Trips */}
-        <View style={s.section}>
-          <View style={s.sectionHeader}>
-            <Suitcase size={18} color={colors.primary} weight="duotone" />
-            <Text style={s.sectionTitle}>{t('journey.trips')}</Text>
+    <SafeAreaView style={jt.root}>
+      <View style={jt.header}>
+        <View style={jt.headerLeft}>
+          <View style={jt.headerIcon} />
+          <View>
+            <Text style={jt.title}>Journey Tools</Text>
+            <Text style={jt.subtitle}>Plan, manage and track your journeys</Text>
           </View>
-          <View style={s.tabRow}>
-            {(['upcoming', 'completed'] as const).map((tb) => (
-              <Pressable key={tb} style={[s.tabChip, tab === tb && s.tabChipActive]} onPress={() => setTab(tb)}>
-                <Text style={[s.tabText, tab === tb && s.tabTextActive]}>{t(`journey.${tb}` as TranslationKey)}</Text>
-              </Pressable>
-            ))}
-          </View>
-          {tab === 'upcoming' ? UPCOMING.map((trip) => (
-            <View key={trip.id} style={s.tripCard}>
-              <View style={s.tripAccent} />
-              <View style={{ flex: 1 }}>
-                <Text style={s.tripTrain}>{trip.train}</Text>
-                <Text style={s.tripRoute}>{trip.from} → {trip.to}</Text>
-                <Text style={s.tripMeta}>{trip.date} · {trip.time} · {t(`fare.class.${trip.fareClass}` as TranslationKey)}</Text>
-              </View>
-              <Train size={20} color={colors.primary} weight="duotone" />
-            </View>
-          )) : (
-            <View style={s.emptyBox}>
-              <Text style={s.emptyTitle}>{t('journey.no_trips')}</Text>
-              <Text style={s.emptyHint}>{t('journey.no_trips_hint')}</Text>
-            </View>
-          )}
         </View>
-
-        {/* Saved Routes */}
-        <View style={s.section}>
-          <View style={s.sectionHeader}>
-            <BookmarkSimple size={18} color={colors.accent} weight="fill" />
-            <Text style={s.sectionTitle}>{t('journey.saved_routes')}</Text>
-          </View>
-          {SAVED.map((r) => (
-            <View key={r.id} style={s.savedRow}>
-              <View style={s.savedDots}><View style={s.dot} /><View style={s.dotLine} /><View style={s.dot} /></View>
-              <Text style={s.savedText}>{r.from} → {r.to}</Text>
-              <BellSimple size={16} color={r.alerts ? colors.primary : colors['text-tertiary']} weight={r.alerts ? 'fill' : 'regular'} />
-              <CaretRight size={16} color={colors['text-tertiary']} />
+        <TouchableOpacity style={jt.addBtn}><Text style={jt.addBtnText}>+ Add Trip</Text></TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={jt.scroll}>
+        {/* My Trips */}
+        <View style={jt.card}>
+          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>My Trips</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
+          {TRIPS.map(trip => (
+            <View key={trip.id} style={jt.tripCard}>
+              <View style={jt.tripImg} />
+              <View style={{ flex: 1, padding: S.md, gap: 4 }}>
+                <Text style={jt.tripRoute}>{trip.from} → {trip.to}</Text>
+                <Text style={jt.tripTrain}>{trip.train}</Text>
+                <View style={jt.tripMeta}><Text style={jt.tripMetaText}>{trip.date}</Text><Text style={jt.tripMetaText}>{trip.time}</Text></View>
+              </View>
+              <View style={jt.upcomingBadge}><Text style={jt.upcomingText}>Upcoming</Text></View>
             </View>
           ))}
-          <Pressable style={s.addBtn}><Plus size={16} color={colors.primary} /><Text style={s.addBtnText}>{t('journey.add_route')}</Text></Pressable>
+          <TouchableOpacity style={jt.addTripRow}><Text style={jt.addTripText}>+ Add New Trip</Text></TouchableOpacity>
         </View>
-
-        {/* Travel Stats */}
-        <View style={s.section}>
-          <View style={s.sectionHeader}>
-            <ChartBar size={18} color={colors.info} weight="duotone" />
-            <Text style={s.sectionTitle}>{t('journey.stats')}</Text>
-          </View>
-          <View style={s.statsGrid}>
-            {STATS.map(([val, label]) => (
-              <View key={label} style={s.statCard}>
-                <Text style={s.statVal}>{val}</Text>
-                <Text style={s.statLabel}>{label}</Text>
+        {/* Saved Routes */}
+        <View style={jt.card}>
+          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>Saved Routes</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={{ flexDirection: 'row', gap: S.sm }}>
+              {SAVED_ROUTES.map(r => (
+                <View key={r.name} style={jt.routeCard}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={[jt.initCircle, { backgroundColor: C.green }]}><Text style={jt.initText}>{r.from}</Text></View>
+                    <Text style={{ color: C.text2 }}>→</Text>
+                    <View style={[jt.initCircle, { backgroundColor: C.purple }]}><Text style={jt.initText}>{r.to}</Text></View>
+                  </View>
+                  <Text style={jt.routeName}>{r.name}</Text>
+                  <Text style={jt.routeSub}>{r.sub}</Text>
+                  <Text style={jt.routeTrains}>{r.trains}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+        {/* Reminders */}
+        <View style={jt.card}>
+          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>Reminders</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
+          {REMINDERS.map((rem, i) => (
+            <View key={rem.train}>
+              <View style={jt.remRow}>
+                <View style={jt.remIcon} />
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text style={jt.remTrain}>{rem.train}</Text>
+                  <Text style={jt.remRoute}>{rem.route}</Text>
+                  <Text style={jt.remWhen}>{rem.when}</Text>
+                </View>
+                <Switch value={rem.on} trackColor={{ false: C.surface2, true: C.green }} thumbColor={C.white} />
+              </View>
+              {i < REMINDERS.length - 1 && <View style={jt.divider} />}
+            </View>
+          ))}
+        </View>
+        {/* Stats */}
+        <View style={jt.card}>
+          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>Travel Statistics</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
+          <View style={jt.statsRow}>
+            {STATS.map(stat => (
+              <View key={stat.label} style={[jt.statCard, { backgroundColor: stat.icon }]}>
+                <Text style={jt.statVal}>{stat.val}</Text>
+                <Text style={jt.statLabel}>{stat.label}</Text>
+                <Text style={jt.statSub}>{stat.sub}</Text>
               </View>
             ))}
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:          { flex: 1, backgroundColor: colors['bg-base'] },
-  header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 16 },
-  backBtn:       { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  title:         { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 20, color: colors['text-primary'] },
-  section:       { marginBottom: 28 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
-  sectionTitle:  { fontFamily: 'Inter_600SemiBold', fontSize: 18, color: colors['text-primary'] },
-  tabRow:        { flexDirection: 'row', gap: 8, marginBottom: 14 },
-  tabChip:       { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  tabChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  tabText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-  tabTextActive: { color: colors['text-inverse'] },
-  tripCard:      { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 16, marginBottom: 10, overflow: 'hidden' },
-  tripAccent:    { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: colors.primary },
-  tripTrain:     { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-primary'] },
-  tripRoute:     { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
-  tripMeta:      { fontFamily: 'JetBrainsMono_400Regular', fontSize: 12, color: colors['text-tertiary'], marginTop: 4 },
-  emptyBox:      { backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 24, alignItems: 'center' },
-  emptyTitle:    { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-primary'], marginBottom: 6 },
-  emptyHint:     { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], textAlign: 'center' },
-  savedRow:      { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8, gap: 12 },
-  savedDots:     { alignItems: 'center' },
-  dot:           { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.primary },
-  dotLine:       { width: 2, height: 12, backgroundColor: colors.border, marginVertical: 2 },
-  savedText:     { flex: 1, fontFamily: 'Inter_500Medium', fontSize: 14, color: colors['text-primary'] },
-  addBtn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderColor: colors.primary, borderStyle: 'dashed', borderRadius: 12, paddingVertical: 13, marginTop: 4 },
-  addBtnText:    { fontFamily: 'Inter_500Medium', fontSize: 14, color: colors.primary },
-  statsGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  statCard:      { flex: 1, minWidth: '44%', backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 18, alignItems: 'center' },
-  statVal:       { fontFamily: 'PlusJakartaSans_800ExtraBold', fontSize: 22, color: colors.primary, marginBottom: 4 },
-  statLabel:     { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-secondary'] },
+const jt = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: S.xl, paddingVertical: S.md },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  headerIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 10 },
+  title: { fontSize: T.lg, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
+  addBtn: { backgroundColor: C.surface2, borderRadius: 20, padding: S.sm, paddingHorizontal: S.md },
+  addBtnText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  tripCard: { flexDirection: 'row', backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, overflow: 'hidden', alignItems: 'center' },
+  tripImg: { width: 80, height: 72, backgroundColor: C.bg },
+  tripRoute: { fontSize: 14, fontWeight: '700', color: C.white },
+  tripTrain: { fontSize: T.sm, color: C.text2 },
+  tripMeta: { flexDirection: 'row', gap: S.md },
+  tripMetaText: { fontSize: T.xs, color: C.text3 },
+  upcomingBadge: { backgroundColor: C.blueTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4, margin: S.md },
+  upcomingText: { fontSize: T.xs, fontWeight: '600', color: C.blue },
+  addTripRow: { alignItems: 'center', paddingVertical: S.sm },
+  addTripText: { fontSize: T.base, fontWeight: '600', color: C.green },
+  initCircle: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  initText: { fontSize: T.sm, fontWeight: '700', color: C.bg },
+  routeCard: { width: 120, backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md, gap: 6 },
+  routeName: { fontSize: T.xs, fontWeight: '600', color: C.white },
+  routeSub: { fontSize: 8, color: C.text2 },
+  routeTrains: { fontSize: T.xs, color: C.green },
+  remRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
+  remIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 10 },
+  remTrain: { fontSize: T.base, fontWeight: '700', color: C.white },
+  remRoute: { fontSize: T.sm, color: C.text2 },
+  remWhen: { fontSize: T.xs, fontWeight: '600', color: C.green },
+  divider: { height: 1, backgroundColor: C.border },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
+  statCard: { width: '47.5%', borderRadius: R.md, padding: S.md, gap: 4 },
+  statVal: { fontSize: 14, fontWeight: '700', color: C.white },
+  statLabel: { fontSize: T.xs, color: C.white },
+  statSub: { fontSize: 8, color: C.text2 },
 });

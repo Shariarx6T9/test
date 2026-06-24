@@ -1,282 +1,173 @@
-// app/station/[id].tsx
-// Station Info — matches Image 4 (station info screen)
-// Live Supabase data replacing the previous 2-station hardcoded mock.
+// app/station-information.tsx
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-import React, { useMemo } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Linking,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
-import {
-  ArrowLeft, Phone, MapPin, Train, WifiHigh, Coffee,
-  Toilet, Ticket, Clock, CaretRight,
-} from 'phosphor-react-native';
-import { supabase } from '../../lib/supabase';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+const FACILITIES = ['Waiting Room', 'Ticket Counter', 'Washroom', 'Food Court', 'Drinking Water', 'Parking'];
+const TRAINS = [
+  { num: 1, name: 'Subarna Express (701)', route: 'Comilla → Dhaka', time: '08:00 AM', freq: 'Daily' },
+  { num: 2, name: 'Mohananagar Express (721)', route: 'Comilla → Dhaka', time: '10:30 AM', freq: 'Daily' },
+  { num: 3, name: 'Turna Express (741)', route: 'Comilla → Dhaka', time: '04:20 PM', freq: 'Daily' },
+];
 
-interface Station {
-  id: string;
-  name_en: string;
-  name_bn: string;
-  code: string;
-  division: string | null;
-  district: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  address: string | null;
-  phone: string | null;
-  photo_url: string | null;
-  has_wifi: boolean;
-  has_waiting_room: boolean;
-  has_food: boolean;
-  has_parking: boolean;
-  has_toilet: boolean;
-  has_ticket_counter: boolean;
-}
-
-interface PopularTrain {
-  id: string;
-  name_en: string;
-  name_bn: string;
-  number: string;
-}
-
-async function fetchStation(id: string): Promise<Station | null> {
-  const { data, error } = await supabase
-    .from('stations')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data as Station | null;
-}
-
-async function fetchPopularTrains(stationId: string): Promise<PopularTrain[]> {
-  // Get trains that stop at this station via train_stops join
-  const { data, error } = await supabase
-    .from('train_stops')
-    .select('train:trains!train_stops_train_id_fkey(id, name_en, name_bn, number)')
-    .eq('station_id', stationId)
-    .limit(5);
-
-  if (error) return [];
-  return ((data ?? []).map((r: any) => r.train).filter(Boolean)) as PopularTrain[];
-}
-
-const FACILITY_DEFS = [
-  { key: 'has_wifi',           Icon: WifiHigh,     label: 'Wi-Fi' },
-  { key: 'has_waiting_room',   Icon: Clock,        label: 'Waiting Room' },
-  { key: 'has_food',           Icon: Coffee,       label: 'Food & Drinks' },
-  { key: 'has_parking',        Icon: MapPin,  label: 'Parking' },
-  { key: 'has_toilet',         Icon: Toilet,       label: 'Toilets' },
-  { key: 'has_ticket_counter', Icon: Ticket,       label: 'Ticket Counter' },
-] as const;
-
-function StationContent() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+export default function StationInformationScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const colors = useThemeColors();
-  const s = useMemo(() => createStyles(colors), [colors]);
-
-  const { data: station, isLoading } = useQuery({
-    queryKey: ['station', id],
-    queryFn: () => fetchStation(id ?? ''),
-    enabled: !!id,
-  });
-
-  const { data: trains } = useQuery({
-    queryKey: ['station_trains', id],
-    queryFn: () => fetchPopularTrains(id ?? ''),
-    enabled: !!id,
-    staleTime: 300_000,
-  });
-
-  const handleCall = () => {
-    if (station?.phone) Linking.openURL(`tel:${station.phone}`);
-  };
-
-  const handleDirections = () => {
-    if (station?.latitude && station?.longitude) {
-      Linking.openURL(
-        `https://maps.google.com/?q=${station.latitude},${station.longitude}`
-      );
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <View style={[s.root, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
-    );
-  }
-
-  if (!station) {
-    return (
-      <View style={[s.root, { alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
-        <Text style={{ fontFamily: 'Inter_500Medium', fontSize: 16, color: colors['text-secondary'], textAlign: 'center' }}>
-          Station not found.
-        </Text>
-        <Pressable style={{ marginTop: 16 }} onPress={() => router.back()}>
-          <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>Go Back</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  const facilities = FACILITY_DEFS.filter(f => (station as any)[f.key]);
-
   return (
-    <View style={s.root}>
-      {/* Header with photo placeholder */}
-      <View style={[s.hero, { paddingTop: insets.top }]}>
-        <View style={s.heroOverlay} />
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color="#fff" weight="bold" />
-        </Pressable>
-        <View style={s.heroText}>
-          <View style={s.codePill}>
-            <Text style={s.codeText}>{station.code}</Text>
-          </View>
-          <Text style={s.heroName}>{station.name_en}</Text>
-          <Text style={s.heroBn}>{station.name_bn}</Text>
-          {station.district && (
-            <View style={s.locationRow}>
-              <MapPin size={14} color="rgba(255,255,255,0.7)" />
-              <Text style={s.locationText}>
-                {station.district}{station.division ? `, ${station.division}` : ''}
-              </Text>
-            </View>
-          )}
+    <SafeAreaView style={si.root}>
+      <View style={si.header}>
+        <TouchableOpacity style={si.backBtn} onPress={() => router.back()} />
+        <View style={si.headerTitle}>
+          <View style={si.headerIcon} />
+          <Text style={si.title}>Station Information</Text>
         </View>
+        <TouchableOpacity style={si.shareBtn} />
       </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-      >
-        {/* Quick actions */}
-        <View style={s.actionRow}>
-          {station.latitude && station.longitude && (
-            <Pressable style={s.actionBtn} onPress={handleDirections}>
-              <MapPin size={18} color={colors.primary} weight="fill" />
-              <Text style={s.actionText}>Directions</Text>
-            </Pressable>
-          )}
-          {station.phone && (
-            <Pressable style={s.actionBtn} onPress={handleCall}>
-              <Phone size={18} color={colors.primary} weight="fill" />
-              <Text style={s.actionText}>Call Station</Text>
-            </Pressable>
-          )}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={si.scroll}>
+        {/* Station name */}
+        <View style={si.nameRow}>
+          <View>
+            <Text style={si.stationName}>Comilla Railway Station</Text>
+            <Text style={si.stationBn}>Comilla Railway Station</Text>
+          </View>
+          <View style={si.ratingBox}>
+            <Text style={si.ratingStar}>⭐</Text>
+            <Text style={si.ratingNum}>4.3</Text>
+            <Text style={si.ratingCount}>(256 reviews)</Text>
+          </View>
         </View>
-
+        {/* Photo */}
+        <View style={si.stationPhoto} />
         {/* Facilities */}
-        {facilities.length > 0 && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Facilities</Text>
-            <View style={s.facilitiesGrid}>
-              {facilities.map(({ Icon, label, key }) => (
-                <View key={key} style={s.facilityChip}>
-                  <Icon size={18} color={colors.primary} weight="duotone" />
-                  <Text style={s.facilityLabel}>{label}</Text>
+        <View style={si.card}>
+          <View style={si.sectionHeader}>
+            <Text style={si.sectionTitle}>Facilities</Text>
+            <TouchableOpacity><Text style={si.viewAll}>View All</Text></TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={si.facilitiesRow}>
+              {FACILITIES.map(f => (
+                <View key={f} style={si.facilityItem}>
+                  <View style={si.facilityIcon} />
+                  <Text style={si.facilityLabel}>{f}</Text>
                 </View>
               ))}
             </View>
-          </View>
-        )}
-
-        {/* Popular Trains */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Popular Trains</Text>
-          {(trains ?? []).length === 0 ? (
-            <Text style={s.emptyText}>No train data available.</Text>
-          ) : (
-            (trains ?? []).map(train => (
-              <Pressable
-                key={train.id}
-                style={s.trainRow}
-                onPress={() => router.push({ pathname: '/train/[id]' as any, params: { id: train.id } })}
-              >
-                <View style={s.trainIconWrap}>
-                  <Train size={18} color={colors.primary} weight="duotone" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={s.trainName}>{train.name_en}</Text>
-                  <Text style={s.trainNum}>#{train.number}</Text>
-                </View>
-                <CaretRight size={16} color={colors['text-tertiary']} />
-              </Pressable>
-            ))
-          )}
+          </ScrollView>
         </View>
-
-        {/* Address */}
-        {station.address && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Address</Text>
-            <View style={s.infoCard}>
-              <MapPin size={16} color={colors['text-secondary']} />
-              <Text style={s.infoText}>{station.address}</Text>
+        {/* Directions */}
+        <View style={si.card}>
+          <View style={si.dirRow}>
+            <View style={{ flex: 1 }}>
+              <View style={si.dirTitleRow}>
+                <View style={si.dirIcon} />
+                <Text style={si.dirTitle}>Directions</Text>
+              </View>
+              <Text style={si.dirAddress}>Railway Road, Comilla Sadar,{'\n'}Comilla 3500, Bangladesh</Text>
             </View>
+            <View style={si.mapPreview} />
           </View>
-        )}
-
+          <TouchableOpacity style={si.openMapBtn}><Text style={si.openMapText}>Open in Maps ↗</Text></TouchableOpacity>
+        </View>
+        {/* Popular trains */}
+        <View style={si.card}>
+          <View style={si.sectionHeader}>
+            <Text style={si.sectionTitle}>Popular Trains from Comilla</Text>
+            <TouchableOpacity><Text style={si.viewAll}>View All</Text></TouchableOpacity>
+          </View>
+          {TRAINS.map((train, i) => (
+            <View key={train.num}>
+              <View style={si.trainRow}>
+                <View style={si.trainNumBadge}><Text style={si.trainNumText}>{train.num}</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={si.trainName}>{train.name}</Text>
+                  <Text style={si.trainRoute}>{train.route}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={si.trainTime}>{train.time}</Text>
+                  <Text style={si.trainFreq}>{train.freq}</Text>
+                </View>
+                <View style={si.chevron} />
+              </View>
+              {i < TRAINS.length - 1 && <View style={si.divider} />}
+            </View>
+          ))}
+        </View>
         {/* Contact */}
-        {station.phone && (
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Contact</Text>
-            <Pressable style={s.infoCard} onPress={handleCall}>
-              <Phone size={16} color={colors.primary} />
-              <Text style={[s.infoText, { color: colors.primary }]}>{station.phone}</Text>
-            </Pressable>
-          </View>
-        )}
+        <View style={si.card}>
+          <Text style={si.sectionTitle}>Contact</Text>
+          {[['Station Master Office', '081-67122'], ['comillarailway.gov.bd', '']].map(([l, v], i, arr) => (
+            <View key={l}>
+              <View style={si.contactRow}>
+                <View style={si.contactIcon} />
+                <View style={{ flex: 1 }}>
+                  <Text style={si.contactLabel}>{l}</Text>
+                  {v ? <Text style={si.contactVal}>{v}</Text> : null}
+                </View>
+                <View style={si.extIcon} />
+              </View>
+              {i < arr.length - 1 && <View style={si.divider} />}
+            </View>
+          ))}
+        </View>
+        <View style={si.noteCard}>
+          <Text style={si.noteText}>ℹ Information is community verified. Please help keep it up to date.</Text>
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
-export default function StationScreen() {
-  return <ErrorBoundary name="Station Info"><StationContent /></ErrorBoundary>;
-}
+const si = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  headerTitle: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  headerIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 8 },
+  title: { fontSize: 17, fontWeight: '700', color: C.white },
+  shareBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  stationName: { fontSize: 17, fontWeight: '700', color: C.white },
+  stationBn: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  ratingBox: { alignItems: 'center' },
+  ratingStar: { fontSize: 16 },
+  ratingNum: { fontSize: 14, fontWeight: '700', color: C.white },
+  ratingCount: { fontSize: T.xs, color: C.text2 },
+  stationPhoto: { width: '100%', height: 180, backgroundColor: C.surface2, borderRadius: R.lg },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  facilitiesRow: { flexDirection: 'row', gap: S.sm },
+  facilityItem: { alignItems: 'center', gap: S.xs, width: 70 },
+  facilityIcon: { width: 48, height: 48, backgroundColor: C.surface2, borderRadius: R.md },
+  facilityLabel: { fontSize: T.xs, color: C.text2, textAlign: 'center' },
+  dirRow: { flexDirection: 'row', gap: S.md },
+  dirTitleRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.sm },
+  dirIcon: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 10 },
+  dirTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  dirAddress: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
+  mapPreview: { width: 80, height: 72, backgroundColor: C.blueTint, borderRadius: 10 },
+  openMapBtn: { backgroundColor: C.surface2, borderRadius: 10, paddingVertical: S.md, alignItems: 'center', borderWidth: 1, borderColor: C.border },
+  openMapText: { fontSize: T.sm, fontWeight: '600', color: C.white },
+  trainRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
+  trainNumBadge: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  trainNumText: { fontSize: T.sm, fontWeight: '700', color: C.green },
+  trainName: { fontSize: T.base, fontWeight: '600', color: C.white },
+  trainRoute: { fontSize: T.sm, color: C.text2, marginTop: 1 },
+  trainTime: { fontSize: T.sm, fontWeight: '600', color: C.white },
+  trainFreq: { fontSize: T.xs, color: C.text2, marginTop: 1 },
+  chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
+  divider: { height: 1, backgroundColor: C.border },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
+  contactIcon: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14 },
+  contactLabel: { fontSize: T.base, fontWeight: '600', color: C.white },
+  contactVal: { fontSize: T.sm, fontWeight: '600', color: C.green, marginTop: 2 },
+  extIcon: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 10 },
+  noteCard: { backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md },
+  noteText: { fontSize: T.sm, color: C.text2, textAlign: 'center' },
+});
 
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    root:           { flex: 1, backgroundColor: colors['bg-base'] },
 
-    hero:           { height: 220, backgroundColor: '#0A1628', justifyContent: 'space-between', padding: 20 },
-    heroOverlay:    { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,168,89,0.15)' },
-    backBtn:        { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
-    heroText:       { gap: 4 },
-    codePill:       { alignSelf: 'flex-start', backgroundColor: 'rgba(0,168,89,0.25)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(0,168,89,0.4)' },
-    codeText:       { fontFamily: 'JetBrainsMono_400Regular', fontSize: 12, color: '#00A859' },
-    heroName:       { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 24, color: '#fff' },
-    heroBn:         { fontFamily: 'Inter_400Regular', fontSize: 16, color: 'rgba(255,255,255,0.7)' },
-    locationRow:    { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
-    locationText:   { fontFamily: 'Inter_400Regular', fontSize: 13, color: 'rgba(255,255,255,0.7)' },
-
-    actionRow:      { flexDirection: 'row', gap: 12, marginBottom: 24 },
-    actionBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingVertical: 14 },
-    actionText:     { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors.primary },
-
-    section:        { marginBottom: 24 },
-    sectionTitle:   { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-primary'], marginBottom: 12 },
-
-    facilitiesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    facilityChip:   { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-    facilityLabel:  { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-primary'] },
-
-    trainRow:       { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 14, marginBottom: 10 },
-    trainIconWrap:  { width: 38, height: 38, borderRadius: 19, backgroundColor: colors['primary-subtle'], alignItems: 'center', justifyContent: 'center' },
-    trainName:      { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-primary'] },
-    trainNum:       { fontFamily: 'JetBrainsMono_400Regular', fontSize: 12, color: colors['text-secondary'], marginTop: 2 },
-    emptyText:      { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-tertiary'] },
-
-    infoCard:       { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 16 },
-    infoText:       { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], flex: 1, lineHeight: 22 },
-  });
+// ─────────────────────────────────────────────────────────────────────────────

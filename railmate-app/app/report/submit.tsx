@@ -1,267 +1,164 @@
-// app/report/submit.tsx
-// Community report submission — connected to live Supabase via useSubmitReport.
-
-import React, { useMemo, useState } from 'react';
-import {
-  View, ScrollView, Pressable, StyleSheet, Text, TextInput,
-  Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Warning, Users, Gauge, Train, MapPin, Camera, CheckCircle } from 'phosphor-react-native';
+// app/submit-report.tsx
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation } from '../../i18n';
-import { useSubmitReport } from '../../hooks/useCommunityReports';
-import { useAuthStore } from '../../stores/authStore';
-import type { ReportType } from '../../types/report.types';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
+
+const STEPS = ['Train', 'Report Type', 'Details', 'Review', 'Submit'];
+const POPULAR_TRAINS = [
+  { num: '701', name: 'Subarna Express', active: true },
+  { num: '721', name: 'Mohanagar Express', active: false },
+  { num: '741', name: 'Turna Express', active: false },
+  { num: '...', name: 'More', active: false },
+];
 
 export default function SubmitReportScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
-  const { user, isAuthenticated } = useAuthStore();
-
-  const TYPES = useMemo(
-    () => [
-      { key: 'DELAY' as ReportType,    label: t('report.type_delay'),    icon: Warning, color: colors.accent },
-      { key: 'CROWD' as ReportType,    label: t('report.type_crowd'),    icon: Users,   color: colors.danger },
-      { key: 'PLATFORM' as ReportType, label: t('report.type_platform'), icon: Train,   color: colors.primary },
-      { key: 'GENERAL' as ReportType,  label: t('report.type_general'),  icon: Gauge,   color: colors.info },
-    ],
-    [t, colors]
-  );
-
-  const [reportType, setReportType] = useState<ReportType | null>(null);
-  const [description, setDescription] = useState('');
-  const [locationLabel, setLocationLabel] = useState<string | null>(null);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [delayMinutes, setDelayMinutes] = useState('');
-
-  const { mutate: submitReport, isPending: submitting } = useSubmitReport();
-
-  // Guard: redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <View style={[s.root, { alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
-        <Text style={{ fontFamily: 'Inter_500Medium', fontSize: 16, color: colors['text-primary'], textAlign: 'center', marginBottom: 20 }}>
-          {t('auth.sign_in')}
-        </Text>
-        <Pressable style={s.submitBtn} onPress={() => router.push('/auth/login' as any)}>
-          <Text style={s.submitText}>{t('auth.sign_in')}</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  const getLocation = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('', t('report.location_permission'));
-      return;
-    }
-    try {
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const [place] = await Location.reverseGeocodeAsync({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-      });
-      setLocationLabel(place?.city ?? place?.district ?? place?.region ?? t('report.tag_location'));
-    } catch {
-      Alert.alert('', 'Could not get your location. Please try again.');
-    }
-  };
-
-  const addPhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('', t('auth.permission_message'));
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [4, 3],
-    });
-    if (!result.canceled && result.assets?.[0]?.uri) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!reportType) {
-      Alert.alert('', t('report.select_type_error'));
-      return;
-    }
-    if (!description.trim() && reportType === 'GENERAL') {
-      Alert.alert('', 'Please add a description for general reports.');
-      return;
-    }
-
-    const delay = reportType === 'DELAY' ? parseInt(delayMinutes, 10) : undefined;
-
-    submitReport(
-      {
-        data: {
-          report_type: reportType,
-          description: description.trim() || null,
-          delay_minutes: !isNaN(delay ?? NaN) ? delay : null,
-          journey_date: new Date().toISOString().split('T')[0],
-        },
-        photoUri: photoUri ?? undefined,
-      },
-      {
-        onSuccess: () => {
-          Alert.alert(t('report.submit_success'), t('report.submit_thanks'), [
-            { text: t('report.done'), onPress: () => router.back() },
-          ]);
-        },
-        onError: (err) => {
-          Alert.alert('Submission failed', err.message);
-        },
-      }
-    );
-  };
+  const [step] = useState(0);
+  const [selectedTrain, setSelectedTrain] = useState('701');
 
   return (
-    <KeyboardAvoidingView
-      style={s.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
-        <Text style={s.title}>{t('report.title')}</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 140 }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Type selector */}
-        <Text style={s.label}>{t('report.type_label')}</Text>
-        <View style={s.typeGrid}>
-          {TYPES.map(({ key, label, icon: Icon, color }) => {
-            const active = reportType === key;
-            return (
-              <Pressable
-                key={key}
-                style={[s.typeCard, active && { backgroundColor: color + '18', borderColor: color }]}
-                onPress={() => setReportType(key)}
-              >
-                <View style={[s.typeIcon, { backgroundColor: active ? color + '25' : colors['bg-elevated'] }]}>
-                  <Icon size={22} color={active ? color : colors['text-tertiary']} weight={active ? 'fill' : 'duotone'} />
-                </View>
-                <Text style={[s.typeLabel, active && { color }]}>{label}</Text>
-                {active && (
-                  <CheckCircle
-                    size={16}
-                    color={color}
-                    weight="fill"
-                    style={{ position: 'absolute', top: 10, right: 10 }}
-                  />
-                )}
-              </Pressable>
-            );
-          })}
+    <SafeAreaView style={sr.root}>
+      <View style={sr.header}>
+        <TouchableOpacity style={sr.backBtn} onPress={() => router.back()} />
+        <View>
+          <Text style={sr.title}>Submit Report</Text>
+          <Text style={sr.subtitle}>Help fellow travelers by sharing real-time updates</Text>
         </View>
-
-        {/* Delay minutes — only for DELAY type */}
-        {reportType === 'DELAY' && (
-          <View style={s.field}>
-            <Text style={s.label}>{t('report.delay_label')}</Text>
-            <TextInput
-              style={s.input}
-              value={delayMinutes}
-              onChangeText={(v) => setDelayMinutes(v.replace(/[^0-9]/g, ''))}
-              placeholder={t('report.delay_placeholder')}
-              placeholderTextColor={colors['text-tertiary']}
-              keyboardType="numeric"
-              maxLength={3}
-            />
+      </View>
+      {/* Stepper */}
+      <View style={sr.stepper}>
+        {STEPS.map((s, i) => (
+          <View key={s} style={sr.stepItem}>
+            {i > 0 && <View style={[sr.stepLine, i <= step && { backgroundColor: C.green }]} />}
+            <View style={[sr.stepCircle, i === step ? sr.stepCircleActive : i < step ? sr.stepCircleDone : {}]}>
+              <Text style={[sr.stepNum, i <= step && { color: i === step ? C.bg : C.green }]}>{i + 1}</Text>
+            </View>
+            <Text style={[sr.stepLabel, i === step && { color: C.green }]}>{s}</Text>
           </View>
-        )}
-
-        {/* Description */}
-        <View style={s.field}>
-          <Text style={s.label}>{t('report.notes_label')}</Text>
-          <TextInput
-            style={[s.input, s.textarea]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder={t('report.notes_placeholder')}
-            placeholderTextColor={colors['text-tertiary']}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            maxLength={500}
-          />
-          <Text style={s.charCount}>{description.length}/500</Text>
-        </View>
-
-        {/* Location tag */}
-        <Pressable style={s.locationRow} onPress={getLocation}>
-          <MapPin
-            size={18}
-            color={locationLabel ? colors.primary : colors['text-secondary']}
-            weight={locationLabel ? 'fill' : 'regular'}
-          />
-          <Text style={[s.locationText, locationLabel && { color: colors.primary }]}>
-            {locationLabel ?? t('report.tag_location')}
-          </Text>
-          {locationLabel && <CheckCircle size={16} color={colors.primary} weight="fill" />}
-        </Pressable>
-
-        {/* Photo */}
-        <Pressable style={[s.photoBtn, !!photoUri && { borderColor: colors.primary }]} onPress={addPhoto}>
-          <Camera size={18} color={photoUri ? colors.primary : colors.primary} />
-          <Text style={s.photoBtnText}>
-            {photoUri ? 'Photo added ✓' : t('report.add_photo')}
-          </Text>
-        </Pressable>
-      </ScrollView>
-
-      <View style={s.footer}>
-        <Pressable
-          style={[s.submitBtn, (!reportType || submitting) && { opacity: 0.5 }]}
-          onPress={handleSubmit}
-          disabled={!reportType || submitting}
-        >
-          {submitting
-            ? <ActivityIndicator color={colors['text-inverse']} />
-            : <Text style={s.submitText}>{t('report.submit')}</Text>}
-        </Pressable>
+        ))}
       </View>
-    </KeyboardAvoidingView>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={sr.scroll}>
+        {/* Tip */}
+        <View style={sr.tipCard}>
+          <View style={sr.tipIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={sr.tipTitle}>Your report makes a difference!</Text>
+            <Text style={sr.tipSub}>Verified reports help thousands of travelers every day.</Text>
+          </View>
+          <TouchableOpacity><Text style={{ color: C.text3, fontSize: 18 }}>×</Text></TouchableOpacity>
+        </View>
+        {/* Step 1 */}
+        <View style={sr.card}>
+          <View style={sr.stepHeader}>
+            <View style={sr.stepIcon} />
+            <View>
+              <Text style={sr.stepTitle}>Step 1: Select Train</Text>
+              <Text style={sr.stepDesc}>Choose the train you want to report on</Text>
+            </View>
+          </View>
+          <View style={sr.searchField}>
+            <View style={sr.searchDot} />
+            <Text style={sr.searchPlaceholder}>Search by train name or number</Text>
+          </View>
+          <Text style={sr.popularLabel}>Popular Trains</Text>
+          <View style={sr.popularRow}>
+            {POPULAR_TRAINS.map(train => (
+              <TouchableOpacity
+                key={train.num}
+                style={[sr.trainChip, selectedTrain === train.num && sr.trainChipActive]}
+                onPress={() => setSelectedTrain(train.num)}
+              >
+                <View style={sr.trainChipIcon} />
+                <Text style={[sr.trainChipNum, selectedTrain === train.num && { color: C.green }]}>{train.num}</Text>
+                <Text style={sr.trainChipName}>{train.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={sr.orText}>OR</Text>
+          <View style={sr.numberField}>
+            <Text style={sr.numHash}>#</Text>
+            <Text style={sr.numPlaceholder}>e.g., 701</Text>
+          </View>
+        </View>
+        {/* Selected */}
+        <View style={sr.selectedCard}>
+          <View style={sr.selectedIcon} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={sr.selectedName}>Subarna Express (701)</Text>
+            <Text style={sr.selectedRoute}>Dhaka → Chattogram</Text>
+            <View style={sr.selectedMeta}>
+              <Text style={sr.selectedMetaText}>Departs 08:00 AM</Text>
+              <Text style={sr.selectedMetaText}>Duration 5h 45m</Text>
+              <Text style={sr.selectedMetaText}>Runs Daily</Text>
+            </View>
+          </View>
+          <Text style={sr.typeText}>Intercity</Text>
+        </View>
+        {/* Tip box */}
+        <View style={sr.reportingTip}>
+          <View style={sr.tipIconSmall} />
+          <View style={{ flex: 1 }}>
+            <Text style={sr.reportingTipTitle}>Reporting Tips</Text>
+            <Text style={sr.reportingTipSub}>Be accurate and specific. Include delay time, station name and other details in next steps.</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={sr.continueBtn}>
+          <Text style={sr.continueBtnText}>Continue</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    root:         { flex: 1, backgroundColor: colors['bg-base'] },
-    header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 16 },
-    backBtn:      { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-    title:        { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 20, color: colors['text-primary'] },
-    label:        { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'], marginBottom: 10, marginTop: 4 },
-    typeGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-    typeCard:     { width: '47%', flexGrow: 1, backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1.5, borderColor: colors.border, padding: 16, alignItems: 'center', gap: 10 },
-    typeIcon:     { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    typeLabel:    { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-secondary'] },
-    field:        { marginBottom: 16 },
-    input:        { backgroundColor: colors['bg-card'], borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 14, fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-primary'] },
-    textarea:     { minHeight: 100, paddingTop: 14 },
-    charCount:    { fontFamily: 'Inter_400Regular', fontSize: 11, color: colors['text-tertiary'], textAlign: 'right', marginTop: 4 },
-    locationRow:  { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors['bg-card'], borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 16, marginBottom: 14 },
-    locationText: { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'] },
-    photoBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, borderWidth: 1.5, borderColor: colors.primary, borderStyle: 'dashed', borderRadius: 12, paddingVertical: 14, marginBottom: 14 },
-    photoBtnText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: colors.primary },
-    footer:       { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors['bg-base'], padding: 20, paddingBottom: 36, borderTopWidth: 1, borderTopColor: colors.border },
-    submitBtn:    { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-    submitText:   { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: colors['text-inverse'] },
-  });
+const sr = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 17, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: S.xl, paddingVertical: S.md, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border },
+  stepItem: { alignItems: 'center', gap: 4 },
+  stepLine: { width: 24, height: 2, backgroundColor: C.border, position: 'absolute', right: '100%', top: 12 },
+  stepCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
+  stepCircleActive: { backgroundColor: C.green, borderColor: C.green },
+  stepCircleDone: { borderColor: C.green },
+  stepNum: { fontSize: T.base, fontWeight: '700', color: C.text2 },
+  stepLabel: { fontSize: T.xs, color: C.text2, textAlign: 'center' },
+  tipCard: { backgroundColor: C.greenTint, borderRadius: R.md, borderWidth: 1, borderColor: C.greenDark, padding: S.md, flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  tipIcon: { width: 32, height: 32, backgroundColor: C.greenDark, borderRadius: 16 },
+  tipTitle: { fontSize: T.sm, fontWeight: '700', color: C.green },
+  tipSub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.xl, gap: S.md },
+  stepHeader: { flexDirection: 'row', alignItems: 'center', gap: S.md },
+  stepIcon: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14 },
+  stepTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  stepDesc: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  searchField: { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: C.surface2, borderRadius: R.md, padding: S.md, borderWidth: 1, borderColor: C.border },
+  searchDot: { width: 20, height: 20, backgroundColor: C.border, borderRadius: 10 },
+  searchPlaceholder: { fontSize: T.base, color: C.text3 },
+  popularLabel: { fontSize: T.sm, fontWeight: '600', color: C.text2 },
+  popularRow: { flexDirection: 'row', gap: S.sm },
+  trainChip: { flex: 1, backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.sm, alignItems: 'center', gap: 6 },
+  trainChipActive: { backgroundColor: C.greenTint, borderColor: C.green },
+  trainChipIcon: { width: 28, height: 28, backgroundColor: C.bg, borderRadius: 14 },
+  trainChipNum: { fontSize: T.sm, fontWeight: '700', color: C.white },
+  trainChipName: { fontSize: 8, color: C.text2, textAlign: 'center' },
+  orText: { textAlign: 'center', fontSize: T.sm, color: C.text3 },
+  numberField: { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: C.surface2, borderRadius: R.md, padding: S.md, borderWidth: 1, borderColor: C.border },
+  numHash: { fontSize: 14, fontWeight: '700', color: C.text2 },
+  numPlaceholder: { fontSize: T.base, color: C.text3 },
+  selectedCard: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.green, padding: S.lg },
+  selectedIcon: { width: 48, height: 48, backgroundColor: C.greenTint, borderRadius: 24 },
+  selectedName: { fontSize: 14, fontWeight: '700', color: C.white },
+  selectedRoute: { fontSize: T.sm, color: C.text2 },
+  selectedMeta: { flexDirection: 'row', gap: S.md },
+  selectedMetaText: { fontSize: T.xs, color: C.text3 },
+  typeText: { fontSize: T.sm, fontWeight: '600', color: C.blue },
+  reportingTip: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md },
+  tipIconSmall: { width: 28, height: 28, backgroundColor: C.blueTint, borderRadius: 14 },
+  reportingTipTitle: { fontSize: T.sm, fontWeight: '700', color: C.blue },
+  reportingTipSub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
+  continueBtn: { backgroundColor: C.green, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  continueBtnText: { fontSize: T.md, fontWeight: '700', color: C.bg },
+});

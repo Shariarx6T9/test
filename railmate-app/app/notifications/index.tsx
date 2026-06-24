@@ -1,99 +1,109 @@
-import React, { useMemo, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, BellSimple, Warning, Users, CheckCircle, Calendar, Trash } from 'phosphor-react-native';
+// app/notifications.tsx
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation, TranslationKey } from '../../i18n';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-const GROUP_KEYS = ['all', 'delay', 'crowding', 'verified', 'schedule'] as const;
-type GroupKey = typeof GROUP_KEYS[number];
+type NotifFilter = 'All' | 'Alerts' | 'Community' | 'Updates' | 'System';
+interface NotifItem { id: string; icon: string; iconBg: string; title: string; desc: string; time: string; read: boolean; sub?: string; }
+
+const FILTERS: { label: NotifFilter; color: string; bg: string }[] = [
+  { label: 'All', color: C.green, bg: C.greenTint },
+  { label: 'Alerts', color: C.red, bg: C.redTint },
+  { label: 'Community', color: C.purple, bg: C.purpleTint },
+  { label: 'Updates', color: C.blue, bg: C.blueTint },
+  { label: 'System', color: C.orange, bg: C.orangeTint },
+];
+
+const GROUPS = [
+  { label: 'Today', markAll: true, items: [
+    { id: '1', icon: '⚠', iconBg: C.redTint, title: 'Delay Alert', desc: 'Subarna Express (721) is delayed by 20 minutes at Tongi station.', time: '9:25 AM', read: false, sub: 'Dhaka → Chattogram' },
+    { id: '2', icon: '✓', iconBg: C.purpleTint, title: 'Community Verification', desc: 'Your delay report for Mohanagar Express has been verified by 6 travelers.', time: '8:48 AM', read: false, sub: 'Sylhet → Dhaka' },
+    { id: '3', icon: '📅', iconBg: C.blueTint, title: 'Schedule Update', desc: 'New timetable published for Silk City Express (775). Check the updated schedule now.', time: '7:30 AM', read: false },
+  ]},
+  { label: 'Yesterday', markAll: false, items: [
+    { id: '4', icon: '★', iconBg: C.orangeTint, title: 'Badge Earned', desc: 'Congratulations! You earned the "Helpful Traveler" badge for 25 helpful votes.', time: 'Yesterday, 9:12 PM', read: true },
+    { id: '5', icon: '🔔', iconBg: C.greenTint, title: 'Reminder', desc: "Don't forget! You have a trip tomorrow.", time: 'Yesterday, 6:00 PM', read: true, sub: 'Intercity 710  •  Dhaka → Rajshahi  •  7:45 AM' },
+  ]},
+];
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
-
-  // Mock notification feed — placeholder pending live notifications API
-  const NOTIFICATIONS = useMemo(() => [
-    { id: '1', groupKey: 'delay' as GroupKey, icon: Warning, color: colors.accent, title: 'Subarna Express delayed', body: '25 min delay reported by 8 travelers on the Dhaka–Chattogram route.', time: '5m ago', read: false },
-    { id: '2', groupKey: 'crowding' as GroupKey, icon: Users, color: colors.danger, title: 'High crowding — Turna Express', body: 'S-Chair coaches full. Consider AC coach if available.', time: '18m ago', read: false },
-    { id: '3', groupKey: 'verified' as GroupKey, icon: CheckCircle, color: colors.primary, title: 'Your report was verified', body: 'Your delay report for Mahanagar Express was confirmed by 5 travelers.', time: '1h ago', read: true },
-    { id: '4', groupKey: 'schedule' as GroupKey, icon: Calendar, color: colors.info, title: 'Schedule change — Parabat Exp', body: 'Departure time changed from 10:30 to 11:00 for tomorrow.', time: '3h ago', read: true },
-    { id: '5', groupKey: 'delay' as GroupKey, icon: Warning, color: colors.accent, title: 'Egarosindhur Express — 40 min', body: 'Long delay due to signal failure near Narsingdi.', time: '5h ago', read: true },
-  ], [colors]);
-
-  const [filter, setFilter] = useState<GroupKey>('all');
-  const filtered = NOTIFICATIONS.filter((n) => filter === 'all' || n.groupKey === filter);
-  const unread = NOTIFICATIONS.filter((n) => !n.read).length;
-
+  const [active, setActive] = useState<NotifFilter>('All');
   return (
-    <View style={s.root}>
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
+    <SafeAreaView style={ns.root}>
+      <View style={ns.header}>
+        <TouchableOpacity style={ns.backBtn} onPress={() => router.back()} />
         <View>
-          <Text style={s.title}>{t('notifications.title')}</Text>
-          {unread > 0 && <Text style={s.unreadCount}>{t('notifications.unread', { count: unread })}</Text>}
+          <Text style={ns.title}>Notifications</Text>
+          <Text style={ns.subtitle}>Stay informed, travel better</Text>
         </View>
-        <Pressable hitSlop={12}><Trash size={20} color={colors['text-tertiary']} /></Pressable>
+        <View style={ns.headerRight}>
+          <TouchableOpacity style={ns.iconBtn} />
+          <TouchableOpacity style={ns.iconBtn} />
+        </View>
       </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>
-        {GROUP_KEYS.map((g) => (
-          <Pressable key={g} style={[s.filterChip, filter === g && s.filterActive]} onPress={() => setFilter(g)}>
-            <Text style={[s.filterText, filter === g && s.filterActiveText]}>{t(`notifications.${g}` as TranslationKey)}</Text>
-          </Pressable>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ns.filterRow} contentContainerStyle={{ paddingHorizontal: S.xl, gap: S.sm }}>
+        {FILTERS.map(f => (
+          <TouchableOpacity key={f.label} style={[ns.chip, active === f.label && { backgroundColor: f.bg, borderColor: f.color }]} onPress={() => setActive(f.label)}>
+            <Text style={[ns.chipText, active === f.label && { color: f.color, fontWeight: '700' }]}>{f.label}</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
-
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {filtered.length === 0 ? (
-          <View style={s.empty}>
-            <BellSimple size={48} color={colors['text-tertiary']} weight="thin" />
-            <Text style={s.emptyText}>{t('notifications.empty')}</Text>
-          </View>
-        ) : filtered.map((n) => (
-          <View key={n.id} style={[s.card, !n.read && s.cardUnread]}>
-            <View style={[s.iconWrap, { backgroundColor: n.color + '18' }]}>
-              <n.icon size={20} color={n.color} weight="fill" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={ns.scroll}>
+        {GROUPS.map(group => (
+          <View key={group.label} style={ns.group}>
+            <View style={ns.groupHeader}>
+              <Text style={ns.groupLabel}>{group.label}</Text>
+              {group.markAll && <TouchableOpacity><Text style={ns.markAll}>Mark all as read</Text></TouchableOpacity>}
             </View>
-            <View style={{ flex: 1, marginLeft: 14 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                <Text style={[s.cardTitle, !n.read && { color: colors['text-primary'] }]} numberOfLines={1}>{n.title}</Text>
-                {!n.read && <View style={s.dot} />}
-              </View>
-              <Text style={s.cardBody} numberOfLines={2}>{n.body}</Text>
-              <Text style={s.time}>{n.time}</Text>
-            </View>
+            {group.items.map((item, i) => (
+              <TouchableOpacity key={item.id} style={ns.notifCard} activeOpacity={0.8}>
+                <View style={[ns.notifIcon, { backgroundColor: item.iconBg }]} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <View style={ns.notifTop}>
+                    <Text style={ns.notifTitle}>{item.title}</Text>
+                    <View style={ns.notifMeta}>
+                      <Text style={ns.notifTime}>{item.time}</Text>
+                      <View style={[ns.readDot, { backgroundColor: item.read ? C.text3 : C.green }]} />
+                    </View>
+                  </View>
+                  <Text style={ns.notifDesc}>{item.desc}</Text>
+                  {item.sub && <Text style={ns.notifSub}>{item.sub}</Text>}
+                </View>
+                <View style={ns.chevron} />
+              </TouchableOpacity>
+            ))}
           </View>
         ))}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:            { flex: 1, backgroundColor: colors['bg-base'] },
-  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 },
-  backBtn:         { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  title:           { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 20, color: colors['text-primary'] },
-  unreadCount:     { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors.primary, marginTop: 2 },
-  filters:         { paddingHorizontal: 20, gap: 8, paddingBottom: 16 },
-  filterChip:      { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  filterActive:    { backgroundColor: colors.primary, borderColor: colors.primary },
-  filterText:      { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-  filterActiveText:{ color: colors['text-inverse'] },
-  card:            { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 16, marginBottom: 10 },
-  cardUnread:      { borderColor: colors.primary + '4D', backgroundColor: colors['primary-subtle'] },
-  iconWrap:        { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  cardTitle:       { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-secondary'], flex: 1, marginRight: 8 },
-  cardBody:        { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], lineHeight: 20, marginBottom: 6 },
-  time:            { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
-  dot:             { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary, marginTop: 3 },
-  empty:           { alignItems: 'center', justifyContent: 'center', paddingTop: 80, gap: 12 },
-  emptyText:       { fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-tertiary'] },
+const ns = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.sm, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 18, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, fontWeight: '600', color: C.green, marginTop: 2 },
+  headerRight: { flexDirection: 'row', gap: S.sm },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  filterRow: { marginBottom: S.md },
+  chip: { backgroundColor: C.surface, borderRadius: 20, paddingHorizontal: S.md, paddingVertical: 8, borderWidth: 1, borderColor: C.border },
+  chipText: { fontSize: T.sm, color: C.text2 },
+  group: { gap: S.sm },
+  groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: S.sm },
+  groupLabel: { fontSize: T.base, fontWeight: '700', color: C.text2 },
+  markAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  notifCard: { backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: S.lg, flexDirection: 'row', alignItems: 'flex-start', gap: S.md },
+  notifIcon: { width: 44, height: 44, borderRadius: 22 },
+  notifTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  notifTitle: { fontSize: T.base, fontWeight: '700', color: C.white },
+  notifMeta: { flexDirection: 'row', alignItems: 'center', gap: S.xs },
+  notifTime: { fontSize: T.xs, color: C.text3 },
+  readDot: { width: 8, height: 8, borderRadius: 4 },
+  notifDesc: { fontSize: T.sm, color: C.text2, lineHeight: 18 },
+  notifSub: { fontSize: T.xs, color: C.text3 },
+  chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
 });

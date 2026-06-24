@@ -1,202 +1,222 @@
-import React, { useMemo, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, Text, Switch, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BellSimple, Warning, Info, Shield, Plus, CheckCircle, Users, Clock } from 'phosphor-react-native';
+// app/(tabs)/live.tsx — Live Updates Screen
+
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation, TranslationKey } from '../../i18n';
-import { useAuthStore } from '../../stores/authStore';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-const FILTER_KEYS = ['filter_all', 'filter_active', 'filter_past'] as const;
-type FilterKey = typeof FILTER_KEYS[number];
+type FilterTab = 'All' | 'Active' | 'Delays' | 'Alerts' | 'Past';
 
-// Illustrative sample data — replaced by live data once the alerts API
-// endpoint is implemented. Dates/messages are intentionally static.
-const MOCK_UPDATES = [
-  {
-    id: '1', type: 'departure' as const, trainName: 'Subarna Express', trainNum: '#721',
-    Icon: BellSimple, msgParams: { mins: 30 },
-    date: '13 June, 06:40', time: '9:10 PM', filterKey: 'filter_active' as FilterKey,
-  },
-  {
-    id: '2', type: 'delay' as const, trainName: 'Turna Express', trainNum: '#762',
-    Icon: Warning, msgParams: { mins: 25 }, confirmations: 8,
-    date: '13 June, 08:15', time: '8:20 PM', filterKey: 'filter_active' as FilterKey,
-  },
-  {
-    id: '3', type: 'schedule' as const, trainName: 'Mahanagar Express', trainNum: '#236',
-    Icon: Info, msgParams: undefined,
-    date: '13 June, 12:30', time: '7:45 PM', filterKey: 'filter_active' as FilterKey,
-  },
+interface LiveUpdate {
+  id: string;
+  trainName: string;
+  trainNumber: string;
+  route: string;
+  time: string;
+  reportedAgo: string;
+  travelers: number;
+  type: 'delay' | 'crowding' | 'ontime' | 'announcement';
+  statusText: string;
+  statusColor: string;
+  statusBg: string;
+  note?: string;
+  announcement?: boolean;
+}
+
+const UPDATES: LiveUpdate[] = [
+  { id: '1', trainName: 'Subarna Express', trainNumber: '#721', route: 'Dhaka (Kamlapur) → Chattogram', time: '9:35 PM', reportedAgo: 'Reported 8 min ago', travelers: 8, type: 'delay', statusText: '15 min delay', statusColor: C.red, statusBg: C.redTint, note: undefined },
+  { id: '2', trainName: 'Mahanagar Express', trainNumber: '#236', route: 'Dhaka → Chattogram', time: '9:28 PM', reportedAgo: 'Reported 12 min ago', travelers: 12, type: 'crowding', statusText: 'Crowding High', statusColor: C.orange, statusBg: C.orangeTint, note: 'High passenger load in Coach 3-5' },
+  { id: '3', trainName: 'Sonar Bangla Express', trainNumber: '#787', route: 'Dhaka → Rajshahi', time: '9:25 PM', reportedAgo: 'Updated 5 min ago', travelers: 6, type: 'ontime', statusText: 'Running On Time', statusColor: C.green, statusBg: C.greenTint, note: 'On schedule. Next stop: Ishwardi Bypass' },
+  { id: '4', trainName: 'Platform Change', trainNumber: '#131', route: 'Kanchanjungha Express - Chattogram Railway Station', time: '9:15 PM', reportedAgo: 'Official Announcement', travelers: 0, type: 'announcement', statusText: 'Platform 3', statusColor: C.blue, statusBg: C.blueTint, announcement: true },
+  { id: '5', trainName: 'Temporary Service Halt', trainNumber: '#707', route: 'Tista Express - Joydebpur to Bangabandhu Bridge', time: '8:58 PM', reportedAgo: 'Official Announcement', travelers: 0, type: 'announcement', statusText: 'Service Halted', statusColor: C.orange, statusBg: C.orangeTint, announcement: true },
 ];
 
-function UpdatesContent() {
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
+const STATS = [
+  { val: '12', label: 'Delay Reports', sub: 'Active Now', bg: C.redTint },
+  { val: '7', label: 'Crowding Alerts', sub: 'Active Now', bg: C.orangeTint },
+  { val: '5', label: 'Trains On Time', sub: 'Running Smooth', bg: C.greenTint },
+  { val: '3', label: 'Service Alerts', sub: 'Announcements', bg: C.blueTint },
+];
+
+const DEPARTURES = [
+  { time: '10:00 PM', name: 'Turag Express #748', route: 'Dhaka → Tongi' },
+  { time: '10:20 PM', name: 'Parabat Express #717', route: 'Dhaka → Sylhet' },
+  { time: '10:40 PM', name: 'Subarna Express #721', route: 'Dhaka → Chattogram' },
+  { time: '11:00 PM', name: 'Mahanagar Express #236', route: 'Dhaka → Chattogram' },
+];
+
+export default function LiveUpdatesScreen() {
   const router = useRouter();
-  const s = useMemo(() => createStyles(colors), [colors]);
-  const { isAuthenticated } = useAuthStore();
-
-  const TYPE_META: Record<typeof MOCK_UPDATES[number]['type'], { label: string; msg: string; color: string }> = {
-    departure: { label: t('updates.departure'), msg: t('updates.leaves_in', { mins: 30 }), color: colors.primary },
-    delay:     { label: t('updates.delay'),     msg: t('updates.min_delay',  { mins: 25 }), color: colors.accent },
-    schedule:  { label: t('updates.schedule'),  msg: t('updates.schedule_updated'),          color: colors.info },
-  };
-
-  const [filter, setFilter] = useState<FilterKey>('filter_all');
-  const [toggleStates, setToggleStates] = useState<Record<string, boolean>>({ '1': true, '2': true, '3': true });
-
-  const filtered = MOCK_UPDATES.filter((u) => filter === 'filter_all' || u.filterKey === filter);
-
-  const handleCreateAlert = () => {
-    if (!isAuthenticated) {
-      Alert.alert('', t('auth.sign_in'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('auth.sign_in'), onPress: () => router.push('/auth/login' as any) },
-      ]);
-      return;
-    }
-    router.push('/report/submit' as any);
-  };
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
+  const filters: FilterTab[] = ['All', 'Active', 'Delays', 'Alerts', 'Past'];
 
   return (
-    <View style={s.root}>
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <View>
-          <Text style={s.title}>{t('updates.title')}</Text>
-          <Text style={s.sub}>{t('updates.sub')}</Text>
-        </View>
-        <View style={s.bellWrap}>
-          <BellSimple size={20} color={colors['text-secondary']} weight="regular" />
-          <View style={s.badge}>
-            <Text style={s.badgeText}>{filtered.length}</Text>
+    <SafeAreaView style={s.root}>
+      {/* Header */}
+      <View style={s.header}>
+        <View style={s.headerLeft}>
+          <View style={s.headerIcon} />
+          <View>
+            <Text style={s.title}>Live Updates</Text>
+            <Text style={s.subtitle}>Real-time train status & alerts</Text>
           </View>
+        </View>
+        <View style={s.headerRight}>
+          <TouchableOpacity style={s.iconBtn} />
+          <TouchableOpacity style={s.iconBtn} />
         </View>
       </View>
 
-      <View style={s.filters}>
-        {FILTER_KEYS.map((f) => (
-          <Pressable
-            key={f}
-            style={[s.filterChip, filter === f && s.filterChipActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={[s.filterText, filter === f && s.filterTextActive]}>
-              {t(`updates.${f}` as TranslationKey)}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
-        {filtered.length === 0 ? (
-          <View style={{ alignItems: 'center', paddingTop: 60 }}>
-            <BellSimple size={48} color={colors['text-tertiary']} weight="thin" />
-            <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-tertiary'], marginTop: 12 }}>
-              {t('updates.empty_body')}
-            </Text>
-          </View>
-        ) : filtered.map((u) => {
-          const meta = TYPE_META[u.type];
-          return (
-            <View key={u.id} style={s.card}>
-              <View style={[s.cardAccent, { backgroundColor: meta.color }]} />
-              <View style={s.cardTop}>
-                <View style={[s.iconWrap, { backgroundColor: meta.color + '20' }]}>
-                  <u.Icon size={22} color={meta.color} weight="fill" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 14 }}>
-                  <Text style={[s.cardLabel, { color: meta.color }]}>{meta.label}</Text>
-                  <Text style={s.cardTrain}>{u.trainName} {u.trainNum}</Text>
-                </View>
-                <Switch
-                  value={toggleStates[u.id]}
-                  onValueChange={(v) => setToggleStates({ ...toggleStates, [u.id]: v })}
-                  trackColor={{ false: colors.border, true: colors.primary + '60' }}
-                  thumbColor={toggleStates[u.id] ? colors.primary : colors['text-tertiary']}
-                  style={{ transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }] }}
-                />
-              </View>
-              <View style={s.cardBody}>
-                <View style={s.statusRow}>
-                  <View style={[s.statusDot, { backgroundColor: meta.color }]} />
-                  <Text style={[s.statusMsg, { color: meta.color }]}>{meta.msg}</Text>
-                </View>
-                {u.confirmations != null && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                    <Users size={12} color={colors['text-tertiary']} />
-                    <Text style={s.confirm}>
-                      {t('updates.confirmed_by', { count: u.confirmations })}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <View style={s.cardFooter}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Clock size={12} color={colors['text-tertiary']} />
-                  <Text style={s.footerDate}>{u.date}</Text>
-                </View>
-                <Text style={s.footerTime}>{u.time}</Text>
-              </View>
+        {/* Filter tabs */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterScroll}>
+          {filters.map((f) => (
+            <TouchableOpacity
+              key={f}
+              style={[s.filterTab, activeFilter === f && s.filterTabActive]}
+              onPress={() => setActiveFilter(f)}
+            >
+              <Text style={[s.filterText, activeFilter === f && s.filterTextActive]}>{f}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Stats grid */}
+        <View style={s.statsGrid}>
+          {STATS.map((stat) => (
+            <View key={stat.label} style={[s.statCard, { backgroundColor: stat.bg }]}>
+              <Text style={s.statVal}>{stat.val}</Text>
+              <Text style={s.statLabel}>{stat.label}</Text>
+              <Text style={s.statSub}>{stat.sub}</Text>
             </View>
-          );
-        })}
-
-        <View style={s.infoCard}>
-          <Shield size={28} color={colors.primary} weight="duotone" />
-          <View style={{ flex: 1, marginLeft: 14 }}>
-            <Text style={s.infoTitle}>{t('updates.info_title')}</Text>
-            <Text style={s.infoSub}>{t('updates.info_sub')}</Text>
-          </View>
-          <CheckCircle size={22} color={colors.primary} weight="fill" />
+          ))}
         </View>
-      </ScrollView>
 
-      <Pressable style={s.fab} onPress={handleCreateAlert}>
-        <Plus size={20} color={colors['text-inverse']} weight="bold" />
-        <Text style={s.fabText}>{t('updates.create')}</Text>
-      </Pressable>
-    </View>
+        {/* Live updates section */}
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Live Train Updates</Text>
+            <Text style={s.lastUpdated}>Last updated: 9:41 PM</Text>
+          </View>
+
+          {UPDATES.map((update) => (
+            <TouchableOpacity
+              key={update.id}
+              style={s.updateCard}
+              onPress={() => router.push({ pathname: '/report-detail', params: { id: update.id } })}
+              activeOpacity={0.8}
+            >
+              <View style={s.updateTop}>
+                <View style={[s.updateImg, { borderColor: update.statusColor }]} />
+                <View style={{ flex: 1 }}>
+                  <View style={s.updateTitleRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.updateName}>{update.trainName} {update.trainNumber}</Text>
+                      <Text style={s.updateRoute}>{update.route}</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={s.updateTime}>{update.time}</Text>
+                      <Text style={s.updateReported}>{update.reportedAgo}</Text>
+                    </View>
+                  </View>
+                  <View style={[s.statusBadge, { backgroundColor: update.statusBg }]}>
+                    <Text style={[s.statusText, { color: update.statusColor }]}>{update.statusText}</Text>
+                  </View>
+                  {update.note && <Text style={s.updateNote}>{update.note}</Text>}
+                  {update.travelers > 0 && (
+                    <Text style={s.travelersText}>{update.travelers} travelers confirmed</Text>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Upcoming departures */}
+        <View style={s.section}>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>Upcoming Departures</Text>
+            <TouchableOpacity><Text style={s.viewAll}>View All</Text></TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={s.departureRow}>
+              {DEPARTURES.map((dep) => (
+                <View key={dep.name} style={s.departureCard}>
+                  <Text style={s.depTime}>{dep.time}</Text>
+                  <View style={s.depImg} />
+                  <Text style={s.depName}>{dep.name}</Text>
+                  <Text style={s.depRoute}>{dep.route}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Alerts CTA */}
+        <View style={s.alertsBanner}>
+          <View style={s.alertsIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.alertsTitle}>Stay Informed, Travel Smart</Text>
+            <Text style={s.alertsSub}>Enable live alerts for your favorite routes</Text>
+          </View>
+          <TouchableOpacity style={s.alertsBtn}>
+            <Text style={s.alertsBtnText}>Manage Alerts</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-export default function UpdatesScreen() {
-  return <ErrorBoundary name="Live Updates"><UpdatesContent /></ErrorBoundary>;
-}
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    root:             { flex: 1, backgroundColor: colors['bg-base'] },
-    header:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, paddingBottom: 16 },
-    title:            { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, color: colors['text-primary'] },
-    sub:              { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], marginTop: 3 },
-    bellWrap:         { width: 44, height: 44, borderRadius: 22, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-    badge:            { position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-    badgeText:        { fontFamily: 'Inter_600SemiBold', fontSize: 10, color: colors['text-inverse'] },
-    filters:          { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 4 },
-    filterChip:       { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-    filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-    filterText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-    filterTextActive: { color: colors['text-inverse'] },
-    card:             { backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 14, overflow: 'hidden' },
-    cardAccent:       { height: 3 },
-    cardTop:          { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 12 },
-    iconWrap:         { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    cardLabel:        { fontFamily: 'Inter_500Medium', fontSize: 12, letterSpacing: 0.3, marginBottom: 3 },
-    cardTrain:        { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: colors['text-primary'] },
-    cardBody:         { paddingHorizontal: 16, paddingBottom: 12 },
-    statusRow:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    statusDot:        { width: 8, height: 8, borderRadius: 4 },
-    statusMsg:        { fontFamily: 'Inter_500Medium', fontSize: 13 },
-    confirm:          { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'] },
-    cardFooter:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.border },
-    footerDate:       { fontFamily: 'JetBrainsMono_400Regular', fontSize: 12, color: colors['text-tertiary'] },
-    footerTime:       { fontFamily: 'JetBrainsMono_400Regular', fontSize: 12, color: colors['text-tertiary'] },
-    infoCard:         { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 18, marginBottom: 14 },
-    infoTitle:        { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-primary'], marginBottom: 4 },
-    infoSub:          { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], lineHeight: 20 },
-    fab:              { position: 'absolute', bottom: 90, right: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.primary, borderRadius: 28, paddingHorizontal: 22, paddingVertical: 15, elevation: 8, shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12 },
-    fabText:          { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
-  });
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.xl, paddingBottom: 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: S.xl, paddingVertical: S.md },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  headerIcon: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14 },
+  title: { fontSize: T.lg, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
+  headerRight: { flexDirection: 'row', gap: S.sm },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  filterScroll: { marginBottom: -S.sm },
+  filterTab: { backgroundColor: C.surface, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: S.sm },
+  filterTabActive: { backgroundColor: C.green },
+  filterText: { fontSize: T.sm, fontWeight: '500', color: C.text2 },
+  filterTextActive: { fontWeight: '700', color: C.bg },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
+  statCard: { width: '47.5%', borderRadius: R.md, padding: S.md, alignItems: 'center', gap: 4 },
+  statVal: { fontSize: 20, fontWeight: '700', color: C.white },
+  statLabel: { fontSize: T.sm, fontWeight: '600', color: C.white, textAlign: 'center' },
+  statSub: { fontSize: 8, color: C.text2, textAlign: 'center' },
+  section: { gap: S.md },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  lastUpdated: { fontSize: T.sm, color: C.text2 },
+  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  updateCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
+  updateTop: { flexDirection: 'row', gap: S.md },
+  updateImg: { width: 56, height: 56, backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 2 },
+  updateTitleRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: S.sm },
+  updateName: { fontSize: T.base, fontWeight: '700', color: C.white },
+  updateRoute: { fontSize: T.sm, color: C.text2, marginTop: 1 },
+  updateTime: { fontSize: T.sm, fontWeight: '600', color: C.white, textAlign: 'right' },
+  updateReported: { fontSize: 9, color: C.text3, textAlign: 'right', marginTop: 1 },
+  statusBadge: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4, marginBottom: S.sm },
+  statusText: { fontSize: T.sm, fontWeight: '700' },
+  updateNote: { fontSize: T.sm, color: C.text2 },
+  travelersText: { fontSize: T.xs, color: C.green, marginTop: 4 },
+  departureRow: { flexDirection: 'row', gap: S.sm },
+  departureCard: { width: 100, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md, gap: S.sm },
+  depTime: { fontSize: T.sm, fontWeight: '700', color: C.white },
+  depImg: { width: '100%', height: 56, backgroundColor: C.surface2, borderRadius: 8 },
+  depName: { fontSize: T.xs, fontWeight: '600', color: C.white },
+  depRoute: { fontSize: 8, color: C.text2 },
+  alertsBanner: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
+  alertsIcon: { width: 44, height: 44, backgroundColor: C.greenDark, borderRadius: 22 },
+  alertsTitle: { fontSize: T.base, fontWeight: '700', color: C.white },
+  alertsSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  alertsBtn: { backgroundColor: C.green, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: S.sm },
+  alertsBtnText: { fontSize: T.sm, fontWeight: '700', color: C.bg },
+});

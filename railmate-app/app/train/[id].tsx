@@ -1,342 +1,205 @@
-import React, { useMemo } from 'react';
-import {
-  View, ScrollView, ActivityIndicator, Pressable,
-  StyleSheet, Text, ImageBackground, StatusBar,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ArrowLeft, BookmarkSimple, Bookmark, Train,
-  Warning, Users, ChatCircleDots, Bell, Ticket,
-  Armchair, Bed, Snowflake,
-} from 'phosphor-react-native';
-import { useTrainDetail, useTrainFares } from '../../hooks/useTrainDetail';
-import { useSearchStore } from '../../stores/searchStore';
-import { useSavedRoutes } from '../../hooks/useSavedRoutes';
-import { useThemeColors, useResolvedTheme, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation } from '../../i18n';
-import { formatTime } from '../../utils/formatTime';
-import { formatFare } from '../../utils/formatFare';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+// app/train-detail.tsx — Train Detail Screen
 
-// Train hero image - night moody Bangladesh train
-const TRAIN_IMAGE = 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800&q=80&auto=format&fit=crop';
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-// Text/icon color for content overlaid on the photographic hero image.
-// Fixed (theme-independent) since the hero always sits on a dark gradient
-// overlay regardless of light/dark app theme.
-const ON_IMAGE_TEXT = '#F0F4FF';
-const ON_IMAGE_TEXT_SECONDARY = '#8FA3C0';
-const ON_IMAGE_TEXT_TERTIARY = '#4E6480';
+const STOPS = [
+  { time: '06:40', station: 'Kamlapur Railway Station', stationBn: 'Dhaka (Kamlapur)', tag: 'Start', active: true },
+  { time: '07:15', station: 'Narayanganj', stationBn: 'Narayanganj', stop: '15 min stop', active: false },
+  { time: '08:30', station: 'Brahmanbaria', stationBn: 'Brahmanbaria', stop: '5 min stop', active: false },
+  { time: '09:45', station: 'Cumilla', stationBn: 'Cumilla', stop: '10 min stop', active: false },
+  { time: '11:15', station: 'Chattogram Railway Station', stationBn: 'Chattogram', tag: 'End', active: true },
+];
 
-const FARE_ICONS: Record<string, any> = {
-  SHOVON: Armchair, SHOVON_CHAIR: Armchair, SNIGDHA: Bed,
-  AC_BERTH: Bed, AC_SEAT: Snowflake, FIRST_BERTH: Bed,
-  FIRST_SEAT: Armchair, AC_S_CHAIR: Snowflake,
-};
-
-// Computes minutes between two "HH:MM:SS" timestamps from the SAME verified
-// train_stops row — this is arithmetic on real data, not estimation.
-function minutesBetween(arriveTime: string, departTime: string): number {
-  const [ah, am] = arriveTime.slice(0, 5).split(':').map(Number);
-  const [dh, dm] = departTime.slice(0, 5).split(':').map(Number);
-  const arriveMins = ah * 60 + am;
-  const departMins = dh * 60 + dm;
-  return departMins >= arriveMins ? departMins - arriveMins : 0;
-}
-
-function TrainDetailContent() {
+export default function TrainDetailScreen() {
   const router = useRouter();
-  const { id, fromId, toId } = useLocalSearchParams<{ id: string; fromId?: string; toId?: string }>();
-  const { t, locale } = useTranslation();
-  const isBengali = locale === 'bn';
-
-  const colors = useThemeColors();
-  const theme = useResolvedTheme();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
-
-  const { date } = useSearchStore();
-  const { savedRoutes, saveRoute, deleteRoute, isRouteSaved } = useSavedRoutes();
-
-  // `id` here is the train number (display/join key, e.g. "735"), not a UUID —
-  // TrainCard navigates with String(train.train_number).
-  const trainNumber = id;
-  const { data: train, isLoading } = useTrainDetail(trainNumber!);
-  const { data: fares, isLoading: faresLoading } = useTrainFares({
-    trainId: id, fromStationId: fromId || '', toStationId: toId || '',
-  });
-
-  const isBookmarked = fromId && toId ? isRouteSaved(fromId, toId) : false;
-
-  const handleBookmark = async () => {
-    if (!fromId || !toId || !train) return;
-    if (isBookmarked) {
-      const r = savedRoutes.find((r) => r.fromStation.id === fromId && r.toStation.id === toId);
-      if (r) await deleteRoute(r.id);
-    } else {
-      // station.id is a UUID string in the canonical schema, matching what
-      // saved routes already store.
-      const origin = train.stops.find((s) => s.station.id === fromId)?.station;
-      const dest   = train.stops.find((s) => s.station.id === toId)?.station;
-      if (origin && dest) {
-        await saveRoute(
-          { id: origin.id, name_en: origin.name_en, name_bn: origin.name_bn, code: origin.code },
-          { id: dest.id,   name_en: dest.name_en,   name_bn: dest.name_bn,   code: dest.code },
-        );
-      }
-    }
-  };
-
-  const handleJoinDiscussion = () => router.push('/(tabs)/community' as any);
-
-  if (isLoading) {
-    return (
-      <View style={[s.root, s.center]}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
-    );
-  }
-
-  if (!train) {
-    return (
-      <View style={[s.root, s.center]}>
-        <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors['bg-base']} />
-        <Text style={s.errorText}>{t('train.not_found')}</Text>
-        <Pressable style={s.backBtnFull} onPress={() => router.back()}>
-          <Text style={s.backBtnText}>{t('common.go_back')}</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  // Bilingual train name (canonical schema has name_en/name_bn, not a single name field).
-  const trainTitle = `${isBengali ? train.name_bn : train.name_en} #${train.number}`;
-  // origin/destination are joined Station objects on the canonical schema.
-  const originName = train.origin ? (isBengali ? train.origin.name_bn : train.origin.name_en) : '';
-  const destName    = train.destination ? (isBengali ? train.destination.name_bn : train.destination.name_en) : '';
-  const routeStr = `${originName} → ${destName}`;
-
-  // Tier 1 / Tier 2: a train with zero stops rows has no verified timetable
-  // yet. This is NOT an error state — show the route-confirmed notice
-  // instead of an empty/broken timeline.
-  const hasVerifiedTimeline = train.stops.length > 0;
-
-  const dayStr = new Date(date).toLocaleDateString(isBengali ? 'bn-BD' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' });
-
   return (
-    <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <SafeAreaView style={s.root}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Hero image placeholder */}
+        <View style={s.heroImg} />
 
-      {/* ── Hero Image ─────────────── */}
-      <ImageBackground
-        source={{ uri: TRAIN_IMAGE }}
-        style={s.hero}
-        imageStyle={{ opacity: 0.75 }}
-      >
-        {/* Gradient overlay */}
-        <View style={s.heroOverlay} />
-
-        {/* Top bar */}
-        <View style={[s.heroTop, { paddingTop: insets.top + 8 }]}>
-          <Pressable style={s.circleBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={ON_IMAGE_TEXT} weight="bold" />
-          </Pressable>
-
-          <View style={{ flex: 1, marginHorizontal: 12 }}>
-            <Text style={s.heroTitle}>{trainTitle}</Text>
-            <Text style={s.heroRoute}>{routeStr}</Text>
-            <Text style={s.heroDate}>{dayStr}</Text>
+        {/* Header overlay */}
+        <View style={s.headerOverlay}>
+          <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
+          <View style={s.headerActions}>
+            <TouchableOpacity style={s.iconBtn} />
+            <TouchableOpacity style={s.iconBtn} />
           </View>
-
-          <Pressable style={s.circleBtn} onPress={handleBookmark}>
-            {isBookmarked
-              ? <Bookmark size={20} color={colors.primary} weight="fill" />
-              : <BookmarkSimple size={20} color={ON_IMAGE_TEXT} />}
-          </Pressable>
         </View>
-      </ImageBackground>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: 32 }}>
-
-        {/* ── Journey Timeline ─────────── */}
-        <View style={s.card}>
-          <View style={s.cardHeader}>
-            <Train size={18} color={colors.primary} weight="fill" />
-            <Text style={s.cardTitle}>{t('train.journey_timeline')}</Text>
-          </View>
-
-          {hasVerifiedTimeline ? (
-            // Tier 2: real train_stops data — every time/stop shown is verified.
-            train.stops.map((stop, index) => {
-              const isFirst = index === 0;
-              const isLast  = index === train.stops.length - 1;
-              const isMid   = !isFirst && !isLast;
-              const time = isFirst ? formatTime(stop.departure_time) : formatTime(stop.arrival_time);
-              const stationName = isBengali ? stop.station.name_bn : stop.station.name_en;
-              // Halt duration is derived from two real timestamps on the same
-              // verified row — not fabricated, just arithmetic on real data.
-              const haltMinutes = isMid && stop.arrival_time && stop.departure_time
-                ? minutesBetween(stop.arrival_time, stop.departure_time)
-                : 0;
-
-              return (
-                <View key={stop.id} style={s.stopRow}>
-                  {/* Time */}
-                  <Text style={[s.stopTime, (isFirst || isLast) && s.stopTimeEnd]}>{time}</Text>
-
-                  {/* Line + dot */}
-                  <View style={s.stopLine}>
-                    <View style={{ width: 2, flex: isFirst ? 0 : 1, backgroundColor: isFirst ? 'transparent' : colors.primary, opacity: 0.4 }} />
-                    <View style={[s.stopDot, isFirst && s.stopDotFirst, isLast && s.stopDotLast]} />
-                    {!isLast && <View style={{ width: 2, flex: 1, minHeight: 32, backgroundColor: colors.primary, opacity: 0.4 }} />}
-                  </View>
-
-                  {/* Station info */}
-                  <View style={s.stopInfo}>
-                    <Text style={[s.stopName, (isFirst || isLast) && s.stopNameEnd]}>{stationName}</Text>
-                    {isFirst && <Text style={s.stopRole}>{t('train.departure')}</Text>}
-                    {isLast  && <Text style={s.stopRole}>{t('train.arrival')}</Text>}
-                    {isMid && haltMinutes > 0 && (
-                      <Text style={s.stopHalt}>{formatTime(stop.arrival_time)} • {t('train.halt', { minutes: haltMinutes })}</Text>
-                    )}
-                  </View>
+        <View style={s.body}>
+          {/* Train info */}
+          <View style={s.card}>
+            <View style={s.trainTop}>
+              <View style={s.trainLeft}>
+                <View style={s.numBadge}><Text style={s.numBadgeText}>#721</Text></View>
+                <View>
+                  <Text style={s.trainName}>Subarna Express</Text>
+                  <Text style={s.trainNameBn}>সুবর্ণ এক্সপ্রেস</Text>
                 </View>
-              );
-            })
-          ) : (
-            // Tier 1 only: route confirmed via trains.origin_id/destination_id,
-            // but no verified train_stops yet. Never show an estimated timeline.
-            <View style={s.unverifiedTimeline}>
-              <Text style={s.unverifiedTimelineTitle}>{t('results.schedule_being_verified')}</Text>
-              <Text style={s.unverifiedTimelineBody}>{routeStr}</Text>
-              <Text style={s.unverifiedTimelineHint}>{t('train.timetable_not_verified_hint')}</Text>
+              </View>
+              <View style={s.delayBadge}>
+                <Text style={s.delayBadgeTitle}>15 min delay</Text>
+                <Text style={s.delayBadgeSub}>Updated 10 min ago</Text>
+              </View>
             </View>
-          )}
-        </View>
-
-        {/* ── Fares ────────────────────── */}
-        <View style={s.card}>
-          <View style={s.cardHeader}>
-            <Ticket size={18} color={colors.accent} weight="fill" />
-            <Text style={s.cardTitle}>{t('train.fares')}</Text>
-          </View>
-
-          {faresLoading ? (
-            <ActivityIndicator color={colors.primary} />
-          ) : fares && fares.length > 0 ? (
-            fares.map((fare, i) => {
-              const Icon = FARE_ICONS[fare.class] || Armchair;
-              return (
-                <View key={fare.id} style={[s.fareRow, i < fares.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border }]}>
-                  <View style={s.fareIconBox}>
-                    <Icon size={18} color={colors['text-secondary']} weight="duotone" />
-                  </View>
-                  <Text style={s.fareClass}>{t(`fare.class.${fare.class}` as any)}</Text>
-                  <Text style={s.farePrice}>৳{formatFare(fare.price_bdt)}</Text>
+            <Text style={s.routeText}>Dhaka (Kamlapur) → Chattogram</Text>
+            <View style={s.divider} />
+            <View style={s.timingRow}>
+              <View>
+                <Text style={s.timeMain}>06:40</Text>
+                <Text style={s.timeLabel}>Depart</Text>
+                <Text style={s.timeStation}>Kamlapur</Text>
+                <Text style={s.timeStationBn}>Dhaka (Kamlapur)</Text>
+              </View>
+              <View style={s.durationCol}>
+                <Text style={s.durationText}>4h 35m</Text>
+                <View style={s.durationLine} />
+                <Text style={s.distanceText}>Distance: 267 km</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={s.timeMain}>11:15</Text>
+                <Text style={s.timeLabel}>Arrive</Text>
+                <Text style={s.timeStation}>Chattogram</Text>
+                <Text style={s.timeStationBn}>Chattogram</Text>
+              </View>
+            </View>
+            <View style={s.divider} />
+            <View style={s.metaRow}>
+              {[['Runs','Daily'],['Classes','4'],['Avg Speed','60 km/h'],['Off Day','None']].map(([l,v]) => (
+                <View key={l} style={s.metaItem}>
+                  <Text style={s.metaLabel}>{l}</Text>
+                  <Text style={s.metaValue}>{v}</Text>
                 </View>
-              );
-            })
-          ) : (
-            <Text style={s.noFare}>{t('train.no_fares')}</Text>
-          )}
-        </View>
-
-        {/* ── Community Insights ────────── */}
-        <View style={s.card}>
-          <View style={s.cardHeader}>
-            <Users size={18} color={colors.info} weight="fill" />
-            <Text style={s.cardTitle}>{t('train.community_insights')}</Text>
-          </View>
-          <View style={s.insightsRow}>
-            <View style={s.insightChip}>
-              <Warning size={16} color={colors.accent} weight="fill" />
-              <Text style={[s.insightMain, { color: colors.accent }]}>{t('train.delay_reported', { minutes: 15 })}</Text>
-              <Text style={s.insightSub}>{t('train.reported')}</Text>
-            </View>
-            <View style={s.insightChip}>
-              <Users size={16} color={colors.danger} weight="fill" />
-              <Text style={[s.insightMain, { color: colors.danger }]}>{t('train.high_crowding')}</Text>
-              <Text style={s.insightSub}>{t('train.expected')}</Text>
-            </View>
-            <View style={s.insightChip}>
-              <ChatCircleDots size={16} color={colors.info} weight="fill" />
-              <Text style={[s.insightMain, { color: colors.info }]}>{t('train.traveler_reports', { count: 8 })}</Text>
-              <Text style={s.insightSub}>{t('train.today')}</Text>
+              ))}
             </View>
           </View>
-        </View>
 
-        {/* ── Action Buttons ────────────── */}
-        <View style={s.actionRow}>
-          <Pressable style={s.alertBtn}>
-            <Bell size={18} color={colors.primary} weight="duotone" />
-            <Text style={s.alertBtnText}>{t('train.set_alert')}</Text>
-          </Pressable>
-          <Pressable style={s.buyBtn}>
-            <Ticket size={18} color={colors['text-inverse']} weight="fill" />
-            <Text style={s.buyBtnText}>{t('train.buy_ticket')}</Text>
-          </Pressable>
+          {/* Journey Timeline */}
+          <View style={s.card}>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>Journey Timeline</Text>
+              <TouchableOpacity><Text style={s.linkText}>View full route</Text></TouchableOpacity>
+            </View>
+            {STOPS.map((stop, i) => (
+              <View key={i}>
+                <View style={s.stopRow}>
+                  <View style={[s.stopDot, { backgroundColor: stop.active ? C.green : C.text3 }]} />
+                  <View style={{ flex: 1 }}>
+                    <View style={s.stopTop}>
+                      <Text style={s.stopTime}>{stop.time}</Text>
+                      <Text style={s.stopStation}>{stop.station}</Text>
+                      {stop.tag && <View style={s.stopTag}><Text style={s.stopTagText}>{stop.tag}</Text></View>}
+                    </View>
+                    <View style={s.stopBottom}>
+                      <Text style={s.stopBn}>{stop.stationBn}</Text>
+                      {stop.stop && <Text style={s.stopDuration}>{stop.stop}</Text>}
+                    </View>
+                  </View>
+                  <View style={s.mapIcon} />
+                </View>
+                {i < STOPS.length - 1 && <View style={s.stopLine} />}
+              </View>
+            ))}
+          </View>
+
+          {/* Community Report Summary */}
+          <View style={s.card}>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle}>Community Report Summary</Text>
+              <TouchableOpacity><Text style={s.linkText}>See all</Text></TouchableOpacity>
+            </View>
+            <View style={s.communityRow}>
+              <View style={s.communityConfirmed}>
+                <Text style={s.confirmedNum}>8</Text>
+                <Text style={s.confirmedLabel}>Travelers confirmed</Text>
+                <Text style={s.confirmedSub}>in last 30 minutes</Text>
+              </View>
+              {[['Crowding','Medium',C.orange],['Cleanliness','Good',C.green],['Punctuality','Good',C.green]].map(([label,val,color]) => (
+                <View key={label} style={s.communityMetric}>
+                  <Text style={s.metricLabel}>{label}</Text>
+                  <Text style={[s.metricVal, { color: color as string }]}>{val}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
-        <Pressable style={s.discussionBtn} onPress={handleJoinDiscussion}>
-          <ChatCircleDots size={18} color={colors['text-secondary']} weight="bold" />
-          <Text style={s.discussionBtnText}>{t('train.join_discussion')}</Text>
-        </Pressable>
       </ScrollView>
-    </View>
+
+      {/* Action Bar */}
+      <View style={s.actionBar}>
+        <TouchableOpacity style={s.actionSecondary}><Text style={s.actionSecondaryText}>Set Alert</Text></TouchableOpacity>
+        <TouchableOpacity style={s.actionPrimary} onPress={() => router.push({ pathname: '/seat-fare', params: { trainId: '721' } })}>
+          <Text style={s.actionPrimaryText}>Buy Ticket via Rail Sheba</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.actionSecondary}><Text style={s.actionSecondaryText}>Share</Text></TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
-export default function TrainDetailScreen() {
-  return <ErrorBoundary name="Train Detail"><TrainDetailContent /></ErrorBoundary>;
-}
-
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:          { flex: 1, backgroundColor: colors['bg-base'] },
-  center:        { alignItems: 'center', justifyContent: 'center' },
-  hero:          { height: 240, justifyContent: 'flex-end' },
-  heroOverlay:   { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(8,13,23,0.55)' },
-  heroTop:       { flexDirection: 'row', alignItems: 'flex-start', padding: 20 },
-  circleBtn:     { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(15,25,41,0.7)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  heroTitle:     { fontFamily: 'Inter_700Bold', fontSize: 18, color: ON_IMAGE_TEXT, lineHeight: 24 },
-  heroRoute:     { fontFamily: 'Inter_400Regular', fontSize: 14, color: ON_IMAGE_TEXT_SECONDARY, marginTop: 3 },
-  heroDate:      { fontFamily: 'Inter_400Regular', fontSize: 12, color: ON_IMAGE_TEXT_TERTIARY, marginTop: 2 },
-  card:          { backgroundColor: colors['bg-card'], borderRadius: 16, borderWidth: 1, borderColor: colors['border'], padding: 18, marginBottom: 16 },
-  cardHeader:    { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 },
-  cardTitle:     { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: colors['text-primary'] },
-  stopRow:       { flexDirection: 'row', alignItems: 'stretch', marginBottom: 0 },
-  stopTime:      { fontFamily: 'JetBrainsMono_400Regular', fontSize: 13, color: colors['text-secondary'], width: 48, paddingTop: 2 },
-  stopTimeEnd:   { fontFamily: 'JetBrainsMono_500Medium', fontSize: 14, color: colors['text-primary'] },
-  stopLine:      { width: 28, alignItems: 'center', marginHorizontal: 12 },
-  stopDot:       { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: colors['border-strong'], backgroundColor: 'transparent', zIndex: 1 },
-  stopDotFirst:  { width: 16, height: 16, borderRadius: 8, backgroundColor: colors.primary, borderColor: colors.primary },
-  stopDotLast:   { width: 16, height: 16, borderRadius: 8, borderColor: colors.primary, backgroundColor: 'transparent', borderWidth: 2.5 },
-  stopInfo:      { flex: 1, paddingBottom: 20 },
-  stopName:      { fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-secondary'] },
-  stopNameEnd:   { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: colors['text-primary'] },
-  stopRole:      { fontFamily: 'Inter_500Medium', fontSize: 12, color: colors.primary, marginTop: 2 },
-  stopHalt:      { fontFamily: 'Inter_400Regular', fontSize: 12, color: colors['text-tertiary'], marginTop: 2 },
-  unverifiedTimeline:      { paddingVertical: 16, alignItems: 'center' },
-  unverifiedTimelineTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors.accent, marginBottom: 6 },
-  unverifiedTimelineBody:  { fontFamily: 'Inter_500Medium', fontSize: 16, color: colors['text-primary'], marginBottom: 8, textAlign: 'center' },
-  unverifiedTimelineHint:  { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], textAlign: 'center', lineHeight: 18 },
-  fareRow:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 13 },
-  fareIconBox:   { width: 36, height: 36, borderRadius: 8, backgroundColor: colors['bg-elevated'], alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  fareClass:     { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 15, color: colors['text-primary'] },
-  farePrice:     { fontFamily: 'JetBrainsMono_500Medium', fontSize: 17, color: colors.primary },
-  noFare:        { fontFamily: 'Inter_400Regular', fontSize: 14, color: colors['text-secondary'], textAlign: 'center', paddingVertical: 12 },
-  insightsRow:   { flexDirection: 'row', gap: 10 },
-  insightChip:   { flex: 1, backgroundColor: colors['bg-elevated'], borderRadius: 12, borderWidth: 1, borderColor: colors['border'], padding: 12, alignItems: 'center', gap: 4 },
-  insightMain:   { fontFamily: 'Inter_600SemiBold', fontSize: 12, textAlign: 'center' },
-  insightSub:    { fontFamily: 'Inter_400Regular', fontSize: 11, color: colors['text-tertiary'] },
-  actionRow:     { flexDirection: 'row', gap: 12, marginTop: 4, marginBottom: 12 },
-  alertBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 14, paddingVertical: 16 },
-  alertBtnText:  { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors.primary },
-  buyBtn:        { flex: 1.4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 16 },
-  buyBtnText:    { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
-  discussionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingVertical: 14, backgroundColor: colors['bg-card'] },
-  discussionBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-secondary'] },
-  errorText:     { fontFamily: 'Inter_500Medium', fontSize: 16, color: colors.danger, marginBottom: 16 },
-  backBtnFull:   { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
-  backBtnText:   { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  heroImg: { width: '100%', height: 220, backgroundColor: C.surface2 },
+  headerOverlay: { position: 'absolute', top: 48, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: S.xl },
+  backBtn: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, opacity: 0.9 },
+  headerActions: { flexDirection: 'row', gap: S.sm },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, opacity: 0.9 },
+  body: { padding: S.xl, gap: S.lg },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  trainTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  trainLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  numBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
+  numBadgeText: { fontSize: T.sm, fontWeight: '700', color: C.green },
+  trainName: { fontSize: 16, fontWeight: '700', color: C.white },
+  trainNameBn: { fontSize: T.sm, color: C.text2, marginTop: 1 },
+  delayBadge: { backgroundColor: C.redTint, borderRadius: 10, padding: S.sm, alignItems: 'flex-end' },
+  delayBadgeTitle: { fontSize: T.sm, fontWeight: '700', color: C.red },
+  delayBadgeSub: { fontSize: 9, color: C.text2, marginTop: 2 },
+  routeText: { fontSize: T.sm, color: C.text2 },
+  divider: { height: 1, backgroundColor: C.border },
+  timingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  timeMain: { fontSize: 24, fontWeight: '800', color: C.white },
+  timeLabel: { fontSize: T.xs, color: C.text2, marginTop: 2 },
+  timeStation: { fontSize: T.sm, fontWeight: '600', color: C.green, marginTop: 2 },
+  timeStationBn: { fontSize: T.xs, color: C.text3 },
+  durationCol: { alignItems: 'center', gap: 4 },
+  durationText: { fontSize: T.sm, color: C.text2 },
+  durationLine: { width: 80, height: 2, backgroundColor: C.green, borderRadius: 1 },
+  distanceText: { fontSize: T.xs, color: C.text3 },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  metaItem: { alignItems: 'center', gap: 4 },
+  metaLabel: { fontSize: 9, color: C.text2 },
+  metaValue: { fontSize: T.sm, fontWeight: '600', color: C.white },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  linkText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  stopRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
+  stopDot: { width: 12, height: 12, borderRadius: 6 },
+  stopTop: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  stopTime: { fontSize: T.base, fontWeight: '700', color: C.white },
+  stopStation: { fontSize: T.base, fontWeight: '600', color: C.white },
+  stopTag: { backgroundColor: C.greenTint, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  stopTagText: { fontSize: 9, fontWeight: '700', color: C.green },
+  stopBottom: { flexDirection: 'row', gap: S.md, marginTop: 2 },
+  stopBn: { fontSize: T.sm, color: C.text2 },
+  stopDuration: { fontSize: T.sm, color: C.text3 },
+  stopLine: { width: 2, height: 20, backgroundColor: C.border, marginLeft: 5, marginVertical: 2 },
+  mapIcon: { width: 16, height: 16, backgroundColor: C.blueTint, borderRadius: 8 },
+  communityRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  communityConfirmed: { alignItems: 'center' },
+  confirmedNum: { fontSize: 28, fontWeight: '800', color: C.white },
+  confirmedLabel: { fontSize: 9, color: C.text2, textAlign: 'center' },
+  confirmedSub: { fontSize: 8, color: C.text3, textAlign: 'center' },
+  communityMetric: { alignItems: 'center', gap: 4 },
+  metricLabel: { fontSize: T.xs, color: C.text2 },
+  metricVal: { fontSize: T.sm, fontWeight: '700' },
+  actionBar: { flexDirection: 'row', gap: S.sm, padding: S.lg, backgroundColor: C.bg, borderTopWidth: 1, borderTopColor: C.border },
+  actionSecondary: { flex: 0.4, backgroundColor: C.surface, borderRadius: R.md, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: C.border },
+  actionSecondaryText: { fontSize: T.sm, fontWeight: '600', color: C.white },
+  actionPrimary: { flex: 1, backgroundColor: C.green, borderRadius: R.md, paddingVertical: 14, alignItems: 'center' },
+  actionPrimaryText: { fontSize: T.sm, fontWeight: '700', color: C.bg },
 });

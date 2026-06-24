@@ -1,270 +1,173 @@
-// app/leaderboard/index.tsx
-// Leaderboard — matches Image 4 (app structure, leaderboard screen)
-// Ranking by: Trust Score / Helpful Votes / Confirmed Reports
-// Filters: This Week / This Month / All Time
-
-import React, { useMemo, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// app/leaderboard.tsx
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Crown, Star, ThumbsUp, CheckCircle } from 'phosphor-react-native';
-import { supabase } from '../../lib/supabase';
-import { Avatar } from '../../components/ui/Avatar/Avatar';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useAuthStore } from '../../stores/authStore';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-type FilterKey = 'weekly' | 'monthly' | 'all_time';
-type SortKey = 'trust_score' | 'helpful_vote_count' | 'report_count';
+type Period = 'Weekly' | 'Monthly' | 'All Time';
 
-const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: 'weekly',    label: 'This Week' },
-  { key: 'monthly',   label: 'This Month' },
-  { key: 'all_time',  label: 'All Time' },
-];
-
-const SORT_COLS: { key: SortKey; label: string; Icon: any }[] = [
-  { key: 'trust_score',        label: 'Trust Score',       Icon: Star },
-  { key: 'helpful_vote_count', label: 'Helpful Votes',     Icon: ThumbsUp },
-  { key: 'report_count',       label: 'Confirmed Reports', Icon: CheckCircle },
-];
-
-interface LeaderEntry {
-  id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  trust_score: number;
-  helpful_vote_count: number;
-  report_count: number;
-  is_trusted: boolean;
+interface LeaderboardUser {
+  rank: number;
+  name: string;
+  level: string;
+  trustScore: number;
+  scoreLabel: string;
+  points: string;
+  rankColor?: string;
+  isMe?: boolean;
 }
 
-async function fetchLeaderboard(sortCol: SortKey, filter: FilterKey): Promise<LeaderEntry[]> {
-  // Build date filter for weekly/monthly — previously the filter state was
-  // ignored and all three tabs always returned all-time rankings.
-  let createdAfter: string | null = null;
-  if (filter === 'weekly') {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    createdAfter = d.toISOString();
-  } else if (filter === 'monthly') {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 1);
-    createdAfter = d.toISOString();
-  }
+const USERS: LeaderboardUser[] = [
+  { rank: 1, name: 'Farhan Ahmed', level: 'Level 5 • Expert Reporter', trustScore: 950, scoreLabel: 'Excellent', points: '2,840', rankColor: C.gold },
+  { rank: 2, name: 'Ayesha Akter', level: 'Level 4 • Trusted Reporter', trustScore: 920, scoreLabel: 'Excellent', points: '2,520', rankColor: C.text2 },
+  { rank: 3, name: 'Raihan Uddin', level: 'Level 4 • Trusted Reporter', trustScore: 880, scoreLabel: 'Excellent', points: '2,310', rankColor: C.orange },
+  { rank: 4, name: 'Mehedi Hasan', level: 'Level 4 • Trusted Reporter', trustScore: 850, scoreLabel: 'Very Good', points: '2,150' },
+  { rank: 5, name: 'Arif Hossain', level: 'Level 3 • Reliable Reporter', trustScore: 760, scoreLabel: 'Very Good', points: '1,860' },
+  { rank: 6, name: 'Sadia Islam', level: 'Level 3 • Reliable Reporter', trustScore: 720, scoreLabel: 'Good', points: '1,540' },
+  { rank: 7, name: 'Tahsin Rahman', level: 'Level 3 • Reliable Reporter', trustScore: 680, scoreLabel: 'Good', points: '1,420' },
+  { rank: 8, name: 'Najmul Hasan', level: 'Level 4 • Trusted Reporter', trustScore: 810, scoreLabel: 'Very Good', points: '1,240', isMe: true },
+  { rank: 9, name: 'Fahim Rahat', level: 'Level 2 • Active Reporter', trustScore: 620, scoreLabel: 'Good', points: '1,020' },
+  { rank: 10, name: 'Nusrat Jahan', level: 'Level 2 • Active Reporter', trustScore: 580, scoreLabel: 'Fair', points: '860' },
+];
 
-  let query = supabase
-    .from('users')
-    .select('id, display_name, avatar_url, trust_score, helpful_vote_count, report_count, is_trusted')
-    .order(sortCol, { ascending: false })
-    .limit(20);
+const SCORE_COLORS: Record<string, string> = {
+  Excellent: C.green, 'Very Good': C.blue, Good: C.green, Fair: C.orange,
+};
 
-  // For time-based filters we rank by activity within the window.
-  // The users table stores cumulative counts so we approximate by filtering
-  // users who updated their profile (or were created) within the period.
-  // This is imprecise but correct until a separate leaderboard_periods table
-  // is added. For now it ensures the Weekly/Monthly chips show different data
-  // from All Time by narrowing to recently-active contributors.
-  if (createdAfter) {
-    query = query.gte('updated_at', createdAfter);
-  }
-
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return (data ?? []) as LeaderEntry[];
-}
-
-const MEDAL_COLORS = ['#F5A623', '#98A2B3', '#CD7F32'];
-const MEDAL_EMOJIS = ['🥇', '🥈', '🥉'];
-
-function LeaderboardContent() {
+export default function LeaderboardScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const colors = useThemeColors();
-  const s = useMemo(() => createStyles(colors), [colors]);
-  const { user: me } = useAuthStore();
-
-  const [filter, setFilter] = useState<FilterKey>('monthly');
-  const [sortCol, setSortCol] = useState<SortKey>('trust_score');
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['leaderboard', sortCol, filter],
-    queryFn: () => fetchLeaderboard(sortCol, filter),
-    staleTime: 60_000,
-  });
-
-  const _currentSortMeta = SORT_COLS.find(c => c.key === sortCol)!;
-
-  const formatVal = (entry: LeaderEntry) => {
-    if (sortCol === 'trust_score') return `${entry.trust_score.toFixed(1)}/5`;
-    if (sortCol === 'helpful_vote_count') return String(entry.helpful_vote_count);
-    return String(entry.report_count);
-  };
+  const [period, setPeriod] = useState<Period>('Weekly');
+  const periods: Period[] = ['Weekly', 'Monthly', 'All Time'];
 
   return (
-    <View style={s.root}>
-      {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
-        <View>
-          <Text style={s.title}>Leaderboard</Text>
-          <Text style={s.sub}>Top RailMate contributors</Text>
+    <SafeAreaView style={lb.root}>
+      <View style={lb.header}>
+        <TouchableOpacity style={lb.backBtn} onPress={() => router.back()} />
+        <View style={{ alignItems: 'center' }}>
+          <Text style={lb.title}>👑 Leaderboard</Text>
+          <Text style={lb.subtitle}>Top contributors in the RailMate community</Text>
         </View>
+        <TouchableOpacity style={lb.infoBtn} />
       </View>
 
-      {/* Time filters — Weekly / Monthly / All Time */}
-      <View style={s.filterRow}>
-        {FILTERS.map(({ key, label }) => (
-          <Pressable
-            key={key}
-            style={[s.filterChip, filter === key && s.filterChipActive]}
-            onPress={() => setFilter(key)}
-          >
-            <Text style={[s.filterText, filter === key && s.filterTextActive]}>
-              {label}
-            </Text>
-          </Pressable>
+      {/* Period tabs */}
+      <View style={lb.periodTabs}>
+        {periods.map(p => (
+          <TouchableOpacity key={p} style={[lb.periodTab, period === p && lb.periodTabActive]} onPress={() => setPeriod(p)}>
+            <Text style={[lb.periodText, period === p && lb.periodTextActive]}>{p}</Text>
+          </TouchableOpacity>
         ))}
       </View>
 
-      {/* Ranking column selector — Trust Score / Helpful Votes / Confirmed Reports */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.sortRow}
-      >
-        {SORT_COLS.map(({ key, label, Icon }) => (
-          <Pressable
-            key={key}
-            style={[s.sortChip, sortCol === key && { backgroundColor: colors.primary, borderColor: colors.primary }]}
-            onPress={() => setSortCol(key)}
-          >
-            <Icon size={14} color={sortCol === key ? '#fff' : colors['text-secondary']} weight={sortCol === key ? 'fill' : 'regular'} />
-            <Text style={[s.sortText, sortCol === key && { color: '#fff' }]}>{label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Top 3 podium */}
-      {!isLoading && data && data.length >= 3 && (
-        <View style={s.podium}>
-          {/* 2nd */}
-          <View style={[s.podiumSlot, { marginTop: 20 }]}>
-            <Text style={s.podiumMedal}>{MEDAL_EMOJIS[1]}</Text>
-            <Avatar name={data[1].display_name ?? 'U'} size={48} />
-            <Text style={s.podiumName} numberOfLines={1}>{data[1].display_name ?? 'Anonymous'}</Text>
-            <Text style={[s.podiumVal, { color: MEDAL_COLORS[1] }]}>{formatVal(data[1])}</Text>
+      {/* My rank */}
+      <View style={lb.myRank}>
+        <Text style={lb.myRankNum}>8</Text>
+        <View style={lb.myRankAvatar} />
+        <View style={{ flex: 1 }}>
+          <Text style={lb.myRankName}>Najmul Hasan</Text>
+          <Text style={lb.myRankLevel}>Trusted Reporter</Text>
+        </View>
+        <View style={lb.myRankStats}>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={lb.myRankLabel}>Trust Score</Text>
+            <Text style={lb.myRankScore}>✓ 810</Text>
           </View>
-          {/* 1st */}
-          <View style={s.podiumSlot}>
-            <Crown size={22} color={MEDAL_COLORS[0]} weight="fill" style={{ marginBottom: 4 }} />
-            <Text style={s.podiumMedal}>{MEDAL_EMOJIS[0]}</Text>
-            <Avatar name={data[0].display_name ?? 'U'} size={62} />
-            <Text style={s.podiumName} numberOfLines={1}>{data[0].display_name ?? 'Anonymous'}</Text>
-            <Text style={[s.podiumVal, { color: MEDAL_COLORS[0] }]}>{formatVal(data[0])}</Text>
-          </View>
-          {/* 3rd */}
-          <View style={[s.podiumSlot, { marginTop: 32 }]}>
-            <Text style={s.podiumMedal}>{MEDAL_EMOJIS[2]}</Text>
-            <Avatar name={data[2].display_name ?? 'U'} size={44} />
-            <Text style={s.podiumName} numberOfLines={1}>{data[2].display_name ?? 'Anonymous'}</Text>
-            <Text style={[s.podiumVal, { color: MEDAL_COLORS[2] }]}>{formatVal(data[2])}</Text>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={lb.myRankLabel}>Points</Text>
+            <Text style={lb.myRankPoints}>⭐ 1,240</Text>
           </View>
         </View>
-      )}
+      </View>
 
-      {isLoading ? (
-        <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 32 }} />
-      ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
-        >
-          {/* Rank rows 4+ */}
-          {(data ?? []).slice(3).map((entry, i) => {
-            const rank = i + 4;
-            const isMe = entry.id === me?.id;
-            return (
-              <View key={entry.id} style={[s.row, isMe && s.rowMe]}>
-                <Text style={s.rank}>#{rank}</Text>
-                <Avatar name={entry.display_name ?? 'U'} size={40} uri={entry.avatar_url ?? undefined} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={s.rowName} numberOfLines={1}>
-                      {entry.display_name ?? 'Anonymous'}
-                    </Text>
-                    {entry.is_trusted && (
-                      <CheckCircle size={13} color={colors.primary} weight="fill" />
-                    )}
-                    {isMe && <Text style={s.youTag}>You</Text>}
-                  </View>
-                  <View style={s.miniStats}>
-                    <Text style={s.miniStat}>
-                      <Star size={11} color={colors['text-tertiary']} /> {entry.trust_score.toFixed(1)}
-                    </Text>
-                    <Text style={s.miniStat}>
-                      <ThumbsUp size={11} color={colors['text-tertiary']} /> {entry.helpful_vote_count}
-                    </Text>
-                    <Text style={s.miniStat}>
-                      <CheckCircle size={11} color={colors['text-tertiary']} /> {entry.report_count}
-                    </Text>
-                  </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={lb.scroll}>
+        {/* Table header */}
+        <View style={lb.tableHeader}>
+          <Text style={lb.thNum}>#</Text>
+          <Text style={lb.thReporter}>Reporter</Text>
+          <Text style={lb.thScore}>Trust Score</Text>
+          <Text style={lb.thPoints}>Points</Text>
+        </View>
+        <View style={lb.divider} />
+
+        {/* Rows */}
+        <View style={lb.tableCard}>
+          {USERS.map((user, i) => (
+            <View key={user.rank}>
+              <View style={[lb.userRow, user.isMe && lb.userRowMe]}>
+                <View style={[lb.rankCircle, user.rankColor ? { backgroundColor: user.rankColor } : {}]}>
+                  <Text style={[lb.rankNum, user.rankColor ? { color: C.bg } : {}]}>{user.rank}</Text>
                 </View>
-                <Text style={[s.rowVal, { color: colors.primary }]}>{formatVal(entry)}</Text>
+                <View style={lb.userAvatar} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[lb.userName, user.isMe && { color: C.green }]}>{user.name}</Text>
+                  <Text style={lb.userLevel}>{user.level}</Text>
+                </View>
+                <View style={{ alignItems: 'center', width: 70 }}>
+                  <Text style={lb.scoreNum}>{user.trustScore}</Text>
+                  <Text style={[lb.scoreLabel, { color: SCORE_COLORS[user.scoreLabel] }]}>{user.scoreLabel}</Text>
+                </View>
+                <View style={lb.pointsCol}>
+                  <Text style={lb.pointsStar}>⭐</Text>
+                  <Text style={lb.pointsVal}>{user.points}</Text>
+                </View>
               </View>
-            );
-          })}
+              {i < USERS.length - 1 && <View style={lb.rowDivider} />}
+            </View>
+          ))}
+        </View>
 
-          {(data ?? []).length === 0 && (
-            <Text style={{ textAlign: 'center', color: colors['text-tertiary'], marginTop: 40, fontFamily: 'Inter_400Regular', fontSize: 15 }}>
-              No data yet. Be the first to contribute!
-            </Text>
-          )}
-        </ScrollView>
-      )}
-    </View>
+        <View style={lb.footer}>
+          <Text style={lb.footerTime}>Last updated: May 21, 2025 09:30 AM</Text>
+          <TouchableOpacity><Text style={lb.refreshText}>Refresh</Text></TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-export default function LeaderboardScreen() {
-  return <ErrorBoundary name="Leaderboard"><LeaderboardContent /></ErrorBoundary>;
-}
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    root:             { flex: 1, backgroundColor: colors['bg-base'] },
-    header:           { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingBottom: 16 },
-    backBtn:          { width: 40, height: 40, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-    title:            { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 22, color: colors['text-primary'] },
-    sub:              { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'], marginTop: 2 },
-
-    filterRow:        { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 10 },
-    filterChip:       { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingVertical: 8, alignItems: 'center' },
-    filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-    filterText:       { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-    filterTextActive: { color: '#fff' },
-
-    sortRow:          { paddingHorizontal: 20, gap: 8, paddingBottom: 16 },
-    sortChip:         { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, backgroundColor: colors['bg-card'] },
-    sortText:         { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors['text-secondary'] },
-
-    podium:           { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', gap: 12, paddingHorizontal: 20, paddingBottom: 20 },
-    podiumSlot:       { alignItems: 'center', gap: 4, flex: 1 },
-    podiumMedal:      { fontSize: 22 },
-    podiumName:       { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: colors['text-primary'], textAlign: 'center' },
-    podiumVal:        { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 14 },
-
-    row:              { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border, gap: 4 },
-    rowMe:            { backgroundColor: colors['primary-subtle'], marginHorizontal: -20, paddingHorizontal: 20, borderRadius: 12 },
-    rank:             { fontFamily: 'JetBrainsMono_400Regular', fontSize: 14, color: colors['text-tertiary'], width: 32 },
-    rowName:          { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-primary'], flex: 1 },
-    youTag:           { fontFamily: 'Inter_600SemiBold', fontSize: 11, color: colors.primary, backgroundColor: colors['primary-subtle'], borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 },
-    miniStats:        { flexDirection: 'row', gap: 10, marginTop: 3 },
-    miniStat:         { fontFamily: 'Inter_400Regular', fontSize: 11, color: colors['text-tertiary'] },
-    rowVal:           { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 },
-  });
+const lb = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.md, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 18, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  infoBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  periodTabs: { flexDirection: 'row', marginHorizontal: S.xl, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border },
+  periodTab: { flex: 1, paddingVertical: S.md, alignItems: 'center', borderRadius: R.md },
+  periodTabActive: { backgroundColor: C.green },
+  periodText: { fontSize: T.base, fontWeight: '500', color: C.text2 },
+  periodTextActive: { fontWeight: '700', color: C.bg },
+  myRank: { flexDirection: 'row', alignItems: 'center', gap: S.md, marginHorizontal: S.xl, marginTop: S.md, backgroundColor: C.greenTint, borderRadius: 14, borderWidth: 1, borderColor: C.greenDark, padding: S.md },
+  myRankNum: { fontSize: 20, fontWeight: '800', color: C.green, width: 36, textAlign: 'center' },
+  myRankAvatar: { width: 44, height: 44, backgroundColor: C.surface2, borderRadius: 22 },
+  myRankName: { fontSize: T.base, fontWeight: '700', color: C.white },
+  myRankLevel: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  myRankStats: { flexDirection: 'row', gap: S.lg },
+  myRankLabel: { fontSize: 9, color: C.text2 },
+  myRankScore: { fontSize: T.base, fontWeight: '700', color: C.green, marginTop: 2 },
+  myRankPoints: { fontSize: T.base, fontWeight: '700', color: C.gold, marginTop: 2 },
+  tableHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.md },
+  thNum: { width: 40, fontSize: T.sm, fontWeight: '700', color: C.text3 },
+  thReporter: { flex: 1, fontSize: T.sm, fontWeight: '700', color: C.text3 },
+  thScore: { width: 70, fontSize: T.sm, fontWeight: '700', color: C.text3, textAlign: 'center' },
+  thPoints: { width: 60, fontSize: T.sm, fontWeight: '700', color: C.text3, textAlign: 'right' },
+  divider: { height: 1, backgroundColor: C.border },
+  tableCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm, padding: S.md },
+  userRowMe: { backgroundColor: C.greenTint },
+  rankCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.surface2, alignItems: 'center', justifyContent: 'center' },
+  rankNum: { fontSize: T.sm, fontWeight: '700', color: C.text2 },
+  userAvatar: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  userName: { fontSize: T.base, fontWeight: '600', color: C.white },
+  userLevel: { fontSize: T.xs, color: C.text2, marginTop: 1 },
+  scoreNum: { fontSize: T.base, fontWeight: '700', color: C.white },
+  scoreLabel: { fontSize: T.xs, fontWeight: '600', marginTop: 2 },
+  pointsCol: { flexDirection: 'row', alignItems: 'center', gap: 4, width: 60, justifyContent: 'flex-end' },
+  pointsStar: { fontSize: T.sm },
+  pointsVal: { fontSize: T.base, fontWeight: '700', color: C.white },
+  rowDivider: { height: 1, backgroundColor: C.border, marginHorizontal: S.md },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  footerTime: { fontSize: T.xs, color: C.text3 },
+  refreshText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+});

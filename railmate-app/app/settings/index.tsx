@@ -1,304 +1,108 @@
-// app/settings/index.tsx
-// Matches Settings.png exactly:
-// PREFERENCES: Notifications, Language, Default Location, Appearance,
-//              Distance Unit
-// JOURNEY PREFERENCES: 4 toggles with real prefsStore state
-// ACCOUNT & DATA: Privacy, Data Usage, Backup
-// SUPPORT & ABOUT: Help, About RailMate (version from expo-constants)
-// Log Out — red, with confirmation
-
-import React, { useMemo } from 'react';
-import {
-  View, ScrollView, Pressable, StyleSheet, Text, Switch, Alert,
-} from 'react-native';
+// app/settings.tsx
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Constants from 'expo-constants';
-import {
-  ArrowLeft, BellSimple, Globe, MapPin, PaintBrush, Ruler,
-  ArrowsClockwise, Clock, Users, Train, ShieldCheck, CloudArrowDown,
-  CloudArrowUp, Question, Info, SignOut, CaretRight,
-} from 'phosphor-react-native';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-import { useAuth } from '../../hooks/useAuth';
-import { usePrefsStore } from '../../stores/prefsStore';
-import { useAuthStore } from '../../stores/authStore';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation } from '../../i18n';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
-import { Spacing } from '../../constants/spacing';
-import { Typography } from '../../constants/typography';
-import { Radius } from '../../constants/radius';
+interface SettingRow { id: string; label: string; sub: string; toggle?: boolean; value?: string; }
+interface SettingSection { title: string; rows: SettingRow[]; }
 
-const appVersion = Constants.expoConfig?.version ?? '1.0.0';
-const buildNumber =
-  Constants.expoConfig?.android?.versionCode ?? Constants.expoConfig?.ios?.buildNumber ?? '1';
-
-function SettingsContent() {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
-
-  const { signOut } = useAuth();
-  const { isAuthenticated } = useAuthStore();
-  const {
-    language, theme, distanceUnit,
-    journeyPrefs, defaultLocation,
-    setLanguage, setTheme, setDistanceUnit, setJourneyPref,
-  } = usePrefsStore();
-
-  const languageDisplay = language === 'bn' ? 'বাংলা (Bengali)' : 'English (English)';
-  const themeDisplay = theme === 'dark' ? 'Dark Theme' : theme === 'light' ? 'Light Theme' : 'System Default';
-  const distanceDisplay = distanceUnit === 'km' ? 'Kilometer (km)' : 'Mile (mi)';
-  const locationDisplay = defaultLocation?.name_en ?? 'Dhaka, Bangladesh';
-
-  const handleSignOut = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-          router.replace('/auth/login' as any);
-        },
-      },
-    ]);
-  };
-
-  const comingSoon = (feature: string) =>
-    Alert.alert(t('home.coming_soon_title'), `${feature} — ${t('home.coming_soon_body')}`);
-
-  return (
-    <View style={s.root}>
-      {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
-        <View style={{ flex: 1, marginLeft: Spacing['space-3'] }}>
-          <Text style={s.title}>Settings</Text>
-          <Text style={s.subtitle}>Manage your preferences and app settings</Text>
-        </View>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
-
-        {/* ── PREFERENCES ── */}
-        <Text style={s.sectionLabel}>PREFERENCES</Text>
-        <View style={s.section}>
-          <SettingsRow
-            Icon={BellSimple}
-            label="Notifications"
-            sub="Manage notification preferences"
-            onPress={() => router.push('/notifications' as any)}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={Globe}
-            label="Language"
-            sub={languageDisplay}
-            onPress={() => {
-              setLanguage(language === 'bn' ? 'en' : 'bn');
-            }}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={MapPin}
-            label="Default Location"
-            sub={locationDisplay}
-            onPress={() => comingSoon('Default Location')}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={PaintBrush}
-            label="Appearance"
-            sub={themeDisplay}
-            onPress={() => {
-              const next = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark';
-              setTheme(next);
-            }}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={Ruler}
-            label="Distance Unit"
-            sub={distanceDisplay}
-            onPress={() => setDistanceUnit(distanceUnit === 'km' ? 'mi' : 'km')}
-            colors={colors} s={s}
-            isLast
-          />
-        </View>
-
-        {/* ── JOURNEY PREFERENCES ── */}
-        <Text style={s.sectionLabel}>JOURNEY PREFERENCES</Text>
-        <View style={s.section}>
-          <ToggleRow
-            Icon={ArrowsClockwise}
-            label="Show Alternative Routes"
-            sub="Display alternative routes in search"
-            value={journeyPrefs.showAlternativeRoutes}
-            onToggle={(v) => setJourneyPref('showAlternativeRoutes', v)}
-            colors={colors} s={s}
-          />
-          <ToggleRow
-            Icon={Clock}
-            label="Delay Alerts"
-            sub="Get notified about train delays"
-            value={journeyPrefs.delayAlerts}
-            onToggle={(v) => setJourneyPref('delayAlerts', v)}
-            colors={colors} s={s}
-          />
-          <ToggleRow
-            Icon={Users}
-            label="Crowding Updates"
-            sub="Show crowding level information"
-            value={journeyPrefs.crowdingUpdates}
-            onToggle={(v) => setJourneyPref('crowdingUpdates', v)}
-            colors={colors} s={s}
-          />
-          <ToggleRow
-            Icon={Train}
-            label="Platform Change Alerts"
-            sub="Notify about platform changes"
-            value={journeyPrefs.platformChangeAlerts}
-            onToggle={(v) => setJourneyPref('platformChangeAlerts', v)}
-            colors={colors} s={s}
-            isLast
-          />
-        </View>
-
-        {/* ── ACCOUNT & DATA ── */}
-        <Text style={s.sectionLabel}>ACCOUNT & DATA</Text>
-        <View style={s.section}>
-          <SettingsRow
-            Icon={ShieldCheck}
-            label="Privacy & Security"
-            sub="Manage your privacy and security"
-            onPress={() => comingSoon('Privacy & Security')}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={CloudArrowDown}
-            label="Data Usage"
-            sub="Manage offline data and storage"
-            onPress={() => comingSoon('Data Usage')}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={CloudArrowUp}
-            label="Backup & Restore"
-            sub="Backup your data to restore later"
-            onPress={() => comingSoon('Backup & Restore')}
-            colors={colors} s={s}
-            isLast
-          />
-        </View>
-
-        {/* ── SUPPORT & ABOUT ── */}
-        <Text style={s.sectionLabel}>SUPPORT & ABOUT</Text>
-        <View style={s.section}>
-          <SettingsRow
-            Icon={Question}
-            label="Help & Support"
-            sub="FAQs, guides and contact support"
-            onPress={() => comingSoon('Help & Support')}
-            colors={colors} s={s}
-          />
-          <SettingsRow
-            Icon={Info}
-            label="About RailMate"
-            sub={`Version ${appVersion} (Build ${buildNumber})`}
-            onPress={() => comingSoon('About RailMate')}
-            colors={colors} s={s}
-            isLast
-          />
-        </View>
-
-        {/* Log Out */}
-        {isAuthenticated && (
-          <Pressable style={s.logOutRow} onPress={handleSignOut}>
-            <SignOut size={20} color={colors.danger} />
-            <Text style={s.logOutText}>Log Out</Text>
-            <CaretRight size={16} color={colors.danger} style={{ marginLeft: 'auto' }} />
-          </Pressable>
-        )}
-
-        {/* Attribution — placed discreetly at bottom per branding spec */}
-        <Text style={s.attribution}>Designed and Developed by Najmul Hasan</Text>
-      </ScrollView>
-    </View>
-  );
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface RowCommon {
-  Icon: typeof BellSimple;
-  label: string;
-  sub: string;
-  isLast?: boolean;
-  colors: ThemeColors;
-  s: ReturnType<typeof createStyles>;
-}
-
-function SettingsRow({ Icon, label, sub, onPress, isLast, colors, s }: RowCommon & { onPress: () => void }) {
-  return (
-    <Pressable style={[s.row, !isLast && s.rowBorder]} onPress={onPress}>
-      <View style={s.rowIconWrap}><Icon size={18} color={colors.primary} /></View>
-      <View style={s.rowText}>
-        <Text style={s.rowLabel}>{label}</Text>
-        <Text style={s.rowSub}>{sub}</Text>
-      </View>
-      <CaretRight size={16} color={colors['text-tertiary']} />
-    </Pressable>
-  );
-}
-
-function ToggleRow({ Icon, label, sub, value, onToggle, isLast, colors, s }: RowCommon & { value: boolean; onToggle: (v: boolean) => void }) {
-  return (
-    <View style={[s.row, !isLast && s.rowBorder]}>
-      <View style={s.rowIconWrap}><Icon size={18} color={colors.primary} /></View>
-      <View style={s.rowText}>
-        <Text style={s.rowLabel}>{label}</Text>
-        <Text style={s.rowSub}>{sub}</Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{ false: colors.border, true: colors.primary }}
-        thumbColor="#FFFFFF"
-        style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-      />
-    </View>
-  );
-}
+const SECTIONS: SettingSection[] = [
+  { title: 'PREFERENCES', rows: [
+    { id: 'notif', label: 'Notifications', sub: 'Manage notification preferences' },
+    { id: 'lang', label: 'Language', sub: 'English (English)', value: 'English' },
+    { id: 'location', label: 'Default Location', sub: 'Dhaka, Bangladesh' },
+    { id: 'appearance', label: 'Appearance', sub: 'Dark Theme' },
+    { id: 'distance', label: 'Distance Unit', sub: 'Kilometer (km)' },
+  ]},
+  { title: 'JOURNEY PREFERENCES', rows: [
+    { id: 'alt_routes', label: 'Show Alternative Routes', sub: 'Display alternative routes in search', toggle: true },
+    { id: 'delay_alerts', label: 'Delay Alerts', sub: 'Get notified about train delays', toggle: true },
+    { id: 'crowding', label: 'Crowding Updates', sub: 'Show crowding level information', toggle: true },
+    { id: 'platform', label: 'Platform Change Alerts', sub: 'Notify about platform changes', toggle: false },
+  ]},
+  { title: 'ACCOUNT & DATA', rows: [
+    { id: 'privacy', label: 'Privacy & Security', sub: 'Manage your privacy and security' },
+    { id: 'data', label: 'Data Usage', sub: 'Manage offline data and storage' },
+    { id: 'backup', label: 'Backup & Restore', sub: 'Backup your data to restore later' },
+  ]},
+  { title: 'SUPPORT & ABOUT', rows: [
+    { id: 'help', label: 'Help & Support', sub: 'FAQs, guides and contact support' },
+    { id: 'about', label: 'About RailMate', sub: 'Version 1.0.0 (Build 120)' },
+  ]},
+];
 
 export default function SettingsScreen() {
-  return <ErrorBoundary name="Settings"><SettingsContent /></ErrorBoundary>;
+  const router = useRouter();
+  const [toggles, setToggles] = useState<Record<string, boolean>>({
+    alt_routes: true, delay_alerts: true, crowding: true, platform: false,
+  });
+
+  const toggle = (id: string) => setToggles(prev => ({ ...prev, [id]: !prev[id] }));
+
+  return (
+    <SafeAreaView style={ss.root}>
+      <View style={ss.header}>
+        <TouchableOpacity style={ss.backBtn} onPress={() => router.back()} />
+        <View>
+          <Text style={ss.title}>Settings</Text>
+          <Text style={ss.subtitle}>Manage your preferences and app settings</Text>
+        </View>
+        <View style={{ width: 32 }} />
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={ss.scroll}>
+        {SECTIONS.map(section => (
+          <View key={section.title} style={ss.section}>
+            <Text style={ss.sectionLabel}>{section.title}</Text>
+            <View style={ss.sectionCard}>
+              {section.rows.map((row, i) => (
+                <View key={row.id}>
+                  <View style={ss.row}>
+                    <View style={ss.rowIcon} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={ss.rowLabel}>{row.label}</Text>
+                      <Text style={ss.rowSub}>{row.sub}</Text>
+                    </View>
+                    {row.toggle !== undefined ? (
+                      <Switch
+                        value={toggles[row.id]}
+                        onValueChange={() => toggle(row.id)}
+                        trackColor={{ false: C.surface2, true: C.green }}
+                        thumbColor={C.white}
+                      />
+                    ) : (
+                      <View style={ss.chevron} />
+                    )}
+                  </View>
+                  {i < section.rows.length - 1 && <View style={ss.divider} />}
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+        <TouchableOpacity style={ss.logoutBtn} onPress={() => Alert.alert('Log Out', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Log Out', style: 'destructive' }])}>
+          <Text style={ss.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
-
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:        { flex: 1, backgroundColor: colors['bg-base'] },
-  header:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing['space-5'], paddingBottom: 16 },
-  backBtn:     { width: 40, height: 40, borderRadius: Radius['radius-full'], backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  title:       { ...Typography['h2'], color: colors['text-primary'] },
-  subtitle:    { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
-
-  sectionLabel:{ ...Typography['caption'], color: colors['text-tertiary'], letterSpacing: 1, marginHorizontal: Spacing['space-5'], marginTop: Spacing['space-5'], marginBottom: Spacing['space-2'] },
-  section:     { marginHorizontal: Spacing['space-5'], backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
-
-  row:         { flexDirection: 'row', alignItems: 'center', padding: Spacing['space-4'], gap: Spacing['space-4'] },
-  rowBorder:   { borderBottomWidth: 1, borderBottomColor: colors.border },
-  rowIconWrap: { width: 36, height: 36, borderRadius: Radius['radius-lg'], backgroundColor: colors['primary-subtle'], alignItems: 'center', justifyContent: 'center' },
-  rowText:     { flex: 1 },
-  rowLabel:    { ...Typography['body'], color: colors['text-primary'] },
-  rowSub:      { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
-
-  logOutRow:   { flexDirection: 'row', alignItems: 'center', marginHorizontal: Spacing['space-5'], marginTop: Spacing['space-5'], backgroundColor: colors['danger-subtle'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.danger + '40', padding: Spacing['space-4'], gap: Spacing['space-3'] },
-  logOutText:  { ...Typography['body'], color: colors.danger },
-
-  attribution: { ...Typography['caption'], color: colors['text-tertiary'], textAlign: 'center', marginTop: Spacing['space-6'], marginBottom: Spacing['space-4'] },
+const ss = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 18, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  section: { gap: S.sm },
+  sectionLabel: { fontSize: T.sm, fontWeight: '700', color: C.text3, letterSpacing: 0.5 },
+  sectionCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border },
+  row: { flexDirection: 'row', alignItems: 'center', gap: S.md, padding: S.lg },
+  rowIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 10 },
+  rowLabel: { fontSize: 14, fontWeight: '600', color: C.white },
+  rowSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
+  divider: { height: 1, backgroundColor: C.border, marginHorizontal: S.lg },
+  logoutBtn: { backgroundColor: C.redTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.red, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
+  logoutText: { fontSize: T.md, fontWeight: '700', color: C.red },
 });

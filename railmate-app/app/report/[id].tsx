@@ -1,469 +1,160 @@
-// app/report/[id].tsx
-// Matches Report_Details.png exactly:
-// header (back + share), type badge, train name, verified badge,
-// date/station/delay metadata, Delay Information card, Verification card
-// with real avatar stacks, Report Description, Comments Preview.
+// app/report-detail.tsx
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-import React, { useMemo, useState, useRef } from 'react';
-import {
-  View, ScrollView, Pressable, StyleSheet, Text, TextInput,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Share,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ArrowLeft, ShareNetwork, Warning, CheckCircle, Users, ThumbsUp,
-  CalendarBlank, MapPin, Clock, PaperPlaneTilt, CaretRight, Info,
-} from 'phosphor-react-native';
-
-import {
-  useCommunityReports,
-  useReportComments,
-  useAddComment,
-  useVoteReport,
-  useReportVerifiers,
-} from '../../hooks/useCommunityReports';
-import { Avatar } from '../../components/ui/Avatar/Avatar';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
-import { useAuthStore } from '../../stores/authStore';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation } from '../../i18n';
-import { getReporterTier } from '../../types/report.types';
-import { timeAgo } from '../../utils/timeAgo';
-import { Spacing } from '../../constants/spacing';
-import { Typography } from '../../constants/typography';
-import { Radius } from '../../constants/radius';
-
-const TYPE_META: Record<string, { label: string; color: string; bg: string }> = {
-  DELAY:    { label: 'Delay Report',     color: '#E8394B', bg: '#E8394B20' },
-  CROWD:    { label: 'Crowd Report',     color: '#F5A623', bg: '#F5A62320' },
-  PLATFORM: { label: 'Platform Change',  color: '#00A859', bg: '#00A85920' },
-  GENERAL:  { label: 'General Report',   color: '#4EA8E0', bg: '#4EA8E020' },
-  ACCIDENT: { label: 'Safety Report',    color: '#E8394B', bg: '#E8394B20' },
-  SCHEDULE: { label: 'Schedule Update',  color: '#8FA3C0', bg: '#8FA3C020' },
-};
-
-const AVATAR_SIZES = { verifiedBy: 36, comment: 40 };
-const MAX_PREVIEW_COMMENTS = 3;
-const MAX_CONFIRM_DOTS = 5;
-
-function ReportDetailContent() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-  const { t, isBengali } = useTranslation();
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
-
-  const { user, isAuthenticated } = useAuthStore();
-  const [commentText, setCommentText] = useState('');
-  const inputRef = useRef<TextInput>(null);
-
-  const { data: allReports, isLoading: reportLoading } = useCommunityReports(null);
-  const report = allReports?.find((r) => r.id === id);
-
-  const { data: comments, isLoading: commentsLoading } = useReportComments(id ?? '');
-  const { data: verifiers } = useReportVerifiers(id ?? '');
-  const { mutate: addComment, isPending: submitting } = useAddComment(id ?? '', null);
-  const { mutate: vote } = useVoteReport();
-
-  const handleShare = async () => {
-    if (!report) return;
-    try {
-      await Share.share({ message: `RailMate Report — ${report.train?.name_en ?? ''}: ${report.description ?? report.report_type}` });
-    } catch {
-      // User cancelled
-    }
-  };
-
-  const handleVote = () => {
-    if (!isAuthenticated) { Alert.alert('', t('auth.sign_in')); return; }
-    vote({ reportId: id ?? '', voteType: 'CONFIRM', existingVote: report?.current_user_vote ?? null, activeFilter: null });
-  };
-
-  const handleSend = () => {
-    const trimmed = commentText.trim();
-    if (!trimmed) return;
-    if (!isAuthenticated) { Alert.alert('', t('auth.sign_in')); return; }
-    addComment(trimmed, {
-      onSuccess: () => setCommentText(''),
-      onError: (err) => Alert.alert('Error', err.message),
-    });
-  };
-
-  if (reportLoading) {
-    return <View style={[s.root, s.center]}><ActivityIndicator color={colors.primary} size="large" /></View>;
-  }
-  if (!report) {
-    return (
-      <View style={[s.root, s.center]}>
-        <Text style={s.notFoundText}>{t('common.not_found')}</Text>
-        <Pressable onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>Go Back</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  const meta = TYPE_META[report.report_type] ?? TYPE_META.GENERAL;
-  const isVerified = report.status === 'VERIFIED';
-  const verificationCount = report.verification_count;
-  const helpfulCount = report.helpful_count;
-  const confirmDots = Math.min(verificationCount, MAX_CONFIRM_DOTS);
-  const extraConfirms = verificationCount > MAX_CONFIRM_DOTS ? verificationCount - MAX_CONFIRM_DOTS : 0;
-
-  // Fake report reference — builds a deterministic display ID from the
-  // real DB UUID since community_reports has no "reference number" column.
-  const refId = `#DR-${new Date(report.created_at).getFullYear()}-${report.id.slice(-4).toUpperCase()}`;
-
-  const reportedDate = new Date(report.reported_at);
-  const dateStr = reportedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const timeStr = reportedDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-  const reportedDelay = report.delay_minutes ?? null;
-  // "Verified delay" heuristic: if multiple verifiers exist, assume the
-  // community consensus is ±3 min less than reported. This is a display
-  // heuristic only — no verified_delay column exists in the schema.
-  // Flagged in delivery notes as needing a real schema column.
-  const verifiedDelay = reportedDelay != null && verificationCount >= 3
-    ? Math.max(1, reportedDelay - 3)
-    : reportedDelay;
-
-  const previewComments = (comments ?? []).slice(-MAX_PREVIEW_COMMENTS);
-
-  return (
-    <KeyboardAvoidingView
-      style={s.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={s.iconBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
-        <Text style={s.headerTitle}>{t('community.report_detail')}</Text>
-        <Pressable style={s.iconBtn} onPress={handleShare}>
-          <ShareNetwork size={20} color={colors['text-primary']} />
-        </Pressable>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[s.scroll, { paddingBottom: 120 }]}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Type badge + reference */}
-        <View style={s.topBadgeRow}>
-          <View style={[s.typePill, { backgroundColor: meta.bg }]}>
-            <Warning size={14} color={meta.color} weight="fill" />
-            <Text style={[s.typePillText, { color: meta.color }]}>{meta.label}</Text>
-          </View>
-          <Text style={s.refId}>{refId}</Text>
-        </View>
-
-        {/* Train name + verified badge */}
-        <View style={s.trainRow}>
-          <View style={[s.trainIconWrap, { backgroundColor: meta.bg }]}>
-            <Warning size={20} color={meta.color} weight="fill" />
-          </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={s.trainName}>{report.train?.name_en ?? '—'}</Text>
-            {report.station && (
-              <Text style={s.trainRoute}>
-                {report.station.name_en}
-              </Text>
-            )}
-          </View>
-          {isVerified && (
-            <View style={s.verifiedBadge}>
-              <Text style={s.verifiedBadgeText}>Verified</Text>
-              <CheckCircle size={14} color={colors.success} weight="fill" />
-            </View>
-          )}
-        </View>
-
-        {/* Date / Station / Delay meta row */}
-        <View style={s.metaCard}>
-          <View style={s.metaItem}>
-            <CalendarBlank size={14} color={colors['text-tertiary']} />
-            <View>
-              <Text style={s.metaLabel}>{dateStr}</Text>
-              <Text style={s.metaValue}>{timeStr}</Text>
-            </View>
-          </View>
-          <View style={s.metaDivider} />
-          <View style={s.metaItem}>
-            <MapPin size={14} color={colors['text-tertiary']} />
-            <View>
-              <Text style={s.metaLabel}>At Station</Text>
-              <Text style={s.metaValue}>{report.station?.name_en ?? '—'}</Text>
-            </View>
-          </View>
-          {reportedDelay != null && (
-            <>
-              <View style={s.metaDivider} />
-              <View style={s.metaItem}>
-                <Clock size={14} color={colors['text-tertiary']} />
-                <View>
-                  <Text style={s.metaLabel}>Actual Delay</Text>
-                  <Text style={[s.metaValue, { color: colors.danger }]}>{reportedDelay} min</Text>
-                </View>
-              </View>
-            </>
-          )}
-        </View>
-
-        {/* Delay Information card — only for DELAY type with real delay data */}
-        {report.report_type === 'DELAY' && reportedDelay != null && (
-          <View style={s.card}>
-            <Text style={s.cardTitle}>Delay Information</Text>
-            <View style={s.delayRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.delayLabel}>Reported Delay</Text>
-                <Text style={[s.delayNum, { color: colors.danger }]}>{reportedDelay} min</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Text style={s.delayLabel}>Verified Delay</Text>
-                  <Info size={12} color={colors['text-tertiary']} />
-                </View>
-                <Text style={[s.delayNum, { color: colors.accent }]}>{verifiedDelay} min</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Verification card */}
-        <View style={s.card}>
-          <View style={s.verificationTop}>
-            <View>
-              <Text style={s.cardTitle}>Verification</Text>
-              <Text style={s.verificationSub}>Total Verifications</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                <Text style={s.verificationNum}>{verificationCount}</Text>
-                <Users size={20} color={colors['text-tertiary']} />
-              </View>
-            </View>
-
-            {/* Real verifier avatars from the report_votes join */}
-            <View style={{ alignItems: 'flex-end', gap: 6 }}>
-              <Text style={s.verifiedByLabel}>Verified by</Text>
-              {verifiers && verifiers.length > 0 ? (
-                <View style={s.avatarStack}>
-                  {verifiers.slice(0, 5).map((v, i) => (
-                    <View key={v.user_id} style={[s.avatarWrap, { marginLeft: i === 0 ? 0 : -10 }]}>
-                      <Avatar
-                        name={v.user?.display_name ?? 'U'}
-                        uri={v.user?.avatar_url ?? undefined}
-                        size={AVATAR_SIZES.verifiedBy}
-                      />
-                    </View>
-                  ))}
-                  {verifiers.length > 5 && (
-                    <View style={[s.avatarWrap, s.avatarMore, { marginLeft: -10 }]}>
-                      <Text style={s.avatarMoreText}>+{verifiers.length - 5}</Text>
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <Text style={s.noVerifiersText}>No verifiers yet</Text>
-              )}
-            </View>
-          </View>
-
-          {/* Confirm dots + helpful votes */}
-          <View style={s.confirmRow}>
-            <View>
-              <Text style={[s.verificationSub, { marginBottom: 8 }]}>User Confirmations</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                {Array.from({ length: confirmDots }).map((_, i) => (
-                  <View key={i} style={s.confirmDot}>
-                    <CheckCircle size={18} color={colors.success} weight="fill" />
-                  </View>
-                ))}
-                {extraConfirms > 0 && (
-                  <Text style={s.extraConfirmsText}>+{extraConfirms}</Text>
-                )}
-              </View>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={[s.verificationSub, { marginBottom: 8 }]}>Helpful Votes</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <ThumbsUp size={18} color={colors['text-secondary']} />
-                <Text style={s.helpfulNum}>{helpfulCount}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Report Description */}
-        {!!report.description && (
-          <View style={s.card}>
-            <Text style={s.cardTitle}>Report Description</Text>
-            <Text style={s.description}>{report.description}</Text>
-          </View>
-        )}
-
-        {/* Comments Preview */}
-        <View style={s.card}>
-          <View style={s.commentsHeader}>
-            <Text style={s.cardTitle}>Comments Preview</Text>
-            {(comments?.length ?? 0) > MAX_PREVIEW_COMMENTS && (
-              <Pressable style={s.viewAllRow} onPress={() => {}}>
-                <Text style={s.viewAllText}>
-                  View All ({comments?.length ?? 0})
-                </Text>
-                <CaretRight size={13} color={colors.primary} />
-              </Pressable>
-            )}
-          </View>
-
-          {commentsLoading ? (
-            <ActivityIndicator color={colors.primary} style={{ marginVertical: 16 }} />
-          ) : previewComments.length === 0 ? (
-            <Text style={s.noCommentsText}>No comments yet. Be first!</Text>
-          ) : (
-            previewComments.map((c) => {
-              const tier = getReporterTier(c.user?.trust_score ?? 0);
-              const tierColor = tier === 'Verified Traveler' || tier === 'Station Expert' || tier === 'RailMate Ambassador'
-                ? colors.success : tier === 'Contributor' ? colors.primary : colors['text-tertiary'];
-              return (
-                <View key={c.id} style={s.commentRow}>
-                  <Avatar
-                    name={c.user?.display_name ?? 'U'}
-                    uri={c.user?.avatar_url ?? undefined}
-                    size={AVATAR_SIZES.comment}
-                  />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <View style={s.commentMeta}>
-                      <Text style={s.commentUser}>{c.user?.display_name ?? 'Anonymous'}</Text>
-                      <View style={[s.tierPill, { backgroundColor: tierColor + '20' }]}>
-                        <Text style={[s.tierPillText, { color: tierColor }]}>{tier}</Text>
-                      </View>
-                      <Text style={s.commentTime}>{timeAgo(c.created_at, isBengali, t as (key: string, vars?: Record<string, string | number>) => string)}</Text>
-                    </View>
-                    <Text style={s.commentBody}>{c.body}</Text>
-                  </View>
-                  <View style={s.commentLike}>
-                    <ThumbsUp size={14} color={colors['text-tertiary']} />
-                  </View>
-                </View>
-              );
-            })
-          )}
-        </View>
-
-        {/* Footer note */}
-        <View style={s.footerNote}>
-          <Info size={14} color={colors['text-tertiary']} />
-          <Text style={s.footerNoteText}>Thank you! Your report helps thousands of travelers.</Text>
-        </View>
-      </ScrollView>
-
-      {/* Comment input */}
-      <View style={[s.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        <Avatar name={user?.display_name ?? 'G'} size={36} />
-        <TextInput
-          ref={inputRef}
-          style={s.textInput}
-          value={commentText}
-          onChangeText={setCommentText}
-          placeholder={isAuthenticated ? 'Write a comment…' : t('auth.sign_in')}
-          placeholderTextColor={colors['text-tertiary']}
-          multiline
-          maxLength={500}
-          editable={isAuthenticated}
-          onFocus={() => { if (!isAuthenticated) Alert.alert('', t('auth.sign_in')); }}
-        />
-        <Pressable
-          style={[s.sendBtn, (!commentText.trim() || submitting) && { opacity: 0.4 }]}
-          onPress={handleSend}
-          disabled={!commentText.trim() || submitting}
-        >
-          {submitting
-            ? <ActivityIndicator size="small" color={colors['text-inverse']} />
-            : <PaperPlaneTilt size={18} color={colors['text-inverse']} weight="fill" />}
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
-  );
-}
+const COMMENTS_PREVIEW = [
+  { user: 'Rahat Uddin', badge: 'Trusted Reporter', badgeColor: C.green, comment: 'This delay was due to signal issue at Cumilla Yard. Train was held for crossing.', time: '2h ago', likes: 5 },
+  { user: 'Mehedi Hasan', badge: 'Level 3 Reporter', badgeColor: C.blue, comment: 'Same here, train was delayed by 25 minutes.', time: '1h ago', likes: 3 },
+  { user: 'Arif Hossain', badge: 'Level 2 Reporter', badgeColor: C.purple, comment: 'Track maintenance caused speed reduction.', time: '45m ago', likes: 2 },
+];
 
 export default function ReportDetailScreen() {
-  return <ErrorBoundary name="Report Detail"><ReportDetailContent /></ErrorBoundary>;
+  const router = useRouter();
+  return (
+    <SafeAreaView style={rd.root}>
+      <View style={rd.header}>
+        <TouchableOpacity style={rd.backBtn} onPress={() => router.back()} />
+        <Text style={rd.title}>Report Detail</Text>
+        <TouchableOpacity style={rd.shareBtn} />
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={rd.scroll}>
+        {/* Badge + ref */}
+        <View style={rd.topRow}>
+          <View style={rd.delayBadge}><Text style={rd.delayBadgeText}>Delay Report</Text></View>
+          <Text style={rd.refNum}>#DR-2025-05-1762</Text>
+        </View>
+        {/* Train info */}
+        <View style={rd.card}>
+          <View style={rd.trainRow}>
+            <View style={rd.trainIcon} />
+            <View style={{ flex: 1 }}>
+              <Text style={rd.trainName}>Subarna Express (701)</Text>
+              <Text style={rd.trainRoute}>Dhaka → Chattogram</Text>
+            </View>
+            <View style={rd.verifiedBadge}><Text style={rd.verifiedText}>Verified ✓</Text></View>
+          </View>
+          <View style={rd.divider} />
+          <View style={rd.metaRow}>
+            <View><Text style={rd.metaLabel}>May 21, 2025{'\n'}08:16 AM</Text></View>
+            <View><Text style={rd.metaLabel}>At Station{'\n'}<Text style={rd.metaValue}>Cumilla</Text></Text></View>
+            <View><Text style={rd.metaLabel}>Actual Delay{'\n'}<Text style={[rd.metaValue, { color: C.red }]}>22 min</Text></Text></View>
+          </View>
+        </View>
+        {/* Delay info */}
+        <View style={rd.card}>
+          <Text style={rd.sectionTitle}>Delay Information</Text>
+          <View style={rd.delayRow}>
+            <View><Text style={rd.delayLabel}>Reported Delay</Text><Text style={[rd.delayNum, { color: C.red }]}>25 min</Text></View>
+            <View><Text style={rd.delayLabel}>Verified Delay</Text><Text style={[rd.delayNum, { color: C.orange }]}>22 min</Text></View>
+          </View>
+        </View>
+        {/* Verification */}
+        <View style={rd.card}>
+          <View style={rd.verifyRow}>
+            <View>
+              <Text style={rd.sectionTitle}>Verification</Text>
+              <Text style={rd.verifyCount}>14</Text>
+              <Text style={rd.verifyLabel}>Total Verifications</Text>
+            </View>
+            <View style={{ alignItems: 'flex-end', gap: S.sm }}>
+              <Text style={rd.verifiedByLabel}>Verified by</Text>
+              <View style={{ flexDirection: 'row', gap: 4 }}>
+                {[0,1,2,3,4].map(i => <View key={i} style={rd.verifierAvatar} />)}
+                <Text style={{ color: C.text2, fontSize: T.sm }}>+9</Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 4 }}>
+                {[0,1,2,3,4].map(i => <View key={i} style={rd.checkCircle} />)}
+                <Text style={{ color: C.text2, fontSize: T.sm }}>+7</Text>
+              </View>
+              <Text style={{ color: C.white, fontSize: T.sm }}>👍 27 Helpful Votes</Text>
+            </View>
+          </View>
+        </View>
+        {/* Description */}
+        <View style={rd.card}>
+          <Text style={rd.sectionTitle}>Report Description</Text>
+          <Text style={rd.description}>Train departed Dhaka on time. Reached Cumilla at 08:16 AM. Approximately 22 minutes delayed due to signal issue near Cumilla Yard.</Text>
+        </View>
+        {/* Comments preview */}
+        <View style={rd.card}>
+          <View style={rd.cardHeader}>
+            <Text style={rd.sectionTitle}>Comments Preview</Text>
+            <TouchableOpacity onPress={() => router.push('/comments-discussion')}><Text style={rd.viewAll}>View All (8)</Text></TouchableOpacity>
+          </View>
+          {COMMENTS_PREVIEW.map((c, i) => (
+            <View key={c.user}>
+              <View style={rd.commentRow}>
+                <View style={rd.commentAvatar} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm }}>
+                    <Text style={rd.commentUser}>{c.user}</Text>
+                    <View style={[rd.commentBadge, { backgroundColor: c.badgeColor === C.green ? C.greenTint : c.badgeColor === C.blue ? C.blueTint : C.purpleTint }]}>
+                      <Text style={[rd.commentBadgeText, { color: c.badgeColor }]}>{c.badge}</Text>
+                    </View>
+                  </View>
+                  <Text style={rd.commentText}>{c.comment}</Text>
+                  <View style={{ flexDirection: 'row', gap: S.md }}>
+                    <Text style={rd.commentTime}>{c.time}</Text>
+                    <Text style={rd.commentLikes}>👍 {c.likes}</Text>
+                  </View>
+                </View>
+              </View>
+              {i < COMMENTS_PREVIEW.length - 1 && <View style={rd.divider} />}
+            </View>
+          ))}
+        </View>
+        <View style={rd.footerNote}>
+          <Text style={rd.footerText}>ℹ Thank you! Your report helps thousands of travelers.</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
-
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:             { flex: 1, backgroundColor: colors['bg-base'] },
-  center:           { alignItems: 'center', justifyContent: 'center' },
-  notFoundText:     { ...Typography['body'], color: colors['text-secondary'] },
-  scroll:           { padding: Spacing['space-5'] },
-
-  header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingBottom: 12 },
-  iconBtn:          { width: 40, height: 40, borderRadius: Radius['radius-full'], backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:      { ...Typography['h3'], color: colors['text-primary'] },
-
-  topBadgeRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  typePill:         { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-3'], paddingVertical: 7 },
-  typePillText:     { ...Typography['label-lg'] },
-  refId:            { ...Typography['mono-sm'], color: colors['text-tertiary'] },
-
-  trainRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, padding: Spacing['space-4'], marginBottom: 16 },
-  trainIconWrap:    { width: 44, height: 44, borderRadius: Radius['radius-md'], alignItems: 'center', justifyContent: 'center' },
-  trainName:        { ...Typography['h3'], color: colors['text-primary'] },
-  trainRoute:       { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
-  verifiedBadge:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: colors.success, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-2'], paddingVertical: 5 },
-  verifiedBadgeText:{ ...Typography['label'], color: colors.success },
-
-  metaCard:         { flexDirection: 'row', backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, padding: Spacing['space-4'], marginBottom: 16 },
-  metaItem:         { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-  metaLabel:        { ...Typography['caption'], color: colors['text-tertiary'] },
-  metaValue:        { ...Typography['label-lg'], color: colors['text-primary'], marginTop: 2 },
-  metaDivider:      { width: 1, backgroundColor: colors.border, marginHorizontal: Spacing['space-2'] },
-
-  card:             { backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, padding: Spacing['space-4'], marginBottom: 16 },
-  cardTitle:        { ...Typography['h4'], color: colors['text-primary'], marginBottom: 12 },
-
-  delayRow:         { flexDirection: 'row' },
-  delayLabel:       { ...Typography['caption'], color: colors['text-secondary'] },
-  delayNum:         { ...Typography['display-lg'], fontSize: 32, lineHeight: 38, marginTop: 2 },
-
-  verificationTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
-  verificationSub:  { ...Typography['caption'], color: colors['text-secondary'] },
-  verificationNum:  { ...Typography['display-lg'], fontSize: 32, lineHeight: 38, color: colors['text-primary'] },
-  verifiedByLabel:  { ...Typography['caption'], color: colors['text-secondary'] },
-  noVerifiersText:  { ...Typography['caption'], color: colors['text-tertiary'] },
-
-  avatarStack:      { flexDirection: 'row', alignItems: 'center' },
-  avatarWrap:       { borderWidth: 2, borderColor: colors['bg-card'], borderRadius: Radius['radius-full'] },
-  avatarMore:       { width: 36, height: 36, borderRadius: 18, backgroundColor: colors['bg-elevated'], alignItems: 'center', justifyContent: 'center' },
-  avatarMoreText:   { ...Typography['caption'], color: colors['text-secondary'] },
-
-  confirmRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  confirmDot:       {},
-  extraConfirmsText:{ ...Typography['label-lg'], color: colors['text-secondary'] },
-  helpfulNum:       { ...Typography['h3'], color: colors['text-primary'] },
-
-  description:      { ...Typography['body'], color: colors['text-secondary'], lineHeight: 24 },
-
-  commentsHeader:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  viewAllRow:       { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  viewAllText:      { ...Typography['label'], color: colors.primary },
-  noCommentsText:   { ...Typography['body-sm'], color: colors['text-tertiary'], textAlign: 'center', paddingVertical: 12 },
-
-  commentRow:       { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
-  commentMeta:      { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 },
-  commentUser:      { ...Typography['label-lg'], color: colors['text-primary'] },
-  tierPill:         { borderRadius: Radius['radius-sm'], paddingHorizontal: 6, paddingVertical: 2 },
-  tierPillText:     { ...Typography['caption'] },
-  commentTime:      { ...Typography['caption'], color: colors['text-tertiary'], marginLeft: 'auto' },
-  commentBody:      { ...Typography['body-sm'], color: colors['text-secondary'], lineHeight: 21 },
-  commentLike:      { paddingLeft: 8, alignItems: 'center', justifyContent: 'center' },
-
-  footerNote:       { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, padding: Spacing['space-4'] },
-  footerNoteText:   { ...Typography['caption'], color: colors['text-secondary'], flex: 1 },
-
-  inputBar:         { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors['bg-elevated'] },
-  textInput:        { flex: 1, backgroundColor: colors['bg-card'], borderRadius: Radius['radius-full'], borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 10, ...Typography['body'], color: colors['text-primary'], maxHeight: 100 },
-  sendBtn:          { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+const rd = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 17, fontWeight: '700', color: C.white },
+  shareBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  delayBadge: { backgroundColor: C.redTint, borderRadius: 20, paddingHorizontal: S.md, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: S.xs },
+  delayBadgeText: { fontSize: T.sm, fontWeight: '700', color: C.red },
+  refNum: { fontSize: T.sm, color: C.text3 },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  trainRow: { flexDirection: 'row', alignItems: 'center', gap: S.md },
+  trainIcon: { width: 40, height: 40, backgroundColor: C.greenTint, borderRadius: 20 },
+  trainName: { fontSize: T.md, fontWeight: '700', color: C.white },
+  trainRoute: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  verifiedBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
+  verifiedText: { fontSize: T.xs, fontWeight: '700', color: C.green },
+  divider: { height: 1, backgroundColor: C.border },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  metaLabel: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
+  metaValue: { fontSize: T.base, fontWeight: '700', color: C.white },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
+  delayRow: { flexDirection: 'row', gap: S.xxxl },
+  delayLabel: { fontSize: T.sm, color: C.text2 },
+  delayNum: { fontSize: 24, fontWeight: '800', marginTop: 4 },
+  verifyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  verifyCount: { fontSize: 28, fontWeight: '800', color: C.white, marginTop: S.sm },
+  verifyLabel: { fontSize: T.sm, color: C.text2 },
+  verifiedByLabel: { fontSize: T.sm, color: C.text2 },
+  verifierAvatar: { width: 28, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
+  checkCircle: { width: 22, height: 22, backgroundColor: C.greenTint, borderRadius: 11, borderWidth: 1, borderColor: C.green },
+  description: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  commentRow: { flexDirection: 'row', gap: S.md, paddingVertical: S.sm },
+  commentAvatar: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  commentUser: { fontSize: T.sm, fontWeight: '700', color: C.white },
+  commentBadge: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  commentBadgeText: { fontSize: T.xs, fontWeight: '600' },
+  commentText: { fontSize: T.sm, color: C.text2, lineHeight: 18 },
+  commentTime: { fontSize: T.xs, color: C.text3 },
+  commentLikes: { fontSize: T.xs, color: C.text2 },
+  footerNote: { backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.lg },
+  footerText: { fontSize: T.sm, color: C.text2 },
 });

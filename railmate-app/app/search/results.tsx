@@ -1,288 +1,270 @@
-// app/search/results.tsx
-// Matches the Search_Results.png reference: header with From/To summary,
-// Filter/Sort controls, train cards (rebuilt TrainCard), and a real
-// "Community Verified" banner sourced from the live community report feed.
+// app/search-results.tsx — Search Results Screen
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  View, FlatList, ActivityIndicator, Pressable, StyleSheet, Text, Modal,
+  View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, SafeAreaView,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ArrowLeft, Funnel, ArrowsDownUp, MapPin, ShieldCheck, CaretRight,
-} from 'phosphor-react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 
-import { useSearchTrains, useFareClassesForRoute } from '../../hooks/useTrains';
-import { useTrainDelayStatus, useCommunityReports } from '../../hooks/useCommunityReports';
-import { useSearchStore } from '../../stores/searchStore';
-import { TrainCard } from '../../components/features/TrainCard/TrainCard';
-import { Avatar } from '../../components/ui/Avatar/Avatar';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
-import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-import { useTranslation } from '../../i18n';
-import { Spacing } from '../../constants/spacing';
-import { Typography } from '../../constants/typography';
-import { Radius } from '../../constants/radius';
-import { ALL_TRAIN_CLASSES, trainClassLabel } from '../../utils/trainClassLabel';
-import { TrainClass } from '../../types/database.types';
-import { TrainSearchResult } from '../../types/train.types';
+type DelayStatus = 'delayed' | 'slight' | 'ontime';
 
-type SortKey = 'departure' | 'train_number';
+interface TrainResult {
+  id: string;
+  number: string;
+  name: string;
+  nameBn: string;
+  type: string;
+  delayStatus: DelayStatus;
+  delayText: string;
+  depart: string;
+  duration: string;
+  arrive: string;
+  departStation: string;
+  arriveStation: string;
+  classes: string[];
+  selectedClass?: string;
+  seatsAvailable: string;
+}
 
-function ResultsContent() {
-  const { fromId, toId, date } = useLocalSearchParams<{ fromId: string; toId: string; date: string }>();
-  const router = useRouter();
-  const { t, locale } = useTranslation();
-  const isBengali = locale === 'bn';
-  const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
-  const s = useMemo(() => createStyles(colors), [colors]);
+const STATUS_MAP: Record<DelayStatus, { bg: string; color: string }> = {
+  delayed: { bg: C.redTint, color: C.red },
+  slight:  { bg: C.orangeTint, color: C.orange },
+  ontime:  { bg: C.greenTint, color: C.green },
+};
 
-  const { fromStation, toStation } = useSearchStore();
+const TRAINS: TrainResult[] = [
+  {
+    id: '721',
+    number: '#721',
+    name: 'Subarna Express',
+    nameBn: 'সুবর্ণ এক্সপ্রেস',
+    type: 'Intercity',
+    delayStatus: 'delayed',
+    delayText: '15 min delay',
+    depart: '06:40',
+    duration: '4h 35m',
+    arrive: '11:15',
+    departStation: 'Kamlapur',
+    arriveStation: 'Chattogram',
+    classes: ['Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth'],
+    seatsAvailable: '120+',
+  },
+  {
+    id: '787',
+    number: '#787',
+    name: 'Sonar Bangla Express',
+    nameBn: 'সোনার বাংলা এক্সপ্রেস',
+    type: 'Intercity',
+    delayStatus: 'slight',
+    delayText: '5 min delay',
+    depart: '07:00',
+    duration: '4h 30m',
+    arrive: '11:30',
+    departStation: 'Kamlapur',
+    arriveStation: 'Chattogram',
+    classes: ['Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth'],
+    seatsAvailable: '85+',
+  },
+  {
+    id: '236',
+    number: '#236',
+    name: 'Mahanagar Express',
+    nameBn: 'মহানগর এক্সপ্রেস',
+    type: 'Intercity',
+    delayStatus: 'ontime',
+    delayText: 'On Time',
+    depart: '08:10',
+    duration: '4h 20m',
+    arrive: '12:30',
+    departStation: 'Kamlapur',
+    arriveStation: 'Chattogram',
+    classes: ['Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth'],
+    selectedClass: 'AC Seat',
+    seatsAvailable: '60+',
+  },
+];
 
-  const fromStationId = fromId as string | undefined;
-  const toStationId   = toId   as string | undefined;
-
-  const { data: trains, isLoading } = useSearchTrains({
-    fromStationId, toStationId, date: date ?? '',
-  });
-  const { data: classesByTrain } = useFareClassesForRoute({
-    fromStationId, toStationId,
-  });
-  const trainNumbers = useMemo(() => (trains ?? []).map((tr) => tr.train_number), [trains]);
-  const { data: delayByTrain } = useTrainDelayStatus(trainNumbers, date ?? '');
-
-  // Real "active reporters" count + avatars, sourced from the live community
-  // feed (same hook the Home/Community screens use) — not a fabricated number.
-  const { data: liveReports } = useCommunityReports(null);
-  const activeReporters = useMemo(() => {
-    if (!liveReports) return [];
-    const seen = new Map<string, NonNullable<typeof liveReports[number]['user']>>();
-    for (const r of liveReports) {
-      if (r.user && !seen.has(r.user.id)) seen.set(r.user.id, r.user);
-    }
-    return Array.from(seen.values());
-  }, [liveReports]);
-
-  const [sortKey, setSortKey] = useState<SortKey>('departure');
-  const [sortMenuOpen, setSortMenuOpen] = useState(false);
-  const [filterClass, setFilterClass] = useState<TrainClass | null>(null);
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
-
-  const filteredSorted: TrainSearchResult[] = useMemo(() => {
-    let list = trains ?? [];
-    if (filterClass) {
-      list = list.filter((tr) => (classesByTrain?.get(tr.train_number) ?? []).includes(filterClass));
-    }
-    return [...list].sort((a, b) => {
-      if (sortKey === 'train_number') return a.train_number.localeCompare(b.train_number);
-      // departure: verified trains with real times first (by time), then unverified by number
-      if (a.verified && b.verified) return a.departure_time.localeCompare(b.departure_time);
-      if (a.verified !== b.verified) return a.verified ? -1 : 1;
-      return a.train_number.localeCompare(b.train_number);
-    });
-  }, [trains, filterClass, classesByTrain, sortKey]);
-
-  const fromName = fromStation?.name_en ?? '';
-  const toName = toStation?.name_en ?? '';
-  const fromNameBn = fromStation?.name_bn ?? '';
-  const toNameBn = toStation?.name_bn ?? '';
-
-  const dateLabel = useMemo(() => {
-    if (!date) return '';
-    const d = new Date(date);
-    const today = new Date();
-    const isToday = d.toDateString() === today.toDateString();
-    if (isToday) return `Today, ${d.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`;
-    return d.toLocaleDateString(isBengali ? 'bn-BD' : 'en-US', { day: 'numeric', month: 'long' });
-  }, [date, isBengali]);
-
+function TrainCard({ train, onPress }: { train: TrainResult; onPress: () => void }) {
+  const status = STATUS_MAP[train.delayStatus];
   return (
-    <View style={s.root}>
-      {/* Header */}
-      <View style={[s.header, { paddingTop: insets.top + Spacing['space-3'] }]}>
-        <Pressable style={s.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors['text-primary']} weight="bold" />
-        </Pressable>
-        <View style={{ flex: 1, marginLeft: Spacing['space-3'] }}>
-          <Text style={s.title}>{t('results.title')}</Text>
-          <Text style={s.subtitle}>{t('results.found', { count: filteredSorted.length })}</Text>
+    <TouchableOpacity style={s.trainCard} onPress={onPress} activeOpacity={0.8}>
+      {/* Top row */}
+      <View style={s.trainTop}>
+        <View style={s.trainLeft}>
+          <View style={s.numBadge}><Text style={s.numBadgeText}>{train.number}</Text></View>
+          <View>
+            <Text style={s.trainName}>{train.name}</Text>
+            <Text style={s.trainNameBn}>{train.nameBn}</Text>
+          </View>
         </View>
-        <Pressable style={s.headerIconBtn} onPress={() => setFilterMenuOpen(true)}>
-          <Funnel size={16} color={colors['text-primary']} />
-          <Text style={s.headerIconBtnText}>{t('results.filter')}</Text>
-        </Pressable>
-        <Pressable style={s.headerIconBtn} onPress={() => setSortMenuOpen(true)}>
-          <ArrowsDownUp size={16} color={colors['text-primary']} />
-          <Text style={s.headerIconBtnText}>{t('results.sort')}</Text>
-        </Pressable>
+        <View style={[s.delayBadge, { backgroundColor: status.bg }]}>
+          <Text style={[s.delayText, { color: status.color }]}>{train.delayText}</Text>
+        </View>
       </View>
 
-      {/* From/To summary — tap to go back and edit */}
-      <Pressable style={s.routeCard} onPress={() => router.push('/(tabs)/search' as any)}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.routeLabel}>{t('search.from')}</Text>
-          <View style={s.routeValueRow}>
-            <MapPin size={14} color={colors.primary} weight="fill" />
-            <Text style={s.routeValue} numberOfLines={1}>{fromName}</Text>
-          </View>
-          <Text style={s.routeSub} numberOfLines={1}>{fromNameBn}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={s.routeLabel}>{t('search.to')}</Text>
-          <View style={s.routeValueRow}>
-            <MapPin size={14} color={colors.primary} weight="fill" />
-            <Text style={s.routeValue} numberOfLines={1}>{toName}</Text>
-          </View>
-          <Text style={s.routeSub} numberOfLines={1}>{toNameBn}</Text>
-        </View>
-        <CaretRight size={16} color={colors['text-tertiary']} />
-      </Pressable>
+      <Text style={s.trainRoute}>Dhaka (Kamlapur) → Chattogram</Text>
+      <View style={s.divider} />
 
-      <View style={s.metaRow}>
-        <Text style={s.metaText}>{t('search.date')}: {dateLabel}</Text>
-        <Text style={s.metaText}>
-          {filterClass ? trainClassLabel(filterClass) : t('results.today_all_classes').split('•')[1]?.trim() ?? 'All Classes'}
-        </Text>
+      {/* Timing */}
+      <View style={s.timingRow}>
+        <View>
+          <Text style={s.timeMain}>{train.depart}</Text>
+          <Text style={s.timeLabel}>Depart</Text>
+          <Text style={s.timeStation}>{train.departStation}</Text>
+        </View>
+        <View style={s.durationCol}>
+          <Text style={s.durationText}>{train.duration}</Text>
+          <View style={s.durationLine} />
+          <Text style={s.arrowText}>→</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={s.timeMain}>{train.arrive}</Text>
+          <Text style={s.timeLabel}>Arrive</Text>
+          <Text style={s.timeStation}>{train.arriveStation}</Text>
+        </View>
       </View>
 
-      {/* Results */}
-      {isLoading ? (
-        <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: Spacing['space-10'] }} />
-      ) : filteredSorted.length === 0 ? (
-        <View style={s.emptyState}>
-          <Text style={s.emptyTitle}>{t('results.none')}</Text>
-          <Text style={s.emptyHint}>{t('results.none_hint')}</Text>
+      <View style={s.divider} />
+
+      {/* Bottom */}
+      <View style={s.trainBottom}>
+        <View style={s.classPills}>
+          {train.classes.map((cl) => (
+            <View
+              key={cl}
+              style={[s.classPill, cl === train.selectedClass && s.classPillActive]}
+            >
+              <Text style={[s.classPillText, cl === train.selectedClass && s.classPillTextActive]}>
+                {cl}
+              </Text>
+            </View>
+          ))}
         </View>
-      ) : (
-        <FlatList
-          data={filteredSorted}
-          keyExtractor={(item) => String(item.train_number)}
-          contentContainerStyle={{ padding: Spacing['space-5'], paddingBottom: Spacing['space-10'] }}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TrainCard
-              train={item}
-              fromId={fromId}
-              toId={toId}
-              availableClasses={classesByTrain?.get(item.train_number)}
-              delayStatus={delayByTrain?.get(item.train_number)}
-            />
-          )}
-          ListFooterComponent={
-            activeReporters.length > 0 ? (
-              <View style={s.communityBanner}>
-                <View style={s.communityIconWrap}>
-                  <ShieldCheck size={20} color={colors.primary} weight="fill" />
-                </View>
-                <View style={{ flex: 1, marginLeft: Spacing['space-3'] }}>
-                  <Text style={s.communityTitle}>{t('results.community_verified')}</Text>
-                  <Text style={s.communityBody}>{t('results.community_verified_body')}</Text>
-                </View>
-                <View style={s.avatarStack}>
-                  {activeReporters.slice(0, 3).map((u, i) => (
-                    <View key={u.id} style={[s.avatarWrap, { marginLeft: i === 0 ? 0 : -10 }]}>
-                      <Avatar name={u.display_name ?? 'U'} uri={u.avatar_url ?? undefined} size={28} />
-                    </View>
-                  ))}
-                  {activeReporters.length > 3 && (
-                    <View style={[s.avatarWrap, s.avatarMore, { marginLeft: -10 }]}>
-                      <Text style={s.avatarMoreText}>+{activeReporters.length - 3}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            ) : null
-          }
-        />
-      )}
-
-      {/* Sort menu */}
-      <Modal visible={sortMenuOpen} transparent animationType="fade" onRequestClose={() => setSortMenuOpen(false)}>
-        <Pressable style={s.modalBackdrop} onPress={() => setSortMenuOpen(false)}>
-          <View style={s.sheet}>
-            <Text style={s.sheetTitle}>{t('results.sort')}</Text>
-            {([
-              { key: 'departure' as SortKey, label: t('train.depart') },
-              { key: 'train_number' as SortKey, label: '#' + t('results.title') },
-            ]).map(({ key, label }) => (
-              <Pressable
-                key={key}
-                style={s.sheetRow}
-                onPress={() => { setSortKey(key); setSortMenuOpen(false); }}
-              >
-                <Text style={[s.sheetRowText, sortKey === key && { color: colors.primary }]}>{label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
-
-      {/* Filter menu — real class filter against the live fares data fetched above */}
-      <Modal visible={filterMenuOpen} transparent animationType="fade" onRequestClose={() => setFilterMenuOpen(false)}>
-        <Pressable style={s.modalBackdrop} onPress={() => setFilterMenuOpen(false)}>
-          <View style={s.sheet}>
-            <Text style={s.sheetTitle}>{t('results.filter')}</Text>
-            <Pressable style={s.sheetRow} onPress={() => { setFilterClass(null); setFilterMenuOpen(false); }}>
-              <Text style={[s.sheetRowText, !filterClass && { color: colors.primary }]}>All Classes</Text>
-            </Pressable>
-            {ALL_TRAIN_CLASSES.map((cls) => (
-              <Pressable
-                key={cls}
-                style={s.sheetRow}
-                onPress={() => { setFilterClass(cls); setFilterMenuOpen(false); }}
-              >
-                <Text style={[s.sheetRowText, filterClass === cls && { color: colors.primary }]}>
-                  {trainClassLabel(cls)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
-    </View>
+        <View>
+          <Text style={s.seatsLabel}>Seats Available</Text>
+          <Text style={s.seatsValue}>{train.seatsAvailable}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
-export default function ResultsScreen() {
-  return <ErrorBoundary name="Search Results"><ResultsContent /></ErrorBoundary>;
+export default function SearchResultsScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ from: string; to: string; date: string }>();
+
+  return (
+    <SafeAreaView style={s.root}>
+      {/* Header */}
+      <View style={s.header}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
+        <View>
+          <Text style={s.title}>Search Results</Text>
+          <Text style={s.subtitle}>{TRAINS.length} Trains Found</Text>
+        </View>
+        <View style={s.headerRight}>
+          <TouchableOpacity style={s.headerBtn}><Text style={s.headerBtnText}>Filter</Text></TouchableOpacity>
+          <TouchableOpacity style={s.headerBtn}><Text style={s.headerBtnText}>Sort</Text></TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+
+        {/* Summary card */}
+        <View style={s.summaryCard}>
+          <View style={s.summaryRow}>
+            <View>
+              <Text style={s.summaryLabel}>From</Text>
+              <Text style={s.summaryValue}>{params.from ?? 'Dhaka'}</Text>
+            </View>
+            <View style={s.swapIcon} />
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={s.summaryLabel}>To</Text>
+              <Text style={s.summaryValue}>{params.to ?? 'Chattogram'}</Text>
+            </View>
+          </View>
+          <View style={s.divider} />
+          <View style={s.summaryMeta}>
+            <Text style={s.summaryMetaText}>{params.date ?? 'Today, 18 June'}</Text>
+            <Text style={s.summaryMetaText}>All Classes</Text>
+          </View>
+        </View>
+
+        {/* Train list */}
+        {TRAINS.map((train) => (
+          <TrainCard
+            key={train.id}
+            train={train}
+            onPress={() => router.push({ pathname: '/train-detail', params: { id: train.id } })}
+          />
+        ))}
+
+        {/* Community verified */}
+        <View style={s.communityBadge}>
+          <View style={s.communityIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.communityTitle}>Community Verified</Text>
+            <Text style={s.communitySub}>
+              Delay and status updates are based on real-time reports from fellow travelers.
+            </Text>
+          </View>
+          <View style={s.reportersStack} />
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  root:             { flex: 1, backgroundColor: colors['bg-base'] },
-  header:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing['space-5'], paddingBottom: Spacing['space-3'], gap: Spacing['space-2'] },
-  backBtn:          { width: 40, height: 40, borderRadius: Radius['radius-full'], backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  title:            { ...Typography['h2'], color: colors['text-primary'] },
-  subtitle:         { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
-  headerIconBtn:    { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: colors.border, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-2'], paddingVertical: Spacing['space-2'] },
-  headerIconBtnText:{ ...Typography['caption'], color: colors['text-primary'] },
-
-  routeCard:        { flexDirection: 'row', alignItems: 'center', marginHorizontal: Spacing['space-5'], backgroundColor: colors['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: colors.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
-  routeLabel:       { ...Typography['caption'], color: colors['text-tertiary'] },
-  routeValueRow:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  routeValue:       { ...Typography['h4'], color: colors['text-primary'], flexShrink: 1 },
-  routeSub:         { ...Typography['caption'], color: colors['text-tertiary'], marginTop: 1 },
-
-  metaRow:          { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: Spacing['space-5'], marginTop: Spacing['space-3'], marginBottom: Spacing['space-2'] },
-  metaText:         { ...Typography['caption'], color: colors['text-secondary'] },
-
-  emptyState:       { alignItems: 'center', paddingTop: Spacing['space-12'], paddingHorizontal: Spacing['space-6'] },
-  emptyTitle:       { ...Typography['h3'], color: colors['text-primary'], marginBottom: Spacing['space-2'] },
-  emptyHint:        { ...Typography['body-sm'], color: colors['text-secondary'], textAlign: 'center' },
-
-  communityBanner:  { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['primary-subtle'], borderWidth: 1, borderColor: colors.primary, borderRadius: Radius['radius-lg'], padding: Spacing['space-4'], marginTop: Spacing['space-2'] },
-  communityIconWrap:{ width: 40, height: 40, borderRadius: Radius['radius-full'], backgroundColor: colors['bg-card'], alignItems: 'center', justifyContent: 'center' },
-  communityTitle:   { ...Typography['label-lg'], color: colors.primary },
-  communityBody:    { ...Typography['caption'], color: colors['text-secondary'], marginTop: 2 },
-  avatarStack:      { flexDirection: 'row', alignItems: 'center' },
-  avatarWrap:       { borderWidth: 2, borderColor: colors['bg-base'], borderRadius: Radius['radius-full'] },
-  avatarMore:       { width: 28, height: 28, borderRadius: 14, backgroundColor: colors['bg-elevated'], alignItems: 'center', justifyContent: 'center' },
-  avatarMoreText:   { ...Typography['caption'], color: colors['text-secondary'] },
-
-  modalBackdrop:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  sheet:            { backgroundColor: colors['bg-card'], borderTopLeftRadius: Radius['radius-xl'], borderTopRightRadius: Radius['radius-xl'], padding: Spacing['space-5'], paddingBottom: Spacing['space-8'] },
-  sheetTitle:       { ...Typography['h3'], color: colors['text-primary'], marginBottom: Spacing['space-4'] },
-  sheetRow:         { paddingVertical: Spacing['space-3'], borderBottomWidth: 1, borderBottomColor: colors.border },
-  sheetRowText:     { ...Typography['body'], color: colors['text-primary'] },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  title: { fontSize: 16, fontWeight: '700', color: C.white },
+  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
+  headerRight: { flexDirection: 'row', gap: S.sm },
+  headerBtn: { backgroundColor: C.surface2, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: 8 },
+  headerBtnText: { fontSize: T.sm, fontWeight: '600', color: C.white },
+  summaryCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryLabel: { fontSize: T.xs, color: C.text2 },
+  summaryValue: { fontSize: T.md, fontWeight: '600', color: C.white, marginTop: 2 },
+  swapIcon: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  divider: { height: 1, backgroundColor: C.border, marginVertical: S.md },
+  summaryMeta: { flexDirection: 'row', gap: S.xl },
+  summaryMetaText: { fontSize: T.sm, fontWeight: '600', color: C.text2 },
+  trainCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  trainTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  trainLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
+  numBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
+  numBadgeText: { fontSize: T.sm, fontWeight: '700', color: C.green },
+  trainName: { fontSize: 14, fontWeight: '700', color: C.white },
+  trainNameBn: { fontSize: T.sm, color: C.text2, marginTop: 1 },
+  delayBadge: { borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
+  delayText: { fontSize: T.xs, fontWeight: '700' },
+  trainRoute: { fontSize: T.sm, color: C.text2 },
+  timingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  timeMain: { fontSize: 20, fontWeight: '700', color: C.white },
+  timeLabel: { fontSize: T.xs, color: C.text2, marginTop: 2 },
+  timeStation: { fontSize: T.xs, fontWeight: '600', color: C.green, marginTop: 1 },
+  durationCol: { alignItems: 'center', gap: 4 },
+  durationText: { fontSize: T.sm, color: C.text2 },
+  durationLine: { width: 60, height: 2, backgroundColor: C.green, borderRadius: 1 },
+  arrowText: { fontSize: T.sm, color: C.text2 },
+  trainBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  classPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  classPill: { backgroundColor: C.surface2, borderRadius: 6, paddingHorizontal: S.sm, paddingVertical: 4 },
+  classPillActive: { backgroundColor: C.greenTint, borderWidth: 1, borderColor: C.green },
+  classPillText: { fontSize: 9, color: C.text2 },
+  classPillTextActive: { color: C.green },
+  seatsLabel: { fontSize: 9, color: C.text2, textAlign: 'right' },
+  seatsValue: { fontSize: 14, fontWeight: '700', color: C.green, textAlign: 'right' },
+  communityBadge: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
+  communityIcon: { width: 40, height: 40, backgroundColor: C.greenDark, borderRadius: 20 },
+  communityTitle: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  communitySub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
+  reportersStack: { width: 40, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
 });
