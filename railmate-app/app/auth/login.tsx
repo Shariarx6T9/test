@@ -42,17 +42,49 @@ export default function LoginScreen() {
         if (phoneNumber.length < 9) { setError(t('auth.invalid_phone') || 'Invalid phone'); setSubmitting(false); return; }
         const full = `+880${phoneNumber}`;
         const { error: e } = await signInWithPhone(full);
-        if (e) { setError(e); setSubmitting(false); return; }
+        if (e) {
+          const rawError = e || '';
+          const msg = typeof rawError === 'string' ? rawError.toLowerCase() : '';
+          if (msg.includes('unverified') || msg.includes('twilio') || msg.includes('21608') || msg.includes('trial')) {
+            setError('OTP পাঠানো যায়নি। অনুগ্রহ করে ইমেইল দিয়ে চেষ্টা করুন।');
+          } else if (msg.includes('network') || msg.includes('fetch')) {
+            setError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
+          } else if (msg.includes('invalid') || msg.includes('not found')) {
+            setError('ভুল তথ্য। আবার চেষ্টা করুন।');
+          } else {
+            setError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+          }
+          setSubmitting(false); return;
+        }
         router.push({ pathname: '/auth/otp' as any, params: { contact: full, type: 'phone' } });
       } else {
         if (!email.includes('@')) { setError(t('auth.invalid_email') || 'Invalid email'); setSubmitting(false); return; }
         const { error: e } = await signInWithEmail(email);
-        if (e) { setError(e); setSubmitting(false); return; }
+        if (e) {
+          const rawError = e || '';
+          const msg = typeof rawError === 'string' ? rawError.toLowerCase() : '';
+          if (msg.includes('unverified') || msg.includes('twilio') || msg.includes('21608') || msg.includes('trial')) {
+            setError('OTP পাঠানো যায়নি। অনুগ্রহ করে ইমেইল দিয়ে চেষ্টা করুন।');
+          } else if (msg.includes('network') || msg.includes('fetch')) {
+            setError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
+          } else if (msg.includes('invalid') || msg.includes('not found')) {
+            setError('ভুল তথ্য। আবার চেষ্টা করুন।');
+          } else {
+            setError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+          }
+          setSubmitting(false); return;
+        }
         router.push({ pathname: '/auth/otp' as any, params: { contact: email, type: 'email' } });
       }
     } catch (ex) {
-      const msg = ex instanceof Error ? ex.message : String(ex);
-      setError(msg.includes('Network') || msg.includes('fetch') ? 'Network error. Check your connection or continue as guest.' : msg);
+      const msg = (ex instanceof Error ? ex.message : String(ex)).toLowerCase();
+      if (msg.includes('unverified') || msg.includes('twilio') || msg.includes('21608')) {
+        setError('OTP পাঠানো যায়নি। অনুগ্রহ করে ইমেইল দিয়ে চেষ্টা করুন।');
+      } else if (msg.includes('network') || msg.includes('fetch')) {
+        setError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
+      } else {
+        setError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -137,6 +169,11 @@ export default function LoginScreen() {
             <View style={{ marginTop: 8 }}>
               <Text style={s.errorText}>{error}</Text>
             </View>
+          )}
+          {mode === 'phone' && (
+            <Text style={{ fontSize: 11, color: '#94A0AB', marginTop: 6, marginLeft: 2 }}>
+              বেটা চলাকালীন, ইমেইল দিয়ে সাইন ইন করুন।
+            </Text>
           )}
 
           {/* Actions */}

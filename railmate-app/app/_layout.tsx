@@ -25,6 +25,7 @@ import {
   JetBrainsMono_500Medium,
 } from '@expo-google-fonts/jetbrains-mono';
 import { queryClient } from '../lib/queryClient';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/authStore';
 import { usePrefsStore } from '../stores/prefsStore';
@@ -111,10 +112,12 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <View style={[{ flex: 1, backgroundColor: colors['bg-base'] }, themeVars as any]}>
         <Slot />
       </View>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

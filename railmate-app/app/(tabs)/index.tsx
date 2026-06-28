@@ -6,6 +6,7 @@ import {
   StyleSheet, SafeAreaView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Bell, ArrowsLeftRight, Lightning, Train, Bell as BellIcon, MapPin, Armchair, Calculator } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 import { useAuthStore } from '../../stores/authStore';
 import { usePrefsStore } from '../../stores/prefsStore';
@@ -87,6 +88,16 @@ export default function HomeScreen() {
     return t('home.last_viewed_days_ago', { days: String(days) });
   };
 
+  // Quick action icons
+  const QA_ICONS: Record<string, React.ReactElement> = {
+    live:    <Lightning size={20} color={C.green} weight="fill" />,
+    trips:   <Train size={20} color={C.green} weight="fill" />,
+    alert:   <BellIcon size={20} color={C.green} weight="fill" />,
+    station: <MapPin size={20} color={C.green} weight="fill" />,
+    coach:   <Armchair size={20} color={C.green} weight="fill" />,
+    fare:    <Calculator size={20} color={C.green} weight="fill" />,
+  };
+
   // Quick actions
   const QUICK_ACTIONS: QuickAction[] = [
     { id: 'live', label: t('home.action_live'), route: '/(tabs)/live-updates' },
@@ -127,7 +138,7 @@ export default function HomeScreen() {
                 <Text style={s.brandSub}>Bangladesh</Text>
               </View>
             </View>
-            <TouchableOpacity style={s.bell} onPress={() => router.push('/notifications')} />
+            <TouchableOpacity style={s.bell} onPress={() => router.push('/notifications')}><Bell size={18} color={C.white} /></TouchableOpacity>
           </View>
           <Text style={s.greeting}>{greeting},</Text>
           <Text style={s.userName}>{displayName} 👋</Text>
@@ -145,7 +156,7 @@ export default function HomeScreen() {
                   {fromStation?.name_en ?? t('search.placeholder_from')}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.swapBtn} onPress={swapStations} />
+              <TouchableOpacity style={s.swapBtn} onPress={swapStations}><ArrowsLeftRight size={16} color={C.green} /></TouchableOpacity>
               <TouchableOpacity
                 style={{ alignItems: 'flex-end' }}
                 onPress={() => router.push('/search-trains' as any)}
@@ -178,7 +189,7 @@ export default function HomeScreen() {
                   style={s.qaItem}
                   onPress={() => router.push(action.route as any)}
                 >
-                  <View style={s.qaIcon} />
+                  <View style={s.qaIcon}>{QA_ICONS[action.id]}</View>
                   <Text style={s.qaLabel}>{action.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -321,14 +332,14 @@ const s = StyleSheet.create({
   brandRail: { fontSize: T.lg, fontWeight: '800', color: C.white },
   brandMate: { fontSize: T.lg, fontWeight: '800', color: C.green },
   brandSub: { fontSize: T.xs, color: C.text2, marginTop: 1 },
-  bell: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18 },
+  bell: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   greeting: { fontSize: T.base, color: C.text2 },
   userName: { fontSize: 26, fontWeight: '800', color: C.white, marginTop: 2 },
   date: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   body: { paddingHorizontal: S.xl, paddingTop: S.xl, gap: S.xxl },
   card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
   routeRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  swapBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  swapBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   label: { fontSize: T.xs, color: C.text2 },
   stationName: { fontSize: T.md, fontWeight: '600', color: C.white, marginTop: 2 },
   divider: { height: 1, backgroundColor: C.border, marginVertical: S.md },
@@ -342,7 +353,7 @@ const s = StyleSheet.create({
   viewAll: { fontSize: T.base, fontWeight: '600', color: C.green },
   qaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
   qaItem: { width: '31%', backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 14, alignItems: 'center', gap: S.sm },
-  qaIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 10 },
+  qaIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   qaLabel: { fontSize: T.xs, color: C.white, textAlign: 'center' },
   routeCards: { flexDirection: 'row', gap: S.sm },
   routeCard: { width: 130, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: 14 },

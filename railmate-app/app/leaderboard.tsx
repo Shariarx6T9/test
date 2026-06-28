@@ -1,5 +1,6 @@
 // app/leaderboard.tsx
 import React, { useState } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -94,7 +95,7 @@ export default function LeaderboardScreen() {
   return (
     <SafeAreaView style={lb.root}>
       <View style={lb.header}>
-        <TouchableOpacity style={lb.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={lb.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
           <Text style={lb.title}>👑 {t('leaderboard.title')}</Text>
           <Text style={lb.subtitle}>{t('leaderboard.sub')}</Text>
@@ -228,7 +229,7 @@ const lb = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.md, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   infoBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },

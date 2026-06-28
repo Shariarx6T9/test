@@ -1,6 +1,7 @@
 // app/seat-fare.tsx — Seat & Fare Screen
 
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -105,7 +106,7 @@ export default function SeatFareScreen() {
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View>
           <Text style={s.title}>Seat & Fare</Text>
           <Text style={s.subtitle}>{params.trainName ?? 'Train'} #{params.trainNumber ?? ''}</Text>
@@ -255,7 +256,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 16, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   availBadge: { backgroundColor: C.greenTint, borderRadius: 10, paddingHorizontal: S.sm, paddingVertical: 6, borderWidth: 1, borderColor: C.green },

@@ -1,5 +1,6 @@
 // app/report-detail.tsx
 import React from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -49,7 +50,7 @@ export default function ReportDetailScreen() {
     return (
       <SafeAreaView style={rd.root}>
         <View style={rd.header}>
-          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()} />
+          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
           <Text style={rd.title}>Report Detail</Text>
           <View style={rd.shareBtn} />
         </View>
@@ -64,7 +65,7 @@ export default function ReportDetailScreen() {
     return (
       <SafeAreaView style={rd.root}>
         <View style={rd.header}>
-          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()} />
+          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
           <Text style={rd.title}>Report Detail</Text>
           <View style={rd.shareBtn} />
         </View>
@@ -82,7 +83,7 @@ export default function ReportDetailScreen() {
     return (
       <SafeAreaView style={rd.root}>
         <View style={rd.header}>
-          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()} />
+          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
           <Text style={rd.title}>Report Detail</Text>
           <View style={rd.shareBtn} />
         </View>
@@ -115,7 +116,7 @@ export default function ReportDetailScreen() {
   return (
     <SafeAreaView style={rd.root}>
       <View style={rd.header}>
-        <TouchableOpacity style={rd.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <Text style={rd.title}>Report Detail</Text>
         <TouchableOpacity style={rd.shareBtn} />
       </View>
@@ -305,7 +306,7 @@ const rd = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '700', color: C.white },
   shareBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -1,5 +1,6 @@
 // app/submit-report.tsx
 import React, { useState } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -69,10 +70,15 @@ export default function SubmitReportScreen() {
       });
       setSubmitted(true);
     } catch (err: any) {
-      if (err?.status === 429) {
-        setSubmittedError("You've submitted too many reports. Please wait before submitting again.");
+      const msg = (err?.message || '').toLowerCase();
+      if (err?.status === 429 || msg.includes('rate limit') || msg.includes('too many')) {
+        setSubmittedError('অনেক বেশি রিপোর্ট করা হয়েছে। একটু পরে আবার চেষ্টা করুন।');
+      } else if (msg.includes('schema') || msg.includes('column') || msg.includes('relation')) {
+        setSubmittedError('রিপোর্ট জমা দেওয়া যায়নি। আবার চেষ্টা করুন।');
+      } else if (msg.includes('network') || msg.includes('fetch')) {
+        setSubmittedError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
       } else {
-        setSubmittedError(err?.message ?? t('common.error'));
+        setSubmittedError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
       }
     }
   };
@@ -111,7 +117,7 @@ export default function SubmitReportScreen() {
         <TouchableOpacity
           style={sr.backBtn}
           onPress={() => (step > 0 ? setStep(step - 1) : router.back())}
-        />
+        ><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View>
           <Text style={sr.title}>Submit Report</Text>
           <Text style={sr.subtitle}>Help fellow travelers by sharing real-time updates</Text>
@@ -370,7 +376,7 @@ const sr = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: S.xl, paddingVertical: S.md, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border },

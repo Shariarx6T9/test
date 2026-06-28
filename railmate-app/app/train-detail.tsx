@@ -3,6 +3,7 @@
 import React, { useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Share, Linking, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { ArrowLeft, ShareNetwork, Bell } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
 import { useTrainDetail } from '../hooks/useTrainDetail';
 import { useCommunityReports } from '../hooks/useCommunityReports';
@@ -102,10 +103,10 @@ export default function TrainDetailScreen() {
 
         {/* Header overlay */}
         <View style={s.headerOverlay}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
+          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
           <View style={s.headerActions}>
-            <TouchableOpacity style={s.iconBtn} />
-            <TouchableOpacity style={s.iconBtn} />
+            <TouchableOpacity style={s.iconBtn}><ShareNetwork size={18} color={C.white} /></TouchableOpacity>
+            <TouchableOpacity style={s.iconBtn}><Bell size={18} color={C.white} /></TouchableOpacity>
           </View>
         </View>
 
@@ -254,9 +255,9 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   heroImg: { width: '100%', height: 220, backgroundColor: C.surface2 },
   headerOverlay: { position: 'absolute', top: 48, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: S.xl },
-  backBtn: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, opacity: 0.9 },
+  backBtn: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, opacity: 0.9, alignItems: 'center', justifyContent: 'center' },
   headerActions: { flexDirection: 'row', gap: S.sm },
-  iconBtn: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, opacity: 0.9 },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface, borderRadius: 18, opacity: 0.9, alignItems: 'center', justifyContent: 'center' },
   body: { padding: S.xl, gap: S.lg },
   card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
   trainTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },

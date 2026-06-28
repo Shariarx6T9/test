@@ -1,6 +1,7 @@
 // app/search/results.tsx — Search Results Screen
 
 import React, { useState } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl,
 } from 'react-native';
@@ -135,7 +136,7 @@ export default function SearchResultsScreen() {
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View>
           <Text style={s.title}>{t('results.title')}</Text>
           <Text style={s.subtitle}>
@@ -235,7 +236,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 16, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   headerRight: { flexDirection: 'row', gap: S.sm },

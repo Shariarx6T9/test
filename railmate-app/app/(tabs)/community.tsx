@@ -1,6 +1,7 @@
 // app/(tabs)/community.tsx — Community Screen
 
 import React, { useState, useCallback } from 'react';
+import { Bell, Plus } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
@@ -107,15 +108,17 @@ export default function CommunityScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user, isAuthenticated, isGuest } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'All' | 'Following' | 'My Posts'>('All');
+  const [activeTab, setActiveTab] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
-  const tabs: Array<'All' | 'Following' | 'My Posts'> = ['All', 'Following', 'My Posts'];
+  const tabs = [t('community.tab_all'), t('community.tab_following'), t('community.tab_verified'), t('community.tab_my_posts')];
 
   const filter: ReportFilter =
-    activeTab === 'My Posts' && user?.id
+    activeTab === 3 && user?.id
       ? { userId: user.id }
-      : activeTab === 'Following'
-      ? { status: 'VERIFIED' }
+      : activeTab === 2
+      ? { status: 'VERIFIED' as const }
+      : activeTab === 1
+      ? { status: 'VERIFIED' as const }
       : null;
 
   const { data: reports, isLoading, refetch } = useCommunityReports(filter);
@@ -156,23 +159,23 @@ export default function CommunityScreen() {
           </View>
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} />
+          <TouchableOpacity style={s.iconBtn}><Bell size={18} color={C.text2} /></TouchableOpacity>
           <TouchableOpacity
             style={[s.iconBtn, { backgroundColor: C.green }]}
             onPress={() => router.push('/submit-report' as any)}
-          />
+          ><Plus size={18} color={C.bg} /></TouchableOpacity>
         </View>
       </View>
 
       {/* Tabs */}
       <View style={s.tabsRow}>
-        {tabs.map((tab) => (
+        {tabs.map((tab, idx) => (
           <TouchableOpacity
             key={tab}
-            style={[s.tab, activeTab === tab && s.tabActive]}
-            onPress={() => setActiveTab(tab)}
+            style={[s.tab, activeTab === idx && s.tabActive]}
+            onPress={() => setActiveTab(idx)}
           >
-            <Text style={[s.tabText, activeTab === tab && s.tabTextActive]}>{tab}</Text>
+            <Text style={[s.tabText, activeTab === idx && s.tabTextActive]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -243,7 +246,7 @@ const s = StyleSheet.create({
   title: { fontSize: T.lg, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
   headerRight: { flexDirection: 'row', gap: S.sm },
-  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   tabsRow: { flexDirection: 'row', marginHorizontal: S.xl, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border },
   tab: { flex: 1, paddingVertical: S.md, alignItems: 'center', borderRadius: R.md },
   tabActive: { backgroundColor: C.green },

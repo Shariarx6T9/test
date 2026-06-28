@@ -39,6 +39,7 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
     <Pressable
       onPress={() => onSelect(item)}
       className="flex-row items-center py-4 border-b border-border"
+      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#1E2E42', backgroundColor: '#080D17' }}
     >
       <View className="w-10 h-10 rounded-full bg-primary-subtle items-center justify-center mr-3">
         <Train size={20} color="#00A859" weight="bold" />
@@ -55,9 +56,9 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
   );
 
   return (
-    <View className="flex-1 bg-bg-base">
+    <View className="flex-1 bg-bg-base" style={{ flex: 1, backgroundColor: '#080D17' }}>
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-border">
+      <View className="flex-row items-center px-4 py-3 border-b border-border" style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#1E2E42', backgroundColor: '#080D17' }}>
         <View className="flex-1">
           <Input
             placeholder={t('station.search_placeholder')}
@@ -76,7 +77,7 @@ export const StationSelector: React.FC<StationSelectorProps> = ({
       </View>
 
       {/* List */}
-      <View className="flex-1 px-4">
+      <View className="flex-1 px-4" style={{ flex: 1, paddingHorizontal: 16, backgroundColor: '#080D17' }}>
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator color="#00A859" size="large" />

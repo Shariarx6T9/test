@@ -53,20 +53,56 @@ interface RouteTrain {
 
 async function getTrainsForRoute(
   fromStationId: string,
-  toStationId:   string
+  toStationId: string
 ): Promise<RouteTrain[]> {
-  const { data, error } = await supabase
+  // Tier 1a: exact origin→destination match
+  const { data: exactMatch, error: exactErr } = await supabase
     .from('trains')
     .select('id, number, name_en, type, days_of_week, is_active')
     .eq('origin_id', fromStationId)
     .eq('destination_id', toStationId)
     .eq('is_active', true);
 
-  if (error) {
-    console.error('[getTrainsForRoute]', error.message);
+  if (exactErr) {
     return [];
   }
-  return (data ?? []) as RouteTrain[];
+
+  // Tier 1b: trains that stop at BOTH stations (via train_stops)
+  const { data: fromStops } = await supabase
+    .from('train_stops')
+    .select('train_id, sequence')
+    .eq('station_id', fromStationId);
+
+  const { data: toStops } = await supabase
+    .from('train_stops')
+    .select('train_id, sequence')
+    .eq('station_id', toStationId);
+
+  const throughTrainIds: string[] = [];
+  if (fromStops && toStops) {
+    const toStopMap = new Map(toStops.map(s => [s.train_id, s.sequence]));
+    for (const f of fromStops) {
+      const toSeq = toStopMap.get(f.train_id);
+      if (toSeq !== undefined && f.sequence < toSeq) {
+        throughTrainIds.push(f.train_id);
+      }
+    }
+  }
+
+  let throughTrains: RouteTrain[] = [];
+  if (throughTrainIds.length > 0) {
+    const { data: tt } = await supabase
+      .from('trains')
+      .select('id, number, name_en, type, days_of_week, is_active')
+      .in('id', throughTrainIds)
+      .eq('is_active', true);
+    throughTrains = (tt ?? []) as RouteTrain[];
+  }
+
+  // Merge, deduplicate by id
+  const allTrains = [...(exactMatch ?? []) as RouteTrain[], ...throughTrains];
+  const seen = new Set<string>();
+  return allTrains.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
 }
 
 // ─── Tier 2: verified timetable enrichment ──────────────────────────────────

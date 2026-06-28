@@ -1,6 +1,7 @@
 // app/(tabs)/live-updates.tsx — Live Updates Screen
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Bell, MagnifyingGlass } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
@@ -22,17 +23,17 @@ export default function LiveUpdatesScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [activeFilter, setActiveFilter] = useState<'All' | 'Delays' | 'Crowding' | 'Condition'>('All');
+  const [activeFilter, setActiveFilter] = useState<string>('All');
   const [refreshing, setRefreshing] = useState(false);
 
-  const filter: ReportFilter = activeFilter === 'Delays' ? { type: 'DELAY' }
-    : activeFilter === 'Crowding' ? { type: 'CROWD' }
-    : activeFilter === 'Condition' ? { type: 'GENERAL' }
+  const filter: ReportFilter = activeFilter === t('updates.filter_delays') ? { type: 'DELAY' }
+    : activeFilter === t('updates.filter_crowding') ? { type: 'CROWD' }
+    : activeFilter === t('updates.filter_condition') ? { type: 'GENERAL' }
     : null;
 
   const { data: reports, isLoading, refetch } = useCommunityReports(filter);
 
-  const filters = ['All', 'Delays', 'Crowding', 'Condition'] as const;
+  const filters = [t('updates.filter_all'), t('updates.filter_delays'), t('updates.filter_crowding'), t('updates.filter_condition')];
 
   // Supabase Realtime subscription
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function LiveUpdatesScreen() {
     { val: String(delayCount), label: t('notifications.delay'), sub: 'Active Now', bg: C.redTint },
     { val: String(crowdCount), label: t('notifications.crowding'), sub: 'Active Now', bg: C.orangeTint },
     { val: String(verifiedCount), label: t('notifications.verified'), sub: 'Verified', bg: C.greenTint },
-    { val: String(generalCount), label: 'Other Reports', sub: 'Today', bg: C.blueTint },
+    { val: String(generalCount), label: t('updates.other_reports'), sub: 'Today', bg: C.blueTint },
   ];
 
   const liveUpdates = (reports ?? []).slice(0, 10).map(report => {
@@ -115,8 +116,8 @@ export default function LiveUpdatesScreen() {
           </View>
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} />
-          <TouchableOpacity style={s.iconBtn} />
+          <TouchableOpacity style={s.iconBtn}><MagnifyingGlass size={18} color={C.text2} /></TouchableOpacity>
+          <TouchableOpacity style={s.iconBtn}><Bell size={18} color={C.text2} /></TouchableOpacity>
         </View>
       </View>
 
@@ -228,7 +229,6 @@ export default function LiveUpdatesScreen() {
               {DEPARTURES.map((dep) => (
                 <View key={dep.name} style={s.departureCard}>
                   <Text style={s.depTime}>{dep.time}</Text>
-                  <View style={s.depImg} />
                   <Text style={s.depName}>{dep.name}</Text>
                   <Text style={s.depRoute}>{dep.route}</Text>
                 </View>
@@ -263,7 +263,7 @@ const s = StyleSheet.create({
   title: { fontSize: T.lg, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
   headerRight: { flexDirection: 'row', gap: S.sm },
-  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   filterScroll: { marginBottom: -S.sm },
   filterTab: { backgroundColor: C.surface, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: S.sm },
   filterTabActive: { backgroundColor: C.green },

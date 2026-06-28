@@ -1,5 +1,6 @@
 // app/station-information.tsx
 import React, { useCallback } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -94,7 +95,7 @@ export default function StationInformationScreen() {
   return (
     <SafeAreaView style={si.root}>
       <View style={si.header}>
-        <TouchableOpacity style={si.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={si.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View style={si.headerTitle}>
           <View style={si.headerIcon} />
           <Text style={si.title}>Station Information</Text>
@@ -227,7 +228,7 @@ const si = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
   headerIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 8 },
   title: { fontSize: 17, fontWeight: '700', color: C.white },

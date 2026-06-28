@@ -1,5 +1,6 @@
 // app/route-map.tsx
 import React, { useState } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, SafeAreaView, ActivityIndicator,
@@ -38,7 +39,7 @@ export default function RouteMapScreen() {
     return (
       <SafeAreaView style={rm.root}>
         <View style={rm.header}>
-          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()} />
+          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
           <View style={rm.headerCenter}>
             <View style={rm.trainIcon} />
             <View>
@@ -61,7 +62,7 @@ export default function RouteMapScreen() {
     return (
       <SafeAreaView style={rm.root}>
         <View style={rm.header}>
-          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()} />
+          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
           <View style={rm.headerCenter}>
             <View style={rm.trainIcon} />
             <View><Text style={rm.title}>Route Map</Text></View>
@@ -92,7 +93,7 @@ export default function RouteMapScreen() {
     <SafeAreaView style={rm.root}>
       {/* Header */}
       <View style={rm.header}>
-        <TouchableOpacity style={rm.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View style={rm.headerCenter}>
           <View style={rm.trainIcon} />
           <View>
@@ -343,7 +344,7 @@ const rm = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
   trainIcon: { width: 40, height: 40, backgroundColor: C.greenTint, borderRadius: 10 },
   title: { fontSize: 17, fontWeight: '700', color: C.white },

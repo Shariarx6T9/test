@@ -1,5 +1,6 @@
 // app/comments-discussion.tsx
 import React, { useState, useRef } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -84,7 +85,7 @@ export default function CommentsDiscussionScreen() {
   return (
     <SafeAreaView style={cd.root}>
       <View style={cd.header}>
-        <TouchableOpacity style={cd.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={cd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={cd.title}>Comments & Discussion</Text>
           <Text style={cd.subtitle}>Discussion</Text>
@@ -179,7 +180,7 @@ const cd = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.md, paddingBottom: 20 },
   header: { flexDirection: 'row', alignItems: 'center', gap: S.sm, paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 16, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
   moreHeaderBtn: { width: 24, height: 24, backgroundColor: C.surface2, borderRadius: 12 },

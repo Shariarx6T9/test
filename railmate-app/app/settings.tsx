@@ -1,5 +1,6 @@
 // app/settings.tsx
 import React, { useState, useCallback } from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -29,26 +30,25 @@ export default function SettingsScreen() {
 
   const SECTIONS: SettingSection[] = [
     { title: 'PREFERENCES', rows: [
-      { id: 'notif', label: 'Notifications', sub: 'Manage notification preferences' },
-      { id: 'lang', label: 'Language', sub: langLabel, value: langLabel },
+      { id: 'notif', label: t('settings.notifications'), sub: t('settings.notification_settings') },
+      { id: 'lang', label: t('settings.language'), sub: langLabel },
       { id: 'location', label: 'Default Location', sub: 'Dhaka, Bangladesh' },
-      { id: 'appearance', label: 'Appearance', sub: themeLabel },
-      { id: 'distance', label: 'Distance Unit', sub: 'Kilometer (km)' },
+      { id: 'appearance', label: t('settings.theme'), sub: themeLabel },
     ]},
     { title: 'JOURNEY PREFERENCES', rows: [
-      { id: 'alt_routes', label: 'Show Alternative Routes', sub: 'Display alternative routes in search', toggle: true },
-      { id: 'delay_alerts', label: 'Delay Alerts', sub: 'Get notified about train delays', toggle: true },
-      { id: 'crowding', label: 'Crowding Updates', sub: 'Show crowding level information', toggle: true },
-      { id: 'platform', label: 'Platform Change Alerts', sub: 'Notify about platform changes', toggle: false },
+      { id: 'alt_routes', label: t('settings.show_alt_routes'), sub: t('settings.show_alt_routes_sub'), toggle: true },
+      { id: 'delay_alerts', label: t('settings.delay_alerts'), sub: t('settings.delay_alerts_sub'), toggle: true },
+      { id: 'crowding', label: t('settings.crowding_updates'), sub: t('settings.crowding_updates_sub'), toggle: true },
+      { id: 'platform', label: t('settings.platform_alerts'), sub: t('settings.platform_alerts_sub'), toggle: false },
     ]},
     { title: 'ACCOUNT & DATA', rows: [
-      { id: 'privacy', label: 'Privacy & Security', sub: 'Manage your privacy and security' },
-      { id: 'data', label: 'Data Usage', sub: 'Manage offline data and storage' },
+      { id: 'privacy', label: t('settings.privacy'), sub: t('settings.privacy_sub') },
+      { id: 'data', label: t('settings.data_usage'), sub: t('settings.data_usage_sub') },
       { id: 'backup', label: 'Backup & Restore', sub: 'Backup your data to restore later' },
     ]},
     { title: 'SUPPORT & ABOUT', rows: [
-      { id: 'help', label: 'Help & Support', sub: 'FAQs, guides and contact support' },
-      { id: 'about', label: 'About RailMate', sub: 'Version 1.0.0 (Build 120)' },
+      { id: 'help', label: t('settings.help'), sub: t('settings.help_sub') },
+      { id: 'about', label: t('settings.about'), sub: t('settings.about_sub') },
     ]},
   ];
 
@@ -101,10 +101,10 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={ss.root}>
       <View style={ss.header}>
-        <TouchableOpacity style={ss.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={ss.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View>
-          <Text style={ss.title}>Settings</Text>
-          <Text style={ss.subtitle}>Manage your preferences and app settings</Text>
+          <Text style={ss.title}>{t('settings.title')}</Text>
+          <Text style={ss.subtitle}>{t('settings.subtitle')}</Text>
         </View>
         <View style={{ width: 32 }} />
       </View>
@@ -167,7 +167,7 @@ const ss = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   section: { gap: S.sm },

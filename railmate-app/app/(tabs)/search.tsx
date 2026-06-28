@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
+import { X } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 import { useSearchStore } from '../../stores/searchStore';
 import { useRecentSearches } from '../../hooks/useRecentSearches';
@@ -160,7 +161,7 @@ export default function SearchTabScreen() {
         <View style={s.backBtn} />
         <Text style={s.title}>{t('search.title')}</Text>
         <TouchableOpacity style={s.recentBtn}>
-          <Text style={s.recentBtnText}>Recent</Text>
+          <Text style={s.recentBtnText}>{t("search.recent")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -187,7 +188,7 @@ export default function SearchTabScreen() {
               style={s.clearBtn}
               onPress={() => setFromStation(null)}
             >
-              <View style={s.clearDot} />
+              <X size={12} color={C.text2} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -217,7 +218,7 @@ export default function SearchTabScreen() {
               style={s.clearBtn}
               onPress={() => setToStation(null)}
             >
-              <View style={s.clearDot} />
+              <X size={12} color={C.text2} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -242,19 +243,6 @@ export default function SearchTabScreen() {
               <Text style={s.fieldLabel}>Class (Optional)</Text>
               <Text style={s.fieldValue}>All Classes</Text>
               <Text style={s.fieldSub}>All Available Classes</Text>
-            </View>
-            <View style={s.chevron} />
-          </TouchableOpacity>
-
-          <View style={s.divider} />
-
-          {/* Quota — static display */}
-          <TouchableOpacity style={s.fieldRow}>
-            <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
-            <View style={s.fieldContent}>
-              <Text style={s.fieldLabel}>Quota (Optional)</Text>
-              <Text style={s.fieldValue}>General</Text>
-              <Text style={s.fieldSub}>General Quota</Text>
             </View>
             <View style={s.chevron} />
           </TouchableOpacity>
@@ -323,11 +311,13 @@ export default function SearchTabScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowFromSelector(false)}
       >
-        <StationSelector
-          onSelect={handleSelectFrom}
-          onClose={() => setShowFromSelector(false)}
-          isBengali={isBengali}
-        />
+        <View style={{ flex: 1, backgroundColor: '#080D17' }}>
+          <StationSelector
+            onSelect={handleSelectFrom}
+            onClose={() => setShowFromSelector(false)}
+            isBengali={isBengali}
+          />
+        </View>
       </Modal>
 
       {/* ── To Station Selector Modal ── */}
@@ -337,11 +327,13 @@ export default function SearchTabScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowToSelector(false)}
       >
-        <StationSelector
-          onSelect={handleSelectTo}
-          onClose={() => setShowToSelector(false)}
-          isBengali={isBengali}
-        />
+        <View style={{ flex: 1, backgroundColor: '#080D17' }}>
+          <StationSelector
+            onSelect={handleSelectTo}
+            onClose={() => setShowToSelector(false)}
+            isBengali={isBengali}
+          />
+        </View>
       </Modal>
 
       {/* ── Date Picker ── */}

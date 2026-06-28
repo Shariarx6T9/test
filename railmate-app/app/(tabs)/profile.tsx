@@ -1,6 +1,7 @@
 // app/(tabs)/profile.tsx — Profile Screen
 
 import React, { useCallback } from 'react';
+import { Bell, Gear, PencilSimple } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
@@ -8,6 +9,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useCommunityReports } from '../../hooks/useCommunityReports';
 import { useTranslation } from '../../i18n';
+import { Avatar } from '../../components/ui/Avatar/Avatar';
 
 interface MenuItem {
   id: string;
@@ -72,7 +74,7 @@ export default function ProfileScreen() {
       return (
         <View style={s.profileRow}>
           <View style={s.avatarWrap}>
-            <View style={s.avatar} />
+            <Avatar uri={undefined} name="অতিথি" size={72} />
           </View>
           <View style={{ flex: 1, gap: S.sm, justifyContent: 'center' }}>
             <Text style={s.profileName}>{t('profile.guest_user')}</Text>
@@ -92,8 +94,8 @@ export default function ProfileScreen() {
       <View style={s.profileRow}>
         {/* Avatar */}
         <View style={s.avatarWrap}>
-          <View style={s.avatar} />
-          <View style={s.editBadge} />
+          <Avatar uri={user?.avatar_url} name={user?.display_name ?? 'অতিথি'} size={72} />
+          <View style={s.editBadge}><PencilSimple size={12} color={C.bg} /></View>
         </View>
         {/* Info */}
         <View style={s.profileInfo}>
@@ -103,13 +105,19 @@ export default function ProfileScreen() {
           </View>
           <Text style={s.profileEmail}>{user?.email ?? ''}</Text>
           <Text style={s.profilePhone}>{user?.phone ?? ''}</Text>
-          <TouchableOpacity style={s.travellerBadge} onPress={() => router.push('/badges-reputation' as any)}>
-            <Text style={s.travellerBadgeText}>Trusted Traveler  →</Text>
-          </TouchableOpacity>
+          {isAuthenticated || isGuest ? (
+            <TouchableOpacity style={s.travellerBadge} onPress={() => router.push('/badges-reputation' as any)}>
+              <Text style={s.travellerBadgeText}>{t('profile.trusted_traveler')}  →</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={s.travellerBadge} onPress={() => router.push('/auth/login' as any)}>
+              <Text style={s.travellerBadgeText}>{t('auth.sign_in')}  →</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        {/* XP box */}
         <View style={s.xpBox}>
           <Text style={s.xpTitle}>{levelNames[level]}</Text>
+        {/* XP box */}
           <Text style={s.xpLevel}>Level {level}</Text>
           <View style={s.xpBarBg}>
             <View style={[s.xpBarFill, { width: Math.floor(progress * 80) }]} />
@@ -131,8 +139,8 @@ export default function ProfileScreen() {
           </View>
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/notifications' as any)} />
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/settings' as any)} />
+          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/notifications' as any)}><Bell size={18} color={C.text2} /></TouchableOpacity>
+          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/settings' as any)}><Gear size={18} color={C.text2} /></TouchableOpacity>
         </View>
       </View>
 
@@ -158,7 +166,7 @@ export default function ProfileScreen() {
         {/* Activity */}
         <View style={s.card}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>My Activity</Text>
+            <Text style={s.sectionTitle}>{t('profile.my_activity')}</Text>
             <TouchableOpacity><Text style={s.viewAll}>View All</Text></TouchableOpacity>
           </View>
           <View style={s.activityRow}>
@@ -230,12 +238,12 @@ const s = StyleSheet.create({
   brandWhite: { fontSize: 17, fontWeight: '800', color: C.white },
   brandGreen: { fontSize: 17, fontWeight: '800', color: C.green },
   headerRight: { flexDirection: 'row', gap: S.sm },
-  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
+  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   profileCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.xl },
   profileRow: { flexDirection: 'row', gap: S.md, alignItems: 'flex-start' },
   avatarWrap: { position: 'relative', width: 72, height: 72 },
   avatar: { width: 72, height: 72, backgroundColor: C.surface2, borderRadius: 36 },
-  editBadge: { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, backgroundColor: C.green, borderRadius: 11 },
+  editBadge: { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, backgroundColor: C.green, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   profileInfo: { flex: 1, gap: S.xs },
   verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: S.xs },
   profileName: { fontSize: 18, fontWeight: '700', color: C.white },

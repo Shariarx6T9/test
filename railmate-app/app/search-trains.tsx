@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
+import { ArrowLeft, X } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
 import { useSearchStore } from '../stores/searchStore';
 import { useRecentSearches } from '../hooks/useRecentSearches';
@@ -62,7 +63,7 @@ export default function SearchTrainsScreen() {
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <Text style={s.title}>Search Trains</Text>
         <TouchableOpacity style={s.recentBtn}>
           <Text style={s.recentBtnText}>Recent</Text>
@@ -85,7 +86,7 @@ export default function SearchTrainsScreen() {
               <Text style={s.fieldSub}>{fromStation?.division ?? fromStation?.code ?? ''}</Text>
             </View>
             <TouchableOpacity style={s.clearBtn} onPress={() => setFromStation(null)}>
-              <View style={s.clearDot} />
+              <X size={12} color={C.text2} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -108,7 +109,7 @@ export default function SearchTrainsScreen() {
               <Text style={s.fieldSub}>{toStation?.division ?? toStation?.code ?? ''}</Text>
             </View>
             <TouchableOpacity style={s.clearBtn} onPress={() => setToStation(null)}>
-              <View style={s.clearDot} />
+              <X size={12} color={C.text2} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -133,19 +134,6 @@ export default function SearchTrainsScreen() {
               <Text style={s.fieldLabel}>Class (Optional)</Text>
               <Text style={s.fieldValue}>All Classes</Text>
               <Text style={s.fieldSub}>All Available Classes</Text>
-            </View>
-            <View style={s.chevron} />
-          </TouchableOpacity>
-
-          <View style={s.divider} />
-
-          {/* Quota */}
-          <TouchableOpacity style={s.fieldRow}>
-            <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
-            <View style={s.fieldContent}>
-              <Text style={s.fieldLabel}>Quota (Optional)</Text>
-              <Text style={s.fieldValue}>General</Text>
-              <Text style={s.fieldSub}>General Quota</Text>
             </View>
             <View style={s.chevron} />
           </TouchableOpacity>
@@ -206,20 +194,24 @@ export default function SearchTrainsScreen() {
 
       {/* From Station Picker Modal */}
       <Modal visible={showFromPicker} animationType="slide" onRequestClose={() => setShowFromPicker(false)}>
-        <StationSelector
-          onSelect={(station: Station) => { setFromStation(station); setShowFromPicker(false); }}
-          onClose={() => setShowFromPicker(false)}
-          isBengali={isBengali}
-        />
+        <View style={{ flex: 1, backgroundColor: '#080D17' }}>
+          <StationSelector
+            onSelect={(station: Station) => { setFromStation(station); setShowFromPicker(false); }}
+            onClose={() => setShowFromPicker(false)}
+            isBengali={isBengali}
+          />
+        </View>
       </Modal>
 
       {/* To Station Picker Modal */}
       <Modal visible={showToPicker} animationType="slide" onRequestClose={() => setShowToPicker(false)}>
-        <StationSelector
-          onSelect={(station: Station) => { setToStation(station); setShowToPicker(false); }}
-          onClose={() => setShowToPicker(false)}
-          isBengali={isBengali}
-        />
+        <View style={{ flex: 1, backgroundColor: '#080D17' }}>
+          <StationSelector
+            onSelect={(station: Station) => { setToStation(station); setShowToPicker(false); }}
+            onClose={() => setShowToPicker(false)}
+            isBengali={isBengali}
+          />
+        </View>
       </Modal>
 
       {/* Date Picker */}
@@ -242,7 +234,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.xl, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, fontWeight: '700', color: C.white },
   recentBtn: { backgroundColor: C.greenTint, borderRadius: 16, paddingHorizontal: S.md, paddingVertical: 6, borderWidth: 1, borderColor: C.green },
   recentBtnText: { fontSize: T.sm, fontWeight: '600', color: C.green },

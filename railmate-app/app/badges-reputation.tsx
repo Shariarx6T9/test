@@ -1,5 +1,6 @@
 // app/badges-reputation.tsx
 import React from 'react';
+import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -61,7 +62,7 @@ export default function BadgesReputationScreen() {
   return (
     <SafeAreaView style={br.root}>
       <View style={br.header}>
-        <TouchableOpacity style={br.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity style={br.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View>
           <Text style={br.title}>{t('badges.title')}</Text>
           <Text style={br.subtitle}>Track your progress and unlock badges</Text>
@@ -215,7 +216,7 @@ const br = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '700', color: C.white },
   subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   infoBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },

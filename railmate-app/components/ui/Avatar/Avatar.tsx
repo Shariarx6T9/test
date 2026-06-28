@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 
 interface AvatarProps {
@@ -9,6 +9,7 @@ interface AvatarProps {
 }
 
 export const Avatar: React.FC<AvatarProps> = ({ uri, name, size = 40, badge }) => {
+  const [imgError, setImgError] = useState(false);
   const initials = name
     ? name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
     : '?';
@@ -16,8 +17,8 @@ export const Avatar: React.FC<AvatarProps> = ({ uri, name, size = 40, badge }) =
 
   return (
     <View style={{ width: size, height: size }}>
-      {uri ? (
-        <Image source={{ uri }} style={[s.img, { width: size, height: size, borderRadius: size / 2 }]} />
+      {uri && !imgError ? (
+        <Image source={{ uri }} style={[s.img, { width: size, height: size, borderRadius: size / 2 }]} onError={() => setImgError(true)} />
       ) : (
         <View style={[s.placeholder, { width: size, height: size, borderRadius: size / 2, backgroundColor: bg }]}>
           <Text style={[s.initials, { fontSize: size * 0.36 }]}>{initials}</Text>
