@@ -32,25 +32,6 @@ import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
 
-// Sentry: initialise only when a real DSN is configured to avoid a white
-// screen caused by the SDK trying to contact an empty/placeholder endpoint.
-let SentryWrap: <T extends React.ComponentType<any>>(c: T) => T = (c) => c;
-const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN ?? '';
-if (sentryDsn && !sentryDsn.includes('placeholder') && !sentryDsn.startsWith('https://your')) {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Sentry = require('@sentry/react-native');
-    Sentry.init({
-      dsn: sentryDsn,
-      sendDefaultPii: false,
-      enabled: !__DEV__,
-    });
-    SentryWrap = Sentry.wrap;
-  } catch {
-    // Sentry unavailable — continue without it
-  }
-}
-
 function RootLayout() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
   const { isGuest } = useAuthStore();
@@ -161,7 +142,7 @@ function RootLayout() {
   );
 }
 
-export default SentryWrap(RootLayout);
+export default RootLayout;
 
 const s = StyleSheet.create({
   splash:      { zIndex: 9999 },
