@@ -2,34 +2,91 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView,
+  StyleSheet, SafeAreaView, ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { useTrainDetail } from '../hooks/useTrainDetail';
+import { useSavedRoutes } from '../hooks/useSavedRoutes';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n';
 
 type MapView = 'Route Map' | 'Timeline';
 
-interface Stop {
-  time: string;
-  station: string;
-  stationBn: string;
-  tag?: 'Start' | 'End';
-  extra?: string;
-  active?: boolean;
-}
-
-const STOPS: Stop[] = [
-  { time: '06:40', station: 'Dhaka', extra: undefined, tag: 'Start', active: true },
-  { time: '06:58', station: 'Narayanganj', extra: '+ 18 min', active: false },
-  { time: '07:22', station: 'Munshiganj', extra: '+ 24 min', active: false },
-  { time: '08:16', station: 'Comilla', extra: '+ 54 min', active: true },
-  { time: '09:32', station: 'Feni', extra: '+ 1h 16m', active: false },
-  { time: '12:25', station: 'Chattogram', extra: undefined, tag: 'End', active: true },
-];
-
 export default function RouteMapScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [view, setView] = useState<MapView>('Route Map');
+  const { data: train, isLoading, error } = useTrainDetail(id ?? '');
+  const { saveRoute, isRouteSaved } = useSavedRoutes();
+
+  const handleSaveRoute = async () => {
+    if (!train?.origin || !train?.destination) return;
+    await saveRoute(
+      { id: train.origin.id, name_en: train.origin.name_en, name_bn: train.origin.name_bn, code: train.origin.code },
+      { id: train.destination.id, name_en: train.destination.name_en, name_bn: train.destination.name_bn, code: train.destination.code }
+    );
+  };
+
+  const isSaved = train?.origin && train?.destination
+    ? isRouteSaved(train.origin.id, train.destination.id)
+    : false;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={rm.root}>
+        <View style={rm.header}>
+          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()} />
+          <View style={rm.headerCenter}>
+            <View style={rm.trainIcon} />
+            <View>
+              <Text style={rm.title}>Route Map</Text>
+            </View>
+          </View>
+          <View style={rm.headerActions}>
+            <View style={rm.starBtn} />
+            <View style={rm.shareBtn} />
+          </View>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={C.green} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !train) {
+    return (
+      <SafeAreaView style={rm.root}>
+        <View style={rm.header}>
+          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()} />
+          <View style={rm.headerCenter}>
+            <View style={rm.trainIcon} />
+            <View><Text style={rm.title}>Route Map</Text></View>
+          </View>
+          <View style={rm.headerActions}>
+            <View style={rm.starBtn} />
+            <View style={rm.shareBtn} />
+          </View>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.md }}>
+          <Text style={{ color: C.text2, fontSize: T.base }}>
+            {error ? t('common.error') : t('train.not_found')}
+          </Text>
+          <TouchableOpacity style={rm.retryBtn} onPress={() => router.back()}>
+            <Text style={rm.retryBtnText}>{t('common.go_back')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const stops = train.stops ?? [];
+  const originName = train.origin?.name_en ?? 'Origin';
+  const destName = train.destination?.name_en ?? 'Destination';
+  const trainLabel = `${train.name_en} (${train.number})`;
 
   return (
     <SafeAreaView style={rm.root}>
@@ -40,15 +97,15 @@ export default function RouteMapScreen() {
           <View style={rm.trainIcon} />
           <View>
             <Text style={rm.title}>Route Map</Text>
-            <Text style={rm.subtitle}>Dhaka → Chattogram</Text>
+            <Text style={rm.subtitle}>{originName} → {destName}</Text>
             <View style={rm.trainSelector}>
-              <Text style={rm.trainSelectorText}>Subarna Express (701)  ▾</Text>
+              <Text style={rm.trainSelectorText}>{trainLabel}  ▾</Text>
             </View>
           </View>
         </View>
         <View style={rm.headerActions}>
-          <TouchableOpacity style={rm.starBtn}>
-            <Text style={rm.starBtnText}>⭐</Text>
+          <TouchableOpacity style={rm.starBtn} onPress={handleSaveRoute}>
+            <Text style={rm.starBtnText}>{isSaved ? '⭐' : '☆'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={rm.shareBtn} />
         </View>
@@ -76,10 +133,9 @@ export default function RouteMapScreen() {
           <View style={rm.mapSection}>
             {/* Map placeholder */}
             <View style={rm.mapContainer}>
+              {/* TODO: Install react-native-maps for interactive map. Currently showing timeline view only. */}
               <View style={rm.mapPlaceholder}>
-                <Text style={rm.mapEmoji}>🗺️</Text>
-                <Text style={rm.mapLabel}>Route Map</Text>
-                <Text style={rm.mapSub}>Dhaka to Chattogram</Text>
+                <Text style={{ color: C.text2, textAlign: 'center' }}>Map view requires react-native-maps</Text>
               </View>
               {/* Map controls */}
               <View style={rm.mapControls}>
@@ -93,66 +149,104 @@ export default function RouteMapScreen() {
             <View style={rm.stopsPanel}>
               <View style={rm.stopsPanelHeader}>
                 <Text style={rm.stopsPanelTitle}>Major Stations</Text>
-                <View style={rm.stopsBadge}><Text style={rm.stopsBadgeText}>6 Stops</Text></View>
-              </View>
-              {STOPS.map((stop, i) => (
-                <View key={stop.station}>
-                  <View style={rm.stopRow}>
-                    <View style={rm.stopIndicator}>
-                      <View style={[rm.stopDot, { backgroundColor: stop.active ? C.green : C.text3 }]} />
-                      {i < STOPS.length - 1 && <View style={rm.stopLine} />}
-                    </View>
-                    <View style={rm.stopContent}>
-                      <View style={rm.stopTimeRow}>
-                        <Text style={rm.stopTime}>{stop.time}</Text>
-                        <Text style={rm.stopStation}>{stop.station}</Text>
-                        {stop.tag && (
-                          <View style={[rm.stopTag, stop.tag === 'End' && rm.stopTagEnd]}>
-                            <Text style={[rm.stopTagText, stop.tag === 'End' && rm.stopTagTextEnd]}>{stop.tag}</Text>
-                          </View>
-                        )}
-                      </View>
-                      {stop.extra && <Text style={rm.stopExtra}>{stop.extra}</Text>}
-                    </View>
-                    <TouchableOpacity style={rm.locationBtn} />
-                    <View style={rm.stopChevron} />
-                  </View>
+                <View style={rm.stopsBadge}>
+                  <Text style={rm.stopsBadgeText}>{stops.length} Stops</Text>
                 </View>
-              ))}
+              </View>
+              {stops.length === 0 ? (
+                <Text style={{ color: C.text2, fontSize: T.sm }}>No verified stop data available.</Text>
+              ) : (
+                stops.map((stop, i) => {
+                  const isFirst = i === 0;
+                  const isLast = i === stops.length - 1;
+                  const time = stop.departure_time?.slice(0, 5) ?? stop.arrival_time?.slice(0, 5) ?? '—';
+                  return (
+                    <View key={stop.id}>
+                      <View style={rm.stopRow}>
+                        <View style={rm.stopIndicator}>
+                          <View style={[rm.stopDot, { backgroundColor: (isFirst || isLast) ? C.green : C.text3 }]} />
+                          {i < stops.length - 1 && <View style={rm.stopLine} />}
+                        </View>
+                        <View style={rm.stopContent}>
+                          <View style={rm.stopTimeRow}>
+                            <Text style={rm.stopTime}>{time}</Text>
+                            <Text style={rm.stopStation}>{stop.station?.name_en ?? 'Unknown'}</Text>
+                            {isFirst && (
+                              <View style={rm.stopTag}>
+                                <Text style={rm.stopTagText}>Start</Text>
+                              </View>
+                            )}
+                            {isLast && (
+                              <View style={[rm.stopTag, rm.stopTagEnd]}>
+                                <Text style={[rm.stopTagText, rm.stopTagTextEnd]}>End</Text>
+                              </View>
+                            )}
+                          </View>
+                          {stop.halt_minutes > 0 && (
+                            <Text style={rm.stopExtra}>Halt: {stop.halt_minutes} min</Text>
+                          )}
+                        </View>
+                        <TouchableOpacity style={rm.locationBtn} />
+                        <View style={rm.stopChevron} />
+                      </View>
+                    </View>
+                  );
+                })
+              )}
             </View>
           </View>
         ) : (
           /* ── TIMELINE VIEW ── */
           <View style={rm.timelineSection}>
-            {STOPS.map((stop, i) => (
-              <View key={stop.station} style={rm.timelineRow}>
-                <View style={rm.timelineLeft}>
-                  <Text style={rm.timelineTime}>{stop.time}</Text>
-                </View>
-                <View style={rm.timelineIndicator}>
-                  <View style={[rm.timelineDot, { backgroundColor: stop.active ? C.green : C.text3 }]} />
-                  {i < STOPS.length - 1 && <View style={rm.timelineLine} />}
-                </View>
-                <View style={rm.timelineContent}>
-                  <Text style={[rm.timelineStation, stop.active && { color: C.green }]}>{stop.station}</Text>
-                  {stop.extra && <Text style={rm.timelineExtra}>{stop.extra}</Text>}
-                  {stop.tag && (
-                    <View style={[rm.stopTag, stop.tag === 'End' && rm.stopTagEnd]}>
-                      <Text style={[rm.stopTagText, stop.tag === 'End' && rm.stopTagTextEnd]}>{stop.tag}</Text>
-                    </View>
-                  )}
-                </View>
+            {stops.length === 0 ? (
+              <View style={{ alignItems: 'center', paddingVertical: S.xl }}>
+                <Text style={{ color: C.text2, fontSize: T.sm }}>No verified timeline data available.</Text>
               </View>
-            ))}
+            ) : (
+              stops.map((stop, i) => {
+                const isFirst = i === 0;
+                const isLast = i === stops.length - 1;
+                const time = stop.departure_time?.slice(0, 5) ?? stop.arrival_time?.slice(0, 5) ?? '—';
+                return (
+                  <View key={stop.id} style={rm.timelineRow}>
+                    <View style={rm.timelineLeft}>
+                      <Text style={rm.timelineTime}>{time}</Text>
+                    </View>
+                    <View style={rm.timelineIndicator}>
+                      <View style={[rm.timelineDot, { backgroundColor: (isFirst || isLast) ? C.green : C.text3 }]} />
+                      {i < stops.length - 1 && <View style={rm.timelineLine} />}
+                    </View>
+                    <View style={rm.timelineContent}>
+                      <Text style={[rm.timelineStation, (isFirst || isLast) && { color: C.green }]}>
+                        {stop.station?.name_en ?? 'Unknown'}
+                      </Text>
+                      {stop.halt_minutes > 0 && (
+                        <Text style={rm.timelineExtra}>Halt: {stop.halt_minutes} min</Text>
+                      )}
+                      {isFirst && (
+                        <View style={rm.stopTag}>
+                          <Text style={rm.stopTagText}>Start</Text>
+                        </View>
+                      )}
+                      {isLast && (
+                        <View style={[rm.stopTag, rm.stopTagEnd]}>
+                          <Text style={[rm.stopTagText, rm.stopTagTextEnd]}>End</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+              })
+            )}
           </View>
         )}
 
         {/* Journey stats */}
         <View style={rm.statsCard}>
           {[
-            { icon: '📍', label: 'Total Distance', val: '248 km', sub: 'Approx.' },
-            { icon: '⏱', label: 'Travel Duration', val: '5h 45m', sub: 'Approx.' },
-            { icon: '⚡', label: 'Avg. Speed', val: '43 km/h', sub: 'Est.' },
+            { icon: '📍', label: 'Total Stops', val: String(stops.length), sub: 'Verified' },
+            { icon: '⏱', label: 'Travel Duration', val: '—', sub: 'Est.' },
+            { icon: '⚡', label: 'Avg. Speed', val: '—', sub: 'Est.' },
           ].map(stat => (
             <View key={stat.label} style={rm.statItem}>
               <Text style={rm.statIcon}>{stat.icon}</Text>
@@ -168,48 +262,54 @@ export default function RouteMapScreen() {
           <View style={rm.trainInfoLeft}>
             <View style={rm.trainInfoIcon} />
             <View>
-              <Text style={rm.trainInfoName}>Subarna Express (701)</Text>
-              <Text style={rm.trainInfoRoute}>Dhaka → Chattogram</Text>
+              <Text style={rm.trainInfoName}>{trainLabel}</Text>
+              <Text style={rm.trainInfoRoute}>{originName} → {destName}</Text>
               <View style={rm.dailyBadge}><Text style={rm.dailyBadgeText}>Daily Service</Text></View>
             </View>
           </View>
           <View style={rm.trainInfoRight}>
-            <Text style={rm.trainInfoLabel}>Departure</Text>
-            <Text style={rm.trainInfoDep}>06:40 AM</Text>
-            <Text style={rm.trainInfoLabel}>Arrival</Text>
-            <Text style={rm.trainInfoArr}>12:25 PM</Text>
+            <Text style={rm.trainInfoLabel}>Origin</Text>
+            <Text style={rm.trainInfoDep}>{originName}</Text>
+            <Text style={rm.trainInfoLabel}>Destination</Text>
+            <Text style={rm.trainInfoArr}>{destName}</Text>
           </View>
           <TouchableOpacity style={rm.trainInfoChevron} />
         </View>
 
         {/* Action rows */}
-        {[
-          { label: 'Next Departure', value: 'Tomorrow, 06:40 AM' },
-          { label: 'Save Route', value: 'Saved to My Routes', saved: true },
-          { label: 'Delay Alerts', value: 'Get real-time updates', toggle: true },
-        ].map(action => (
-          <View key={action.label} style={rm.actionRow}>
-            <View style={rm.actionIcon} />
-            <View style={{ flex: 1 }}>
-              <Text style={rm.actionLabel}>{action.label}</Text>
-              <Text style={rm.actionValue}>{action.value}</Text>
-            </View>
-            {action.saved ? (
-              <View style={rm.savedCheck}><Text style={rm.savedCheckText}>✓</Text></View>
-            ) : action.toggle ? (
-              <View style={rm.toggleOn} />
-            ) : (
-              <View style={rm.actionChevron} />
-            )}
+        <View style={rm.actionRow}>
+          <View style={rm.actionIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={rm.actionLabel}>Save Route</Text>
+            <Text style={rm.actionValue}>{isSaved ? 'Saved to My Routes' : 'Tap to save this route'}</Text>
           </View>
-        ))}
+          {isSaved ? (
+            <View style={rm.savedCheck}><Text style={rm.savedCheckText}>✓</Text></View>
+          ) : (
+            <TouchableOpacity style={rm.actionChevron} onPress={handleSaveRoute} />
+          )}
+        </View>
+
+        <View style={rm.actionRow}>
+          <View style={rm.actionIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={rm.actionLabel}>Delay Alerts</Text>
+            <Text style={rm.actionValue}>Get real-time updates</Text>
+          </View>
+          <View style={rm.toggleOn} />
+        </View>
 
         {/* Route overview */}
         <View style={rm.overviewCard}>
           <View style={rm.overviewLeft}>
             <View style={rm.overviewIcon} />
             <View style={rm.overviewStats}>
-              {[['Stops', '6'], ['Distance', '248km'], ['Duration', '5h 45m'], ['Service', 'Daily']].map(([l, v]) => (
+              {[
+                ['Stops', String(stops.length)],
+                ['Origin', originName.slice(0, 8)],
+                ['Dest', destName.slice(0, 8)],
+                ['Service', 'Daily'],
+              ].map(([l, v]) => (
                 <View key={l} style={rm.overviewItem}>
                   <Text style={rm.overviewLabel}>{l}</Text>
                   <Text style={rm.overviewVal}>{v}</Text>
@@ -224,7 +324,7 @@ export default function RouteMapScreen() {
               <Text style={rm.crowdIcon}>🟡</Text>
               <Text style={rm.crowdIcon}>🔴</Text>
             </View>
-            <Text style={rm.crowdVal}>Medium</Text>
+            <Text style={rm.crowdVal}>Unknown</Text>
           </View>
           <View style={rm.overviewChevron} />
         </View>
@@ -340,4 +440,6 @@ const rm = StyleSheet.create({
   tapHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md, gap: S.sm },
   tapHintText: { flex: 1, fontSize: T.sm, color: C.text2, lineHeight: 18 },
   tapHintChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
+  retryBtn: { backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md },
+  retryBtnText: { fontSize: T.base, fontWeight: '700', color: C.bg },
 });

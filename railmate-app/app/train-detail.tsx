@@ -1,20 +1,99 @@
 // app/train-detail.tsx — Train Detail Screen
 
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Share, Linking, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { useTrainDetail } from '../hooks/useTrainDetail';
+import { useCommunityReports } from '../hooks/useCommunityReports';
+import { useTranslation } from '../i18n';
 
-const STOPS = [
-  { time: '06:40', station: 'Kamlapur Railway Station', stationBn: 'Dhaka (Kamlapur)', tag: 'Start', active: true },
-  { time: '07:15', station: 'Narayanganj', stationBn: 'Narayanganj', stop: '15 min stop', active: false },
-  { time: '08:30', station: 'Brahmanbaria', stationBn: 'Brahmanbaria', stop: '5 min stop', active: false },
-  { time: '09:45', station: 'Cumilla', stationBn: 'Cumilla', stop: '10 min stop', active: false },
-  { time: '11:15', station: 'Chattogram Railway Station', stationBn: 'Chattogram', tag: 'End', active: true },
-];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function calcDuration(depTime: string, arrTime: string): string {
+  const [dh, dm] = depTime.split(':').map(Number);
+  const [ah, am] = arrTime.split(':').map(Number);
+  let depMins = dh * 60 + dm;
+  let arrMins = ah * 60 + am;
+  if (arrMins < depMins) arrMins += 24 * 60; // overnight
+  const diff = arrMins - depMins;
+  const h = Math.floor(diff / 60);
+  const m = diff % 60;
+  return `${h}h ${m}m`;
+}
 
 export default function TrainDetailScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
+  const { data: train, isLoading, error, refetch } = useTrainDetail(id ?? '');
+  const { data: reports } = useCommunityReports({ type: 'DELAY' });
+  const todayReports = (reports ?? []).filter(
+    r => r.train_id === train?.id && r.journey_date === new Date().toISOString().split('T')[0],
+  );
+
+  const handleShare = useCallback(async () => {
+    if (!train) return;
+    try {
+      await Share.share({ message: t('train.journey'), title: train.name_en });
+    } catch {
+      // Share dismissed — no-op
+    }
+  }, [train, t]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={s.root}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg, padding: S.xl }}>
+          {[0, 1, 2].map(i => (
+            <View key={i} style={{ width: '100%', height: 120, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <SafeAreaView style={s.root}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg }}>
+          <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
+          <TouchableOpacity onPress={() => refetch()} style={{ backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md }}>
+            <Text style={{ color: C.bg, fontWeight: '700', fontSize: T.base }}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Not found state
+  if (!train && !isLoading) {
+    return (
+      <SafeAreaView style={s.root}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: C.text2, fontSize: T.base }}>{t('train.not_found')}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Derive values from real data
+  const firstStop = train!.stops[0];
+  const lastStop = train!.stops[train!.stops.length - 1];
+  const depTime = firstStop?.departure_time?.slice(0, 5) ?? '-';
+  const arrTime = lastStop?.arrival_time?.slice(0, 5) ?? '-';
+  const duration = depTime !== '-' && arrTime !== '-' ? calcDuration(depTime, arrTime) : '-';
+
+  const latestDelay = todayReports.find(r => r.delay_minutes != null);
+
+  const daysOfWeek = train!.days_of_week ?? [];
+  const runDays = daysOfWeek.map(d => DAY_NAMES[d]).join(', ') || 'Daily';
+  const offDays = DAY_NAMES.filter((_, i) => !daysOfWeek.includes(i)).join(', ') || 'None';
+
+  const confirmedNum = todayReports.reduce((sum, r) => sum + r.verification_count, 0);
+
   return (
     <SafeAreaView style={s.root}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -35,41 +114,47 @@ export default function TrainDetailScreen() {
           <View style={s.card}>
             <View style={s.trainTop}>
               <View style={s.trainLeft}>
-                <View style={s.numBadge}><Text style={s.numBadgeText}>#721</Text></View>
+                <View style={s.numBadge}><Text style={s.numBadgeText}>#{train!.number}</Text></View>
                 <View>
-                  <Text style={s.trainName}>Subarna Express</Text>
-                  <Text style={s.trainNameBn}>সুবর্ণ এক্সপ্রেস</Text>
+                  <Text style={s.trainName}>{train!.name_en}</Text>
+                  <Text style={s.trainNameBn}>{train!.name_bn}</Text>
                 </View>
               </View>
-              <View style={s.delayBadge}>
-                <Text style={s.delayBadgeTitle}>15 min delay</Text>
-                <Text style={s.delayBadgeSub}>Updated 10 min ago</Text>
-              </View>
+              {latestDelay ? (
+                <View style={s.delayBadge}>
+                  <Text style={s.delayBadgeTitle}>{latestDelay.delay_minutes} min delay</Text>
+                  <Text style={s.delayBadgeSub}>Community report</Text>
+                </View>
+              ) : null}
             </View>
-            <Text style={s.routeText}>Dhaka (Kamlapur) → Chattogram</Text>
+            <Text style={s.routeText}>{train!.origin?.name_en ?? '?'} → {train!.destination?.name_en ?? '?'}</Text>
             <View style={s.divider} />
             <View style={s.timingRow}>
               <View>
-                <Text style={s.timeMain}>06:40</Text>
+                <Text style={s.timeMain}>{depTime}</Text>
                 <Text style={s.timeLabel}>Depart</Text>
-                <Text style={s.timeStation}>Kamlapur</Text>
-                <Text style={s.timeStationBn}>Dhaka (Kamlapur)</Text>
+                <Text style={s.timeStation}>{train!.origin?.name_en ?? '-'}</Text>
+                <Text style={s.timeStationBn}>{train!.origin?.name_bn ?? ''}</Text>
               </View>
               <View style={s.durationCol}>
-                <Text style={s.durationText}>4h 35m</Text>
+                <Text style={s.durationText}>{duration}</Text>
                 <View style={s.durationLine} />
-                <Text style={s.distanceText}>Distance: 267 km</Text>
+                <Text style={s.distanceText}>{train!.stops.length} stops</Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={s.timeMain}>11:15</Text>
+                <Text style={s.timeMain}>{arrTime}</Text>
                 <Text style={s.timeLabel}>Arrive</Text>
-                <Text style={s.timeStation}>Chattogram</Text>
-                <Text style={s.timeStationBn}>Chattogram</Text>
+                <Text style={s.timeStation}>{train!.destination?.name_en ?? '-'}</Text>
+                <Text style={s.timeStationBn}>{train!.destination?.name_bn ?? ''}</Text>
               </View>
             </View>
             <View style={s.divider} />
             <View style={s.metaRow}>
-              {[['Runs','Daily'],['Classes','4'],['Avg Speed','60 km/h'],['Off Day','None']].map(([l,v]) => (
+              {([
+                ['Runs', runDays.length > 12 ? 'Daily' : runDays],
+                ['Classes', String(train!.stops.length > 0 ? 4 : 0)],
+                ['Off Day', offDays.length > 10 ? 'None' : offDays],
+              ] as [string, string][]).map(([l, v]) => (
                 <View key={l} style={s.metaItem}>
                   <Text style={s.metaLabel}>{l}</Text>
                   <Text style={s.metaValue}>{v}</Text>
@@ -82,46 +167,66 @@ export default function TrainDetailScreen() {
           <View style={s.card}>
             <View style={s.sectionHeader}>
               <Text style={s.sectionTitle}>Journey Timeline</Text>
-              <TouchableOpacity><Text style={s.linkText}>View full route</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/route-map' as any, params: { id: train!.number } })}>
+                <Text style={s.linkText}>View full route</Text>
+              </TouchableOpacity>
             </View>
-            {STOPS.map((stop, i) => (
-              <View key={i}>
-                <View style={s.stopRow}>
-                  <View style={[s.stopDot, { backgroundColor: stop.active ? C.green : C.text3 }]} />
-                  <View style={{ flex: 1 }}>
-                    <View style={s.stopTop}>
-                      <Text style={s.stopTime}>{stop.time}</Text>
-                      <Text style={s.stopStation}>{stop.station}</Text>
-                      {stop.tag && <View style={s.stopTag}><Text style={s.stopTagText}>{stop.tag}</Text></View>}
-                    </View>
-                    <View style={s.stopBottom}>
-                      <Text style={s.stopBn}>{stop.stationBn}</Text>
-                      {stop.stop && <Text style={s.stopDuration}>{stop.stop}</Text>}
-                    </View>
-                  </View>
-                  <View style={s.mapIcon} />
-                </View>
-                {i < STOPS.length - 1 && <View style={s.stopLine} />}
+            {train!.stops.length === 0 ? (
+              <View>
+                <Text style={{ color: C.text2, fontSize: T.sm }}>{t('train.timetable_not_verified_hint')}</Text>
               </View>
-            ))}
+            ) : (
+              train!.stops.map((stop, i) => {
+                const isFirst = i === 0;
+                const isLast = i === train!.stops.length - 1;
+                const stopTime = stop.departure_time?.slice(0, 5) ?? stop.arrival_time?.slice(0, 5) ?? '-';
+                const haltText = stop.halt_minutes > 0
+                  ? t('train.halt', { minutes: stop.halt_minutes })
+                  : undefined;
+                const tag = isFirst ? 'Start' : isLast ? 'End' : undefined;
+                const active = isFirst || isLast;
+                return (
+                  <View key={stop.id}>
+                    <View style={s.stopRow}>
+                      <View style={[s.stopDot, { backgroundColor: active ? C.green : C.text3 }]} />
+                      <View style={{ flex: 1 }}>
+                        <View style={s.stopTop}>
+                          <Text style={s.stopTime}>{stopTime}</Text>
+                          <Text style={s.stopStation}>{stop.station.name_en}</Text>
+                          {tag && <View style={s.stopTag}><Text style={s.stopTagText}>{tag}</Text></View>}
+                        </View>
+                        <View style={s.stopBottom}>
+                          <Text style={s.stopBn}>{stop.station.name_bn}</Text>
+                          {haltText && <Text style={s.stopDuration}>{haltText}</Text>}
+                        </View>
+                      </View>
+                      <View style={s.mapIcon} />
+                    </View>
+                    {i < train!.stops.length - 1 && <View style={s.stopLine} />}
+                  </View>
+                );
+              })
+            )}
           </View>
 
           {/* Community Report Summary */}
           <View style={s.card}>
             <View style={s.sectionHeader}>
               <Text style={s.sectionTitle}>Community Report Summary</Text>
-              <TouchableOpacity><Text style={s.linkText}>See all</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/comments-discussion' as any, params: { train_id: train!.id } })}>
+                <Text style={s.linkText}>See all</Text>
+              </TouchableOpacity>
             </View>
             <View style={s.communityRow}>
               <View style={s.communityConfirmed}>
-                <Text style={s.confirmedNum}>8</Text>
+                <Text style={s.confirmedNum}>{confirmedNum}</Text>
                 <Text style={s.confirmedLabel}>Travelers confirmed</Text>
-                <Text style={s.confirmedSub}>in last 30 minutes</Text>
+                <Text style={s.confirmedSub}>today</Text>
               </View>
-              {[['Crowding','Medium',C.orange],['Cleanliness','Good',C.green],['Punctuality','Good',C.green]].map(([label,val,color]) => (
+              {([['Reports', String(todayReports.length), C.orange],['Punctuality', latestDelay ? 'Delay' : 'On Time', latestDelay ? C.red : C.green],['Today', new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), C.text2]] as [string,string,string][]).map(([label,val,color]) => (
                 <View key={label} style={s.communityMetric}>
                   <Text style={s.metricLabel}>{label}</Text>
-                  <Text style={[s.metricVal, { color: color as string }]}>{val}</Text>
+                  <Text style={[s.metricVal, { color: color }]}>{val}</Text>
                 </View>
               ))}
             </View>
@@ -131,11 +236,15 @@ export default function TrainDetailScreen() {
 
       {/* Action Bar */}
       <View style={s.actionBar}>
-        <TouchableOpacity style={s.actionSecondary}><Text style={s.actionSecondaryText}>Set Alert</Text></TouchableOpacity>
-        <TouchableOpacity style={s.actionPrimary} onPress={() => router.push({ pathname: '/seat-fare', params: { trainId: '721' } })}>
+        <TouchableOpacity style={s.actionSecondary} onPress={() => router.push({ pathname: '/notifications' })}>
+          <Text style={s.actionSecondaryText}>Set Alert</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.actionPrimary} onPress={() => Linking.openURL('https://railwayseba.com')}>
           <Text style={s.actionPrimaryText}>Buy Ticket via Rail Sheba</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.actionSecondary}><Text style={s.actionSecondaryText}>Share</Text></TouchableOpacity>
+        <TouchableOpacity style={s.actionSecondary} onPress={handleShare}>
+          <Text style={s.actionSecondaryText}>Share</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

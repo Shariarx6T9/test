@@ -1,8 +1,12 @@
 // app/badges-reputation.tsx
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { supabase } from '../lib/supabase';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n';
 
 const LEVELS = [
   { num: 1, name: 'Rookie Reporter', range: '0 - 99', done: true, color: C.text2 },
@@ -12,23 +16,54 @@ const LEVELS = [
   { num: 5, name: 'Expert Reporter', range: '1000+', color: C.gold },
 ];
 
-const BADGES = [
-  { name: 'First Reporter', desc: 'Submit your first verified report', earned: 'Earned on May 10, 2025', color: C.green, bg: C.greenTint, locked: false },
-  { name: 'Trusted Reporter', desc: 'Reach Level 4 Trust Score', earned: 'Earned on May 21, 2025', color: C.purple, bg: C.purpleTint, locked: false },
-  { name: 'Delay Master', desc: 'Report delays 20 times', earned: 'Earned on Jun 02, 2025', color: C.red, bg: C.redTint, locked: false },
-  { name: 'Helpful Traveler', desc: 'Receive 50 helpful votes', earned: 'Earned on Jun 05, 2025', color: C.blue, bg: C.blueTint, locked: false },
-  { name: 'Diamond Contributor', desc: 'Reach Level 5 Trust Score', earned: 'Locked', color: C.gold, bg: `${C.gold}20`, locked: true },
-  { name: 'Community Voice', desc: 'Add 100 comments or replies', earned: 'Locked', color: C.text2, bg: C.surface2, locked: true },
-];
-
 export default function BadgesReputationScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const { t } = useTranslation();
+
+  const { data: userBadges, isLoading } = useQuery({
+    queryKey: ['user_badges', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from('user_badges')
+        .select('*')
+        .eq('user_id', user.id);
+      if (error) return [];
+      return data ?? [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Badge definitions (all possible badges)
+  const ALL_BADGES = [
+    { key: 'CONTRIBUTOR', label: t('badges.bronze'), desc: t('badges.desc_bronze'), color: C.orange },
+    { key: 'VERIFIED', label: t('badges.silver'), desc: t('badges.desc_silver'), color: C.text2 },
+    { key: 'REPORTER', label: t('badges.gold'), desc: t('badges.desc_gold'), color: C.gold },
+    { key: 'ELITE_REPORTER', label: t('badges.diamond'), desc: t('badges.desc_diamond'), color: C.blue },
+    { key: 'TRUSTED_REPORTER', label: t('badges.green'), desc: t('badges.desc_green'), color: C.green },
+    { key: 'DELAY_MASTER', label: t('badges.amber'), desc: t('badges.desc_amber'), color: C.orange },
+    { key: 'SPEED_REPORTER', label: t('badges.speed'), desc: t('badges.desc_speed'), color: C.purple },
+  ];
+
+  const earnedKeys = new Set((userBadges ?? []).map((b: any) => b.badge_type));
+  const reportCount = user?.report_count ?? 0;
+  const trustScore = user?.trust_score ?? 0;
+
+  // Progress bar calc
+  const nextThreshold = reportCount < 1 ? 1 : reportCount < 10 ? 10 : reportCount < 50 ? 50 : reportCount < 100 ? 100 : 500;
+  const prevThreshold = reportCount < 1 ? 0 : reportCount < 10 ? 1 : reportCount < 50 ? 10 : reportCount < 100 ? 50 : 100;
+  const progress = Math.min((reportCount - prevThreshold) / (nextThreshold - prevThreshold), 1);
+
+  const earnedCount = ALL_BADGES.filter(b => earnedKeys.has(b.key)).length;
+  const inProgressCount = ALL_BADGES.filter(b => !earnedKeys.has(b.key)).length;
+
   return (
     <SafeAreaView style={br.root}>
       <View style={br.header}>
         <TouchableOpacity style={br.backBtn} onPress={() => router.back()} />
         <View>
-          <Text style={br.title}>Badges & Reputation</Text>
+          <Text style={br.title}>{t('badges.title')}</Text>
           <Text style={br.subtitle}>Track your progress and unlock badges</Text>
         </View>
         <TouchableOpacity style={br.infoBtn} />
@@ -43,15 +78,27 @@ export default function BadgesReputationScreen() {
                 <View style={br.tsVerified} />
               </View>
               <View style={br.tsNumRow}>
-                <Text style={br.tsNum}>810</Text>
+                <Text style={br.tsNum}>{trustScore}</Text>
                 <Text style={br.tsMax}> / 1000</Text>
               </View>
-              <Text style={br.tsLevel}>Level 4  •  Trusted Reporter</Text>
-              <View style={br.tsBarBg}><View style={br.tsBarFill} /></View>
-              <Text style={br.tsProgress}>190 points to reach Level 5</Text>
+              <Text style={br.tsLevel}>
+                {trustScore >= 1000 ? 'Level 5  •  Expert Reporter'
+                  : trustScore >= 600 ? 'Level 4  •  Trusted Reporter'
+                  : trustScore >= 300 ? 'Level 3  •  Reliable Reporter'
+                  : trustScore >= 100 ? 'Level 2  •  Active Reporter'
+                  : 'Level 1  •  Rookie Reporter'}
+              </Text>
+              <View style={br.tsBarBg}>
+                <View style={[br.tsBarFill, { width: `${Math.min((trustScore / 1000) * 100, 100)}%` }]} />
+              </View>
+              <Text style={br.tsProgress}>{Math.max(0, 1000 - trustScore)} points to reach Level 5</Text>
             </View>
             <View style={br.tsStats}>
-              {[['Reports', '63', C.blueTint], ['Verifications', '159', C.greenTint], ['Helpful Votes', '278', C.purpleTint]].map(([l, v, bg]) => (
+              {[
+                ['Reports', String(reportCount), C.blueTint],
+                ['Verifications', String(user?.helpful_vote_count ?? 0), C.greenTint],
+                ['Trust Score', String(trustScore), C.purpleTint],
+              ].map(([l, v, bg]) => (
                 <View key={l} style={br.tsStat}>
                   <View style={[br.tsStatIcon, { backgroundColor: bg as string }]} />
                   <View>
@@ -63,6 +110,18 @@ export default function BadgesReputationScreen() {
             </View>
           </View>
         </View>
+
+        {/* Progress bar toward next badge */}
+        <View style={br.card}>
+          <Text style={br.sectionTitle}>Progress to Next Level</Text>
+          <View style={br.tsBarBg}>
+            <View style={[br.tsBarFill, { width: `${Math.round(progress * 100)}%` }]} />
+          </View>
+          <Text style={br.tsProgress}>
+            {reportCount} / {nextThreshold} reports
+          </Text>
+        </View>
+
         {/* Progress levels */}
         <View style={br.card}>
           <View style={br.sectionHeader}>
@@ -84,35 +143,68 @@ export default function BadgesReputationScreen() {
             ))}
           </View>
         </View>
+
         {/* Badges */}
         <View style={br.card}>
           <View style={br.sectionHeader}>
-            <Text style={br.sectionTitle}>Your Badges</Text>
-            <Text style={br.earnedCount}>6 / 12 Badges Earned</Text>
+            <Text style={br.sectionTitle}>{t('badges.your_badges')}</Text>
+            <Text style={br.earnedCount}>{earnedCount} / {ALL_BADGES.length} Badges Earned</Text>
           </View>
-          <View style={br.badgesGrid}>
-            {BADGES.map((badge, i) => (
-              <View key={badge.name} style={[br.badgeCard, { borderColor: badge.locked ? C.border : badge.color }]}>
-                {!badge.locked && <View style={br.checkMark} />}
-                <View style={[br.badgeIcon, { backgroundColor: badge.bg, borderColor: badge.color }]}>
-                  <Text style={[br.badgeStar, { color: badge.color }]}>★</Text>
-                </View>
-                <Text style={[br.badgeName, badge.locked && { color: C.text2 }]}>{badge.name}</Text>
-                <Text style={br.badgeDesc}>{badge.desc}</Text>
-                <Text style={[br.badgeEarned, badge.locked && { color: C.text3 }]}>
-                  {badge.locked ? '🔒 Locked' : badge.earned}
-                </Text>
-              </View>
-            ))}
+          {isLoading ? (
+            <ActivityIndicator color={C.green} />
+          ) : (
+            <View style={br.badgesGrid}>
+              {ALL_BADGES.map((badge) => {
+                const locked = !earnedKeys.has(badge.key);
+                const bg = locked ? C.surface2 : badge.color + '20';
+                return (
+                  <View key={badge.key} style={[br.badgeCard, { borderColor: locked ? C.border : badge.color }]}>
+                    {!locked && <View style={br.checkMark} />}
+                    <View style={[br.badgeIcon, { backgroundColor: bg, borderColor: badge.color }]}>
+                      <Text style={[br.badgeStar, { color: badge.color }]}>★</Text>
+                    </View>
+                    <Text style={[br.badgeName, locked && { color: C.text2 }]}>{badge.label}</Text>
+                    <Text style={br.badgeDesc}>{badge.desc}</Text>
+                    <Text style={[br.badgeEarned, locked && { color: C.text3 }]}>
+                      {locked ? '🔒 Locked' : 'Earned'}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        {/* Stats summary */}
+        <View style={br.card}>
+          <View style={br.sectionHeader}>
+            <Text style={br.sectionTitle}>{t('badges.stat_earned')}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: T.xxl, fontWeight: '800', color: C.green }}>{earnedCount}</Text>
+              <Text style={{ fontSize: T.sm, color: C.text2 }}>{t('badges.stat_earned')}</Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: T.xxl, fontWeight: '800', color: C.orange }}>{inProgressCount}</Text>
+              <Text style={{ fontSize: T.sm, color: C.text2 }}>{t('badges.stat_in_progress')}</Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: T.xxl, fontWeight: '800', color: C.white }}>{ALL_BADGES.length}</Text>
+              <Text style={{ fontSize: T.sm, color: C.text2 }}>{t('badges.stat_total')}</Text>
+            </View>
           </View>
         </View>
+
         {/* CTA */}
         <View style={br.cta}>
           <View style={br.ctaIcon} />
           <View style={{ flex: 1 }}>
             <Text style={br.ctaText}>Your contributions help thousands of travelers make better journey decisions every day.</Text>
           </View>
-          <TouchableOpacity style={br.ctaBtn}><Text style={br.ctaBtnText}>Keep Contributing!  ›</Text></TouchableOpacity>
+          <TouchableOpacity style={br.ctaBtn} onPress={() => router.push('/submit-report')}>
+            <Text style={br.ctaBtnText}>Keep Contributing!  ›</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -2,149 +2,112 @@
 
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { useSearchTrains } from '../hooks/useTrains';
+import { useTrainDelayStatus } from '../hooks/useCommunityReports';
+import { TrainSearchResult } from '../types/database.types';
+import { useTranslation } from '../i18n';
 
-type DelayStatus = 'delayed' | 'slight' | 'ontime';
-
-interface TrainResult {
-  id: string;
-  number: string;
-  name: string;
-  nameBn: string;
-  type: string;
-  delayStatus: DelayStatus;
-  delayText: string;
-  depart: string;
-  duration: string;
-  arrive: string;
-  departStation: string;
-  arriveStation: string;
-  classes: string[];
-  selectedClass?: string;
-  seatsAvailable: string;
+function SkeletonCard() {
+  return (
+    <View style={[s.trainCard, { height: 160, opacity: 0.6 }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.md }}>
+        <View style={{ width: 56, height: 20, backgroundColor: C.surface2, borderRadius: 4 }} />
+        <View style={{ width: 120, height: 16, backgroundColor: C.surface2, borderRadius: 4 }} />
+      </View>
+      <View style={{ width: '80%', height: 12, backgroundColor: C.surface2, borderRadius: 4, marginBottom: S.sm }} />
+      <View style={s.divider} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: S.sm }}>
+        <View style={{ width: 60, height: 28, backgroundColor: C.surface2, borderRadius: 4 }} />
+        <View style={{ width: 60, height: 8, backgroundColor: C.surface2, borderRadius: 4, alignSelf: 'center' }} />
+        <View style={{ width: 60, height: 28, backgroundColor: C.surface2, borderRadius: 4 }} />
+      </View>
+    </View>
+  );
 }
 
-const STATUS_MAP: Record<DelayStatus, { bg: string; color: string }> = {
-  delayed: { bg: C.redTint, color: C.red },
-  slight:  { bg: C.orangeTint, color: C.orange },
-  ontime:  { bg: C.greenTint, color: C.green },
-};
+function TrainCard({ train, delayStatus, onPress }: {
+  train: TrainSearchResult;
+  delayStatus?: { delayMinutes: number; reportedAt: string };
+  onPress: () => void;
+}) {
+  const { t } = useTranslation();
 
-const TRAINS: TrainResult[] = [
-  {
-    id: '721',
-    number: '#721',
-    name: 'Subarna Express',
-    nameBn: 'সুবর্ণ এক্সপ্রেস',
-    type: 'Intercity',
-    delayStatus: 'delayed',
-    delayText: '15 min delay',
-    depart: '06:40',
-    duration: '4h 35m',
-    arrive: '11:15',
-    departStation: 'Kamlapur',
-    arriveStation: 'Chattogram',
-    classes: ['Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth'],
-    seatsAvailable: '120+',
-  },
-  {
-    id: '787',
-    number: '#787',
-    name: 'Sonar Bangla Express',
-    nameBn: 'সোনার বাংলা এক্সপ্রেস',
-    type: 'Intercity',
-    delayStatus: 'slight',
-    delayText: '5 min delay',
-    depart: '07:00',
-    duration: '4h 30m',
-    arrive: '11:30',
-    departStation: 'Kamlapur',
-    arriveStation: 'Chattogram',
-    classes: ['Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth'],
-    seatsAvailable: '85+',
-  },
-  {
-    id: '236',
-    number: '#236',
-    name: 'Mahanagar Express',
-    nameBn: 'মহানগর এক্সপ্রেস',
-    type: 'Intercity',
-    delayStatus: 'ontime',
-    delayText: 'On Time',
-    depart: '08:10',
-    duration: '4h 20m',
-    arrive: '12:30',
-    departStation: 'Kamlapur',
-    arriveStation: 'Chattogram',
-    classes: ['Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth'],
-    selectedClass: 'AC Seat',
-    seatsAvailable: '60+',
-  },
-];
+  const delayBadgeBg = delayStatus
+    ? (delayStatus.delayMinutes >= 15 ? C.redTint : C.orangeTint)
+    : C.greenTint;
+  const delayBadgeColor = delayStatus
+    ? (delayStatus.delayMinutes >= 15 ? C.red : C.orange)
+    : C.green;
+  const delayBadgeText = delayStatus
+    ? `${delayStatus.delayMinutes} min delay`
+    : t('results.on_time');
 
-function TrainCard({ train, onPress }: { train: TrainResult; onPress: () => void }) {
-  const status = STATUS_MAP[train.delayStatus];
+  const formatDuration = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h}h ${m}m`;
+  };
+
   return (
     <TouchableOpacity style={s.trainCard} onPress={onPress} activeOpacity={0.8}>
       {/* Top row */}
       <View style={s.trainTop}>
         <View style={s.trainLeft}>
-          <View style={s.numBadge}><Text style={s.numBadgeText}>{train.number}</Text></View>
+          <View style={s.numBadge}>
+            <Text style={s.numBadgeText}>#{train.train_number}</Text>
+          </View>
           <View>
-            <Text style={s.trainName}>{train.name}</Text>
-            <Text style={s.trainNameBn}>{train.nameBn}</Text>
+            <Text style={s.trainName}>{train.train_name_en}</Text>
+            <Text style={s.trainNameBn}>{train.train_type}</Text>
           </View>
         </View>
-        <View style={[s.delayBadge, { backgroundColor: status.bg }]}>
-          <Text style={[s.delayText, { color: status.color }]}>{train.delayText}</Text>
+        <View style={[s.delayBadge, { backgroundColor: delayBadgeBg }]}>
+          <Text style={[s.delayText, { color: delayBadgeColor }]}>{delayBadgeText}</Text>
         </View>
       </View>
 
-      <Text style={s.trainRoute}>Dhaka (Kamlapur) → Chattogram</Text>
+      <Text style={s.trainRoute}>{train.train_name_en}</Text>
       <View style={s.divider} />
 
       {/* Timing */}
-      <View style={s.timingRow}>
-        <View>
-          <Text style={s.timeMain}>{train.depart}</Text>
-          <Text style={s.timeLabel}>Depart</Text>
-          <Text style={s.timeStation}>{train.departStation}</Text>
+      {train.verified ? (
+        <View style={s.timingRow}>
+          <View>
+            <Text style={s.timeMain}>{train.departure_time}</Text>
+            <Text style={s.timeLabel}>{t('train.depart')}</Text>
+          </View>
+          <View style={s.durationCol}>
+            <Text style={s.durationText}>{formatDuration(train.duration_minutes)}</Text>
+            <View style={s.durationLine} />
+            <Text style={s.arrowText}>→</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={s.timeMain}>{train.arrival_time}</Text>
+            <Text style={s.timeLabel}>{t('train.arrive')}</Text>
+          </View>
         </View>
-        <View style={s.durationCol}>
-          <Text style={s.durationText}>{train.duration}</Text>
-          <View style={s.durationLine} />
-          <Text style={s.arrowText}>→</Text>
+      ) : (
+        <View style={s.timingRow}>
+          <Text style={[s.trainRoute, { color: C.text3 }]}>{t('results.schedule_being_verified')}</Text>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={s.timeMain}>{train.arrive}</Text>
-          <Text style={s.timeLabel}>Arrive</Text>
-          <Text style={s.timeStation}>{train.arriveStation}</Text>
-        </View>
-      </View>
+      )}
 
       <View style={s.divider} />
 
       {/* Bottom */}
       <View style={s.trainBottom}>
         <View style={s.classPills}>
-          {train.classes.map((cl) => (
-            <View
-              key={cl}
-              style={[s.classPill, cl === train.selectedClass && s.classPillActive]}
-            >
-              <Text style={[s.classPillText, cl === train.selectedClass && s.classPillTextActive]}>
-                {cl}
-              </Text>
-            </View>
-          ))}
+          {/* Classes not available per-train without fares table join — skip pills */}
         </View>
         <View>
-          <Text style={s.seatsLabel}>Seats Available</Text>
-          <Text style={s.seatsValue}>{train.seatsAvailable}</Text>
+          <Text style={s.seatsLabel}>{t('results.verified_schedule')}</Text>
+          <Text style={[s.seatsValue, { color: train.verified ? C.green : C.text3 }]}>
+            {train.verified ? '✓' : '—'}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -153,7 +116,20 @@ function TrainCard({ train, onPress }: { train: TrainResult; onPress: () => void
 
 export default function SearchResultsScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ from: string; to: string; date: string }>();
+  const params = useLocalSearchParams<{ from_station_id: string; to_station_id: string; date: string; from_name: string; to_name: string }>();
+  const { t } = useTranslation();
+
+  const { data: trains, isLoading, error, refetch } = useSearchTrains({
+    fromStationId: params.from_station_id,
+    toStationId: params.to_station_id,
+    date: params.date ?? new Date().toISOString().split('T')[0],
+  });
+
+  const trainNumbers = (trains ?? []).filter((tr) => tr.verified).map((tr) => tr.train_number);
+  const { data: delayMap } = useTrainDelayStatus(trainNumbers, params.date ?? '');
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => { setRefreshing(true); await refetch(); setRefreshing(false); };
 
   return (
     <SafeAreaView style={s.root}>
@@ -161,43 +137,80 @@ export default function SearchResultsScreen() {
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
         <View>
-          <Text style={s.title}>Search Results</Text>
-          <Text style={s.subtitle}>{TRAINS.length} Trains Found</Text>
+          <Text style={s.title}>{t('results.title')}</Text>
+          <Text style={s.subtitle}>
+            {isLoading ? t('common.loading') : t('results.found', { count: trains?.length ?? 0 })}
+          </Text>
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.headerBtn}><Text style={s.headerBtnText}>Filter</Text></TouchableOpacity>
-          <TouchableOpacity style={s.headerBtn}><Text style={s.headerBtnText}>Sort</Text></TouchableOpacity>
+          <TouchableOpacity style={s.headerBtn}><Text style={s.headerBtnText}>{t('results.filter')}</Text></TouchableOpacity>
+          <TouchableOpacity style={s.headerBtn}><Text style={s.headerBtnText}>{t('results.sort')}</Text></TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />}
+      >
 
         {/* Summary card */}
         <View style={s.summaryCard}>
           <View style={s.summaryRow}>
             <View>
               <Text style={s.summaryLabel}>From</Text>
-              <Text style={s.summaryValue}>{params.from ?? 'Dhaka'}</Text>
+              <Text style={s.summaryValue}>{params.from_name ?? 'Origin'}</Text>
             </View>
             <View style={s.swapIcon} />
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={s.summaryLabel}>To</Text>
-              <Text style={s.summaryValue}>{params.to ?? 'Chattogram'}</Text>
+              <Text style={s.summaryValue}>{params.to_name ?? 'Destination'}</Text>
             </View>
           </View>
           <View style={s.divider} />
           <View style={s.summaryMeta}>
-            <Text style={s.summaryMetaText}>{params.date ?? 'Today, 18 June'}</Text>
+            <Text style={s.summaryMetaText}>{params.date ?? t('results.today_all_classes')}</Text>
             <Text style={s.summaryMetaText}>All Classes</Text>
           </View>
         </View>
 
+        {/* Loading skeletons */}
+        {isLoading && (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        )}
+
+        {/* Error state */}
+        {!isLoading && !!error && (
+          <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
+            <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
+            <TouchableOpacity onPress={() => refetch()}>
+              <Text style={{ color: C.green, fontSize: T.base }}>{t('common.retry')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !error && trains?.length === 0 && (
+          <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
+            <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
+            <Text style={{ color: C.text2, fontSize: T.sm }}>{t('results.none_hint')}</Text>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Train list */}
-        {TRAINS.map((train) => (
+        {!isLoading && !error && (trains ?? []).map((train) => (
           <TrainCard
-            key={train.id}
+            key={train.train_id}
             train={train}
-            onPress={() => router.push({ pathname: '/train-detail', params: { id: train.id } })}
+            delayStatus={delayMap?.get(train.train_number)}
+            onPress={() => router.push({ pathname: '/train/[id]', params: { id: train.train_number } })}
           />
         ))}
 
@@ -205,9 +218,9 @@ export default function SearchResultsScreen() {
         <View style={s.communityBadge}>
           <View style={s.communityIcon} />
           <View style={{ flex: 1 }}>
-            <Text style={s.communityTitle}>Community Verified</Text>
+            <Text style={s.communityTitle}>{t('results.community_verified')}</Text>
             <Text style={s.communitySub}>
-              Delay and status updates are based on real-time reports from fellow travelers.
+              {t('results.community_verified_body')}
             </Text>
           </View>
           <View style={s.reportersStack} />

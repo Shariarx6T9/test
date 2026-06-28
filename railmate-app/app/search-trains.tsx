@@ -1,46 +1,61 @@
 // app/search-trains.tsx — Search Trains Screen
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Modal, Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
-
-interface RecentSearch {
-  id: string;
-  from: string;
-  to: string;
-  date: string;
-  classType: string;
-}
-
-const RECENT_SEARCHES: RecentSearch[] = [
-  { id: '1', from: 'Dhaka', to: 'Chattogram', date: 'Today, 18 June 2026', classType: 'All Classes' },
-  { id: '2', from: 'Dhaka', to: 'Sylhet', date: '17 June 2026', classType: 'All Classes' },
-  { id: '3', from: 'Dhaka', to: 'Rajshahi', date: '15 June 2026', classType: 'Shovon Chair' },
-  { id: '4', from: 'Chattogram', to: 'Dhaka', date: '14 June 2026', classType: 'All Classes' },
-];
-
-const CLASS_OPTIONS = ['All Classes', 'Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth', 'First Berth'];
-const QUOTA_OPTIONS = ['General', 'Freedom Fighter', 'Disabled', 'Govt. Pass'];
+import { useSearchStore } from '../stores/searchStore';
+import { useRecentSearches } from '../hooks/useRecentSearches';
+import { useTranslation } from '../i18n';
+import { StationSelector } from '../components/features/StationSelector/StationSelector';
+import { Station } from '../types/station.types';
 
 export default function SearchTrainsScreen() {
   const router = useRouter();
-  const [from, setFrom] = useState('Dhaka');
-  const [to, setTo] = useState('Chattogram');
-  const [date, setDate] = useState('Today, 18 June 2026');
-  const [classType, setClassType] = useState('All Classes');
-  const [quota, setQuota] = useState('General');
+  const { t, isBengali } = useTranslation();
+  const { fromStation, toStation, date, setFromStation, setToStation, setDate, swapStations } = useSearchStore();
+  const { recentSearches, addRecentSearch, removeRecentSearch, clearAll } = useRecentSearches();
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
-  const swapLocations = () => { setFrom(to); setTo(from); };
+  const formatDateDisplay = (isoDate: string) => {
+    const d = new Date(isoDate + 'T00:00:00');
+    return d.toLocaleDateString('en-BD', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+  };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    if (!fromStation || !toStation) {
+      setSearchError(t('search.select_stations'));
+      return;
+    }
+    setSearchError('');
+    await addRecentSearch(
+      { id: fromStation.id, name_en: fromStation.name_en, name_bn: fromStation.name_bn, code: fromStation.code },
+      { id: toStation.id, name_en: toStation.name_en, name_bn: toStation.name_bn, code: toStation.code },
+      date,
+      null,
+    );
     router.push({
-      pathname: '/search-results',
-      params: { from, to, date, classType, quota },
+      pathname: '/search-results' as any,
+      params: {
+        from_station_id: fromStation.id,
+        to_station_id: toStation.id,
+        date,
+        from_name: isBengali ? fromStation.name_bn : fromStation.name_en,
+        to_name: isBengali ? toStation.name_bn : toStation.name_en,
+      },
     });
+  };
+
+  const handleRecentTap = (item: typeof recentSearches[0]) => {
+    setFromStation({ id: item.fromStation.id, code: item.fromStation.code, name_en: item.fromStation.name_en, name_bn: item.fromStation.name_bn, division: null, zone: null, is_major: false });
+    setToStation({ id: item.toStation.id, code: item.toStation.code, name_en: item.toStation.name_en, name_bn: item.toStation.name_bn, division: null, zone: null, is_major: false });
+    setDate(item.date);
   };
 
   return (
@@ -60,14 +75,16 @@ export default function SearchTrainsScreen() {
         <View style={s.formCard}>
 
           {/* From */}
-          <TouchableOpacity style={s.fieldRow}>
+          <TouchableOpacity style={s.fieldRow} onPress={() => setShowFromPicker(true)}>
             <View style={[s.fieldDot, { backgroundColor: C.green }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>From</Text>
-              <Text style={s.fieldValue}>{from}</Text>
-              <Text style={s.fieldSub}>Kamlapur Railway Station</Text>
+              <Text style={s.fieldValue}>
+                {fromStation ? (isBengali ? fromStation.name_bn : fromStation.name_en) : t('search.placeholder_from')}
+              </Text>
+              <Text style={s.fieldSub}>{fromStation?.division ?? fromStation?.code ?? ''}</Text>
             </View>
-            <TouchableOpacity style={s.clearBtn} onPress={() => setFrom('')}>
+            <TouchableOpacity style={s.clearBtn} onPress={() => setFromStation(null)}>
               <View style={s.clearDot} />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -75,20 +92,22 @@ export default function SearchTrainsScreen() {
           {/* Swap button */}
           <View style={s.swapWrapper}>
             <View style={s.swapLine} />
-            <TouchableOpacity style={s.swapBtn} onPress={swapLocations}>
+            <TouchableOpacity style={s.swapBtn} onPress={swapStations}>
               <Text style={s.swapIcon}>⇅</Text>
             </TouchableOpacity>
           </View>
 
           {/* To */}
-          <TouchableOpacity style={s.fieldRow}>
+          <TouchableOpacity style={s.fieldRow} onPress={() => setShowToPicker(true)}>
             <View style={[s.fieldDot, { backgroundColor: C.text2 }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>To</Text>
-              <Text style={s.fieldValue}>{to}</Text>
-              <Text style={s.fieldSub}>Chattogram Railway Station</Text>
+              <Text style={s.fieldValue}>
+                {toStation ? (isBengali ? toStation.name_bn : toStation.name_en) : t('search.placeholder_to')}
+              </Text>
+              <Text style={s.fieldSub}>{toStation?.division ?? toStation?.code ?? ''}</Text>
             </View>
-            <TouchableOpacity style={s.clearBtn} onPress={() => setTo('')}>
+            <TouchableOpacity style={s.clearBtn} onPress={() => setToStation(null)}>
               <View style={s.clearDot} />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -96,11 +115,11 @@ export default function SearchTrainsScreen() {
           <View style={s.divider} />
 
           {/* Date */}
-          <TouchableOpacity style={s.fieldRow}>
+          <TouchableOpacity style={s.fieldRow} onPress={() => setShowDatePicker(true)}>
             <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>Date of Journey</Text>
-              <Text style={s.fieldValue}>{date}</Text>
+              <Text style={s.fieldValue}>{formatDateDisplay(date)}</Text>
             </View>
             <View style={s.chevron} />
           </TouchableOpacity>
@@ -112,7 +131,7 @@ export default function SearchTrainsScreen() {
             <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>Class (Optional)</Text>
-              <Text style={s.fieldValue}>{classType}</Text>
+              <Text style={s.fieldValue}>All Classes</Text>
               <Text style={s.fieldSub}>All Available Classes</Text>
             </View>
             <View style={s.chevron} />
@@ -125,7 +144,7 @@ export default function SearchTrainsScreen() {
             <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>Quota (Optional)</Text>
-              <Text style={s.fieldValue}>{quota}</Text>
+              <Text style={s.fieldValue}>General</Text>
               <Text style={s.fieldSub}>General Quota</Text>
             </View>
             <View style={s.chevron} />
@@ -137,30 +156,39 @@ export default function SearchTrainsScreen() {
           <Text style={s.searchBtnText}>Search Trains</Text>
         </TouchableOpacity>
 
+        {/* Search Error */}
+        {searchError !== '' && (
+          <Text style={{ color: C.red, fontSize: T.sm }}>{searchError}</Text>
+        )}
+
         {/* Recent Searches */}
-        <View style={s.recentSection}>
-          <View style={s.recentHeader}>
-            <Text style={s.recentTitle}>Recent Searches</Text>
-            <TouchableOpacity><Text style={s.clearAll}>Clear All</Text></TouchableOpacity>
+        {recentSearches.length > 0 && (
+          <View style={s.recentSection}>
+            <View style={s.recentHeader}>
+              <Text style={s.recentTitle}>Recent Searches</Text>
+              <TouchableOpacity onPress={clearAll}><Text style={s.clearAll}>Clear All</Text></TouchableOpacity>
+            </View>
+            {recentSearches.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={s.recentItem}
+                onPress={() => handleRecentTap(item)}
+              >
+                <View style={s.recentIcon} />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.recentRoute}>
+                    {isBengali ? item.fromStation.name_bn : item.fromStation.name_en}
+                    {' → '}
+                    {isBengali ? item.toStation.name_bn : item.toStation.name_en}
+                  </Text>
+                  <Text style={s.recentMeta}>{formatDateDisplay(item.date)}</Text>
+                </View>
+                <View style={s.bookmarkIcon} />
+                <View style={s.chevron} />
+              </TouchableOpacity>
+            ))}
           </View>
-          {RECENT_SEARCHES.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={s.recentItem}
-              onPress={() => {
-                setFrom(item.from); setTo(item.to); setDate(item.date); setClassType(item.classType);
-              }}
-            >
-              <View style={s.recentIcon} />
-              <View style={{ flex: 1 }}>
-                <Text style={s.recentRoute}>{item.from} → {item.to}</Text>
-                <Text style={s.recentMeta}>{item.date} • {item.classType}</Text>
-              </View>
-              <View style={s.bookmarkIcon} />
-              <View style={s.chevron} />
-            </TouchableOpacity>
-          ))}
-        </View>
+        )}
 
         {/* Explore Banner */}
         <View style={s.exploreBanner}>
@@ -175,6 +203,37 @@ export default function SearchTrainsScreen() {
         </View>
 
       </ScrollView>
+
+      {/* From Station Picker Modal */}
+      <Modal visible={showFromPicker} animationType="slide" onRequestClose={() => setShowFromPicker(false)}>
+        <StationSelector
+          onSelect={(station: Station) => { setFromStation(station); setShowFromPicker(false); }}
+          onClose={() => setShowFromPicker(false)}
+          isBengali={isBengali}
+        />
+      </Modal>
+
+      {/* To Station Picker Modal */}
+      <Modal visible={showToPicker} animationType="slide" onRequestClose={() => setShowToPicker(false)}>
+        <StationSelector
+          onSelect={(station: Station) => { setToStation(station); setShowToPicker(false); }}
+          onClose={() => setShowToPicker(false)}
+          isBengali={isBengali}
+        />
+      </Modal>
+
+      {/* Date Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={new Date(date + 'T00:00:00')}
+          mode="date"
+          minimumDate={new Date()}
+          onChange={(_, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) setDate(selectedDate.toISOString().split('T')[0]);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

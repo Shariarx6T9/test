@@ -1,43 +1,136 @@
 // app/submit-report.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { useSubmitReport, useTrainSearch } from '../hooks/useCommunityReports';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n';
+import type { ReportType } from '../types/report.types';
 
 const STEPS = ['Train', 'Report Type', 'Details', 'Review', 'Submit'];
-const POPULAR_TRAINS = [
-  { num: '701', name: 'Subarna Express', active: true },
-  { num: '721', name: 'Mohanagar Express', active: false },
-  { num: '741', name: 'Turna Express', active: false },
-  { num: '...', name: 'More', active: false },
+
+const REPORT_TYPES: { key: ReportType; label: string }[] = [
+  { key: 'DELAY', label: 'Delay' },
+  { key: 'CROWD', label: 'Crowding' },
+  { key: 'GENERAL', label: 'General' },
+  { key: 'PLATFORM', label: 'Platform' },
+  { key: 'SCHEDULE', label: 'Schedule' },
 ];
 
 export default function SubmitReportScreen() {
   const router = useRouter();
-  const [step] = useState(0);
-  const [selectedTrain, setSelectedTrain] = useState('701');
+  const { t } = useTranslation();
+  const { user, isAuthenticated } = useAuthStore();
+  const [step, setStep] = useState(0);
+  const [trainQuery, setTrainQuery] = useState('');
+  const [selectedTrain, setSelectedTrain] = useState<{ id: string; name_en: string; number: string } | null>(null);
+  const [reportType, setReportType] = useState<ReportType | null>(null);
+  const [delayMinutes, setDelayMinutes] = useState('');
+  const [description, setDescription] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [submittedError, setSubmittedError] = useState('');
+
+  // All hooks must be called before any conditional returns
+  const { data: trainResults } = useTrainSearch(trainQuery);
+  const submitReport = useSubmitReport();
+
+  // Auth guard (after all hooks)
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={sr.root}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.lg }}>
+          <Text style={{ color: C.white, fontSize: T.md, fontWeight: '700' }}>
+            {t('community.sign_in_required')}
+          </Text>
+          <TouchableOpacity
+            style={{ backgroundColor: C.green, borderRadius: R.md, padding: S.lg }}
+            onPress={() => router.push('/auth/login' as any)}
+          >
+            <Text style={{ color: C.bg, fontWeight: '700' }}>{t('auth.sign_in')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const handleSubmit = async () => {
+    if (!selectedTrain || !reportType) return;
+    try {
+      setSubmittedError('');
+      await submitReport.mutateAsync({
+        data: {
+          train_id: selectedTrain.id,
+          report_type: reportType,
+          description: description.trim() || null,
+          delay_minutes: reportType === 'DELAY' && delayMinutes ? parseInt(delayMinutes, 10) : null,
+          journey_date: new Date().toISOString().split('T')[0],
+        },
+      });
+      setSubmitted(true);
+    } catch (err: any) {
+      if (err?.status === 429) {
+        setSubmittedError("You've submitted too many reports. Please wait before submitting again.");
+      } else {
+        setSubmittedError(err?.message ?? t('common.error'));
+      }
+    }
+  };
+
+  if (submitted) {
+    return (
+      <SafeAreaView style={sr.root}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.lg, padding: S.xl }}>
+          <View style={{ width: 64, height: 64, backgroundColor: C.greenTint, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 28 }}>✓</Text>
+          </View>
+          <Text style={{ color: C.white, fontSize: T.lg, fontWeight: '800' }}>{t('community.success')}</Text>
+          <Text style={{ color: C.text2, textAlign: 'center' }}>{t('community.success_thanks')}</Text>
+          <TouchableOpacity
+            style={{ backgroundColor: C.green, borderRadius: R.md, padding: S.lg, minWidth: 120, alignItems: 'center' }}
+            onPress={() => {
+              setSubmitted(false);
+              setStep(0);
+              setSelectedTrain(null);
+              setReportType(null);
+              setDelayMinutes('');
+              setDescription('');
+              router.back();
+            }}
+          >
+            <Text style={{ color: C.bg, fontWeight: '700', fontSize: T.md }}>{t('community.done')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={sr.root}>
       <View style={sr.header}>
-        <TouchableOpacity style={sr.backBtn} onPress={() => router.back()} />
+        <TouchableOpacity
+          style={sr.backBtn}
+          onPress={() => (step > 0 ? setStep(step - 1) : router.back())}
+        />
         <View>
           <Text style={sr.title}>Submit Report</Text>
           <Text style={sr.subtitle}>Help fellow travelers by sharing real-time updates</Text>
         </View>
       </View>
+
       {/* Stepper */}
       <View style={sr.stepper}>
-        {STEPS.map((s, i) => (
-          <View key={s} style={sr.stepItem}>
+        {STEPS.map((stepLabel, i) => (
+          <View key={stepLabel} style={sr.stepItem}>
             {i > 0 && <View style={[sr.stepLine, i <= step && { backgroundColor: C.green }]} />}
             <View style={[sr.stepCircle, i === step ? sr.stepCircleActive : i < step ? sr.stepCircleDone : {}]}>
               <Text style={[sr.stepNum, i <= step && { color: i === step ? C.bg : C.green }]}>{i + 1}</Text>
             </View>
-            <Text style={[sr.stepLabel, i === step && { color: C.green }]}>{s}</Text>
+            <Text style={[sr.stepLabel, i === step && { color: C.green }]}>{stepLabel}</Text>
           </View>
         ))}
       </View>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={sr.scroll}>
         {/* Tip */}
         <View style={sr.tipCard}>
@@ -48,68 +141,231 @@ export default function SubmitReportScreen() {
           </View>
           <TouchableOpacity><Text style={{ color: C.text3, fontSize: 18 }}>×</Text></TouchableOpacity>
         </View>
-        {/* Step 1 */}
-        <View style={sr.card}>
-          <View style={sr.stepHeader}>
-            <View style={sr.stepIcon} />
-            <View>
-              <Text style={sr.stepTitle}>Step 1: Select Train</Text>
-              <Text style={sr.stepDesc}>Choose the train you want to report on</Text>
+
+        {/* Step 0: Train selection */}
+        {step === 0 && (
+          <>
+            <View style={sr.card}>
+              <View style={sr.stepHeader}>
+                <View style={sr.stepIcon} />
+                <View>
+                  <Text style={sr.stepTitle}>Step 1: Select Train</Text>
+                  <Text style={sr.stepDesc}>Choose the train you want to report on</Text>
+                </View>
+              </View>
+
+              <TextInput
+                style={[sr.searchField, { color: C.white }]}
+                placeholder={t('community.train_label')}
+                placeholderTextColor={C.text3}
+                value={trainQuery}
+                onChangeText={setTrainQuery}
+                autoCapitalize="none"
+              />
+
+              <Text style={sr.popularLabel}>Popular Trains</Text>
+              <View style={sr.popularRow}>
+                {(trainResults ?? []).slice(0, 4).map((train) => (
+                  <TouchableOpacity
+                    key={train.id}
+                    style={[sr.trainChip, selectedTrain?.id === train.id && sr.trainChipActive]}
+                    onPress={() => setSelectedTrain({ id: train.id, name_en: train.name_en, number: train.number })}
+                  >
+                    <View style={sr.trainChipIcon} />
+                    <Text style={[sr.trainChipNum, selectedTrain?.id === train.id && { color: C.green }]}>
+                      {train.number}
+                    </Text>
+                    <Text style={sr.trainChipName}>{train.name_en}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={sr.orText}>OR</Text>
+              <View style={sr.numberField}>
+                <Text style={sr.numHash}>#</Text>
+                <Text style={sr.numPlaceholder}>e.g., 701</Text>
+              </View>
             </View>
-          </View>
-          <View style={sr.searchField}>
-            <View style={sr.searchDot} />
-            <Text style={sr.searchPlaceholder}>Search by train name or number</Text>
-          </View>
-          <Text style={sr.popularLabel}>Popular Trains</Text>
-          <View style={sr.popularRow}>
-            {POPULAR_TRAINS.map(train => (
-              <TouchableOpacity
-                key={train.num}
-                style={[sr.trainChip, selectedTrain === train.num && sr.trainChipActive]}
-                onPress={() => setSelectedTrain(train.num)}
-              >
-                <View style={sr.trainChipIcon} />
-                <Text style={[sr.trainChipNum, selectedTrain === train.num && { color: C.green }]}>{train.num}</Text>
-                <Text style={sr.trainChipName}>{train.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={sr.orText}>OR</Text>
-          <View style={sr.numberField}>
-            <Text style={sr.numHash}>#</Text>
-            <Text style={sr.numPlaceholder}>e.g., 701</Text>
-          </View>
-        </View>
-        {/* Selected */}
-        <View style={sr.selectedCard}>
-          <View style={sr.selectedIcon} />
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={sr.selectedName}>Subarna Express (701)</Text>
-            <Text style={sr.selectedRoute}>Dhaka → Chattogram</Text>
-            <View style={sr.selectedMeta}>
-              <Text style={sr.selectedMetaText}>Departs 08:00 AM</Text>
-              <Text style={sr.selectedMetaText}>Duration 5h 45m</Text>
-              <Text style={sr.selectedMetaText}>Runs Daily</Text>
+
+            {selectedTrain && (
+              <View style={sr.selectedCard}>
+                <View style={sr.selectedIcon} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={sr.selectedName}>{selectedTrain.name_en} ({selectedTrain.number})</Text>
+                  <View style={sr.selectedMeta}>
+                    <Text style={sr.selectedMetaText}>Train #{selectedTrain.number}</Text>
+                  </View>
+                </View>
+                <Text style={sr.typeText}>Selected</Text>
+              </View>
+            )}
+
+            <View style={sr.reportingTip}>
+              <View style={sr.tipIconSmall} />
+              <View style={{ flex: 1 }}>
+                <Text style={sr.reportingTipTitle}>Reporting Tips</Text>
+                <Text style={sr.reportingTipSub}>
+                  Be accurate and specific. Include delay time, station name and other details in next steps.
+                </Text>
+              </View>
             </View>
-          </View>
-          <Text style={sr.typeText}>Intercity</Text>
-        </View>
-        {/* Tip box */}
-        <View style={sr.reportingTip}>
-          <View style={sr.tipIconSmall} />
-          <View style={{ flex: 1 }}>
-            <Text style={sr.reportingTipTitle}>Reporting Tips</Text>
-            <Text style={sr.reportingTipSub}>Be accurate and specific. Include delay time, station name and other details in next steps.</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={sr.continueBtn}>
-          <Text style={sr.continueBtnText}>Continue</Text>
-        </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[sr.continueBtn, !selectedTrain && { opacity: 0.5 }]}
+              disabled={!selectedTrain}
+              onPress={() => setStep(1)}
+            >
+              <Text style={sr.continueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Step 1: Report type */}
+        {step === 1 && (
+          <>
+            <View style={sr.card}>
+              <View style={sr.stepHeader}>
+                <View style={sr.stepIcon} />
+                <View>
+                  <Text style={sr.stepTitle}>Step 2: Report Type</Text>
+                  <Text style={sr.stepDesc}>What would you like to report?</Text>
+                </View>
+              </View>
+              <View style={{ gap: S.sm }}>
+                {REPORT_TYPES.map((rt) => (
+                  <TouchableOpacity
+                    key={rt.key}
+                    style={[
+                      sr.numberField,
+                      reportType === rt.key && { borderColor: C.green, backgroundColor: C.greenTint },
+                    ]}
+                    onPress={() => setReportType(rt.key)}
+                  >
+                    <Text
+                      style={{
+                        fontSize: T.base,
+                        fontWeight: '600',
+                        color: reportType === rt.key ? C.green : C.white,
+                        flex: 1,
+                      }}
+                    >
+                      {rt.label}
+                    </Text>
+                    {reportType === rt.key && (
+                      <Text style={{ color: C.green, fontWeight: '700' }}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[sr.continueBtn, !reportType && { opacity: 0.5 }]}
+              disabled={!reportType}
+              onPress={() => setStep(2)}
+            >
+              <Text style={sr.continueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Step 2: Details */}
+        {step === 2 && (
+          <>
+            <View style={sr.card}>
+              <View style={sr.stepHeader}>
+                <View style={sr.stepIcon} />
+                <View>
+                  <Text style={sr.stepTitle}>Step 3: Details</Text>
+                  <Text style={sr.stepDesc}>Add more information about the report</Text>
+                </View>
+              </View>
+
+              {reportType === 'DELAY' && (
+                <>
+                  <Text style={sr.popularLabel}>{t('community.delay_label')}</Text>
+                  <TextInput
+                    style={[sr.numberField, { color: C.white }]}
+                    placeholder="e.g. 15"
+                    placeholderTextColor={C.text3}
+                    keyboardType="numeric"
+                    value={delayMinutes}
+                    onChangeText={setDelayMinutes}
+                  />
+                </>
+              )}
+
+              <Text style={sr.popularLabel}>{t('community.note_label')}</Text>
+              <TextInput
+                style={[
+                  sr.numberField,
+                  { color: C.white, height: 100, textAlignVertical: 'top', paddingTop: S.md },
+                ]}
+                placeholder={t('community.note_placeholder')}
+                placeholderTextColor={C.text3}
+                multiline
+                maxLength={500}
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
+            <TouchableOpacity style={sr.continueBtn} onPress={() => setStep(3)}>
+              <Text style={sr.continueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Step 3: Review & Submit */}
+        {step === 3 && (
+          <>
+            <View style={sr.card}>
+              <View style={sr.stepHeader}>
+                <View style={sr.stepIcon} />
+                <View>
+                  <Text style={sr.stepTitle}>Step 4: Review</Text>
+                  <Text style={sr.stepDesc}>Confirm your report before submitting</Text>
+                </View>
+              </View>
+
+              <View style={sr.selectedCard}>
+                <View style={sr.selectedIcon} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={sr.selectedName}>{selectedTrain?.name_en} ({selectedTrain?.number})</Text>
+                  <Text style={sr.selectedRoute}>{reportType}</Text>
+                  {description ? <Text style={sr.selectedRoute}>{description}</Text> : null}
+                  {reportType === 'DELAY' && delayMinutes ? (
+                    <Text style={sr.selectedRoute}>{delayMinutes} min delay</Text>
+                  ) : null}
+                  <View style={sr.selectedMeta}>
+                    <Text style={sr.selectedMetaText}>
+                      {new Date().toLocaleDateString()}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {submittedError ? (
+                <Text style={{ color: C.red, fontSize: T.sm, marginTop: S.sm }}>{submittedError}</Text>
+              ) : null}
+            </View>
+
+            <TouchableOpacity
+              style={[sr.continueBtn, submitReport.isPending && { opacity: 0.7 }]}
+              disabled={submitReport.isPending}
+              onPress={handleSubmit}
+            >
+              <Text style={sr.continueBtnText}>
+                {submitReport.isPending ? 'Submitting...' : t('community.submit')}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
+
 const sr = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },

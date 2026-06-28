@@ -1,54 +1,164 @@
-// app/search-trains.tsx — Search Trains Screen
+// app/(tabs)/search.tsx — Search Tab
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Modal, Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
+import { useSearchStore } from '../../stores/searchStore';
+import { useRecentSearches } from '../../hooks/useRecentSearches';
+import { useTranslation } from '../../i18n';
+import { StationSelector } from '../../components/features/StationSelector/StationSelector';
+import { Station } from '../../types/station.types';
 
-interface RecentSearch {
-  id: string;
-  from: string;
-  to: string;
-  date: string;
-  classType: string;
-}
-
-const RECENT_SEARCHES: RecentSearch[] = [
-  { id: '1', from: 'Dhaka', to: 'Chattogram', date: 'Today, 18 June 2026', classType: 'All Classes' },
-  { id: '2', from: 'Dhaka', to: 'Sylhet', date: '17 June 2026', classType: 'All Classes' },
-  { id: '3', from: 'Dhaka', to: 'Rajshahi', date: '15 June 2026', classType: 'Shovon Chair' },
-  { id: '4', from: 'Chattogram', to: 'Dhaka', date: '14 June 2026', classType: 'All Classes' },
-];
-
-const CLASS_OPTIONS = ['All Classes', 'Shovon Chair', 'Snigdha', 'AC Seat', 'AC Berth', 'First Berth'];
-const QUOTA_OPTIONS = ['General', 'Freedom Fighter', 'Disabled', 'Govt. Pass'];
-
-export default function SearchTrainsScreen() {
+export default function SearchTabScreen() {
   const router = useRouter();
-  const [from, setFrom] = useState('Dhaka');
-  const [to, setTo] = useState('Chattogram');
-  const [date, setDate] = useState('Today, 18 June 2026');
-  const [classType, setClassType] = useState('All Classes');
-  const [quota, setQuota] = useState('General');
+  const { t, isBengali } = useTranslation();
 
-  const swapLocations = () => { setFrom(to); setTo(from); };
+  const {
+    fromStation,
+    toStation,
+    date,
+    setFromStation,
+    setToStation,
+    setDate,
+    swapStations,
+  } = useSearchStore();
 
-  const handleSearch = () => {
+  const { recentSearches, addRecentSearch, clearAll } = useRecentSearches();
+
+  const [showFromSelector, setShowFromSelector] = useState(false);
+  const [showToSelector, setShowToSelector] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  // ── Station selection ────────────────────────────────────────────────────────
+
+  const handleSelectFrom = useCallback((station: Station) => {
+    setFromStation(station);
+    setShowFromSelector(false);
+    setSearchError('');
+  }, [setFromStation]);
+
+  const handleSelectTo = useCallback((station: Station) => {
+    setToStation(station);
+    setShowToSelector(false);
+    setSearchError('');
+  }, [setToStation]);
+
+  // ── Date picker ──────────────────────────────────────────────────────────────
+
+  const handleDateChange = useCallback((_event: any, selected?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios'); // keep open on iOS until dismissed
+    if (selected) {
+      setDate(selected.toISOString().split('T')[0]);
+    }
+  }, [setDate]);
+
+  const dateObj = (() => {
+    try { return new Date(date); } catch { return new Date(); }
+  })();
+
+  const formattedDate = dateObj.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  // ── Search handler ───────────────────────────────────────────────────────────
+
+  const handleSearch = useCallback(() => {
+    if (!fromStation || !toStation) {
+      setSearchError(t('search.select_stations'));
+      return;
+    }
+    setSearchError('');
+
+    // Record in recent searches (fire-and-forget — no await needed in handler)
+    addRecentSearch(
+      { id: fromStation.id, name_en: fromStation.name_en, name_bn: fromStation.name_bn, code: fromStation.code },
+      { id: toStation.id, name_en: toStation.name_en, name_bn: toStation.name_bn, code: toStation.code },
+      date,
+      null,
+    );
+
     router.push({
       pathname: '/search-results',
-      params: { from, to, date, classType, quota },
+      params: {
+        from_station_id: fromStation.id,
+        to_station_id: toStation.id,
+        date,
+        from_name: fromStation.name_en,
+        to_name: toStation.name_en,
+      },
+    } as any);
+  }, [fromStation, toStation, date, addRecentSearch, router, t]);
+
+  // ── Recent search tap ────────────────────────────────────────────────────────
+
+  const handleRecentTap = useCallback((item: typeof recentSearches[number]) => {
+    setFromStation({
+      id: item.fromStation.id,
+      code: item.fromStation.code,
+      name_en: item.fromStation.name_en,
+      name_bn: item.fromStation.name_bn,
+      division: null,
+      zone: null,
+      is_major: false,
     });
+    setToStation({
+      id: item.toStation.id,
+      code: item.toStation.code,
+      name_en: item.toStation.name_en,
+      name_bn: item.toStation.name_bn,
+      division: null,
+      zone: null,
+      is_major: false,
+    });
+    setDate(item.date);
+
+    router.push({
+      pathname: '/search-results',
+      params: {
+        from_station_id: item.fromStation.id,
+        to_station_id: item.toStation.id,
+        date: item.date,
+        from_name: item.fromStation.name_en,
+        to_name: item.toStation.name_en,
+      },
+    } as any);
+  }, [setFromStation, setToStation, setDate, router]);
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  const getFieldSub = (station: Station | null): string => {
+    if (!station) return '';
+    return station.division ?? station.code ?? '';
   };
+
+  const formatRecentDate = (isoDate: string): string => {
+    try {
+      return new Date(isoDate).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return isoDate;
+    }
+  };
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={s.root}>
-      {/* Header */}
+      {/* Header — no back button (tab screen) */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
-        <Text style={s.title}>Search Trains</Text>
+        <View style={s.backBtn} />
+        <Text style={s.title}>{t('search.title')}</Text>
         <TouchableOpacity style={s.recentBtn}>
           <Text style={s.recentBtnText}>Recent</Text>
         </TouchableOpacity>
@@ -60,14 +170,23 @@ export default function SearchTrainsScreen() {
         <View style={s.formCard}>
 
           {/* From */}
-          <TouchableOpacity style={s.fieldRow}>
+          <TouchableOpacity style={s.fieldRow} onPress={() => setShowFromSelector(true)}>
             <View style={[s.fieldDot, { backgroundColor: C.green }]} />
             <View style={s.fieldContent}>
-              <Text style={s.fieldLabel}>From</Text>
-              <Text style={s.fieldValue}>{from}</Text>
-              <Text style={s.fieldSub}>Kamlapur Railway Station</Text>
+              <Text style={s.fieldLabel}>{t('search.from')}</Text>
+              <Text style={s.fieldValue}>
+                {fromStation
+                  ? (isBengali ? fromStation.name_bn : fromStation.name_en)
+                  : t('search.placeholder_from')}
+              </Text>
+              {fromStation && (
+                <Text style={s.fieldSub}>{getFieldSub(fromStation)}</Text>
+              )}
             </View>
-            <TouchableOpacity style={s.clearBtn} onPress={() => setFrom('')}>
+            <TouchableOpacity
+              style={s.clearBtn}
+              onPress={() => setFromStation(null)}
+            >
               <View style={s.clearDot} />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -75,20 +194,29 @@ export default function SearchTrainsScreen() {
           {/* Swap button */}
           <View style={s.swapWrapper}>
             <View style={s.swapLine} />
-            <TouchableOpacity style={s.swapBtn} onPress={swapLocations}>
+            <TouchableOpacity style={s.swapBtn} onPress={swapStations}>
               <Text style={s.swapIcon}>⇅</Text>
             </TouchableOpacity>
           </View>
 
           {/* To */}
-          <TouchableOpacity style={s.fieldRow}>
+          <TouchableOpacity style={s.fieldRow} onPress={() => setShowToSelector(true)}>
             <View style={[s.fieldDot, { backgroundColor: C.text2 }]} />
             <View style={s.fieldContent}>
-              <Text style={s.fieldLabel}>To</Text>
-              <Text style={s.fieldValue}>{to}</Text>
-              <Text style={s.fieldSub}>Chattogram Railway Station</Text>
+              <Text style={s.fieldLabel}>{t('search.to')}</Text>
+              <Text style={s.fieldValue}>
+                {toStation
+                  ? (isBengali ? toStation.name_bn : toStation.name_en)
+                  : t('search.placeholder_to')}
+              </Text>
+              {toStation && (
+                <Text style={s.fieldSub}>{getFieldSub(toStation)}</Text>
+              )}
             </View>
-            <TouchableOpacity style={s.clearBtn} onPress={() => setTo('')}>
+            <TouchableOpacity
+              style={s.clearBtn}
+              onPress={() => setToStation(null)}
+            >
               <View style={s.clearDot} />
             </TouchableOpacity>
           </TouchableOpacity>
@@ -96,23 +224,23 @@ export default function SearchTrainsScreen() {
           <View style={s.divider} />
 
           {/* Date */}
-          <TouchableOpacity style={s.fieldRow}>
+          <TouchableOpacity style={s.fieldRow} onPress={() => setShowDatePicker(true)}>
             <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
             <View style={s.fieldContent}>
-              <Text style={s.fieldLabel}>Date of Journey</Text>
-              <Text style={s.fieldValue}>{date}</Text>
+              <Text style={s.fieldLabel}>{t('search.date_of_journey')}</Text>
+              <Text style={s.fieldValue}>{formattedDate}</Text>
             </View>
             <View style={s.chevron} />
           </TouchableOpacity>
 
           <View style={s.divider} />
 
-          {/* Class */}
+          {/* Class — static display (no real class-picker modal yet) */}
           <TouchableOpacity style={s.fieldRow}>
             <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>Class (Optional)</Text>
-              <Text style={s.fieldValue}>{classType}</Text>
+              <Text style={s.fieldValue}>All Classes</Text>
               <Text style={s.fieldSub}>All Available Classes</Text>
             </View>
             <View style={s.chevron} />
@@ -120,12 +248,12 @@ export default function SearchTrainsScreen() {
 
           <View style={s.divider} />
 
-          {/* Quota */}
+          {/* Quota — static display */}
           <TouchableOpacity style={s.fieldRow}>
             <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>Quota (Optional)</Text>
-              <Text style={s.fieldValue}>{quota}</Text>
+              <Text style={s.fieldValue}>General</Text>
               <Text style={s.fieldSub}>General Quota</Text>
             </View>
             <View style={s.chevron} />
@@ -134,27 +262,39 @@ export default function SearchTrainsScreen() {
 
         {/* Search Button */}
         <TouchableOpacity style={s.searchBtn} onPress={handleSearch}>
-          <Text style={s.searchBtnText}>Search Trains</Text>
+          <Text style={s.searchBtnText}>{t('search.button')}</Text>
         </TouchableOpacity>
+
+        {/* Validation error */}
+        {!!searchError && (
+          <Text style={s.errorText}>{searchError}</Text>
+        )}
 
         {/* Recent Searches */}
         <View style={s.recentSection}>
           <View style={s.recentHeader}>
-            <Text style={s.recentTitle}>Recent Searches</Text>
-            <TouchableOpacity><Text style={s.clearAll}>Clear All</Text></TouchableOpacity>
+            <Text style={s.recentTitle}>{t('home.recent_searches')}</Text>
+            <TouchableOpacity onPress={clearAll}>
+              <Text style={s.clearAll}>Clear All</Text>
+            </TouchableOpacity>
           </View>
-          {RECENT_SEARCHES.map((item) => (
+          {recentSearches.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={s.recentItem}
-              onPress={() => {
-                setFrom(item.from); setTo(item.to); setDate(item.date); setClassType(item.classType);
-              }}
+              onPress={() => handleRecentTap(item)}
             >
               <View style={s.recentIcon} />
               <View style={{ flex: 1 }}>
-                <Text style={s.recentRoute}>{item.from} → {item.to}</Text>
-                <Text style={s.recentMeta}>{item.date} • {item.classType}</Text>
+                <Text style={s.recentRoute}>
+                  {isBengali ? item.fromStation.name_bn : item.fromStation.name_en}
+                  {' → '}
+                  {isBengali ? item.toStation.name_bn : item.toStation.name_en}
+                </Text>
+                <Text style={s.recentMeta}>
+                  {formatRecentDate(item.date)}
+                  {item.selectedClass ? ` • ${item.selectedClass}` : ' • All Classes'}
+                </Text>
               </View>
               <View style={s.bookmarkIcon} />
               <View style={s.chevron} />
@@ -175,6 +315,45 @@ export default function SearchTrainsScreen() {
         </View>
 
       </ScrollView>
+
+      {/* ── From Station Selector Modal ── */}
+      <Modal
+        visible={showFromSelector}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowFromSelector(false)}
+      >
+        <StationSelector
+          onSelect={handleSelectFrom}
+          onClose={() => setShowFromSelector(false)}
+          isBengali={isBengali}
+        />
+      </Modal>
+
+      {/* ── To Station Selector Modal ── */}
+      <Modal
+        visible={showToSelector}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowToSelector(false)}
+      >
+        <StationSelector
+          onSelect={handleSelectTo}
+          onClose={() => setShowToSelector(false)}
+          isBengali={isBengali}
+        />
+      </Modal>
+
+      {/* ── Date Picker ── */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={dateObj}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          minimumDate={new Date()}
+          onChange={handleDateChange}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -205,6 +384,7 @@ const s = StyleSheet.create({
   chevron: { width: 20, height: 20, backgroundColor: C.surface2, borderRadius: 4 },
   searchBtn: { backgroundColor: C.green, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   searchBtnText: { fontSize: T.md, fontWeight: '700', color: C.bg },
+  errorText: { fontSize: T.sm, color: C.red, textAlign: 'center', marginTop: -S.md },
   recentSection: { gap: S.md },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   recentTitle: { fontSize: T.md, fontWeight: '700', color: C.white },

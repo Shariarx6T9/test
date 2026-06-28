@@ -157,7 +157,7 @@ export default function OnboardingScreen() {
         {isLast && (
           <View style={ob.loginRow}>
             <Text style={ob.loginText}>Already have an account?  </Text>
-            <TouchableOpacity onPress={() => router.push('/login')}>
+            <TouchableOpacity onPress={() => router.push('/auth/login' as any)}>
               <Text style={ob.loginLink}>Log in</Text>
             </TouchableOpacity>
           </View>

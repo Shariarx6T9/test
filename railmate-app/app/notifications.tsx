@@ -1,11 +1,14 @@
 // app/notifications.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { supabase } from '../lib/supabase';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n';
 
 type NotifFilter = 'All' | 'Alerts' | 'Community' | 'Updates' | 'System';
-interface NotifItem { id: string; icon: string; iconBg: string; title: string; desc: string; time: string; read: boolean; sub?: string; }
 
 const FILTERS: { label: NotifFilter; color: string; bg: string }[] = [
   { label: 'All', color: C.green, bg: C.greenTint },
@@ -15,21 +18,118 @@ const FILTERS: { label: NotifFilter; color: string; bg: string }[] = [
   { label: 'System', color: C.orange, bg: C.orangeTint },
 ];
 
-const GROUPS = [
-  { label: 'Today', markAll: true, items: [
-    { id: '1', icon: '⚠', iconBg: C.redTint, title: 'Delay Alert', desc: 'Subarna Express (721) is delayed by 20 minutes at Tongi station.', time: '9:25 AM', read: false, sub: 'Dhaka → Chattogram' },
-    { id: '2', icon: '✓', iconBg: C.purpleTint, title: 'Community Verification', desc: 'Your delay report for Mohanagar Express has been verified by 6 travelers.', time: '8:48 AM', read: false, sub: 'Sylhet → Dhaka' },
-    { id: '3', icon: '📅', iconBg: C.blueTint, title: 'Schedule Update', desc: 'New timetable published for Silk City Express (775). Check the updated schedule now.', time: '7:30 AM', read: false },
-  ]},
-  { label: 'Yesterday', markAll: false, items: [
-    { id: '4', icon: '★', iconBg: C.orangeTint, title: 'Badge Earned', desc: 'Congratulations! You earned the "Helpful Traveler" badge for 25 helpful votes.', time: 'Yesterday, 9:12 PM', read: true },
-    { id: '5', icon: '🔔', iconBg: C.greenTint, title: 'Reminder', desc: "Don't forget! You have a trip tomorrow.", time: 'Yesterday, 6:00 PM', read: true, sub: 'Intercity 710  •  Dhaka → Rajshahi  •  7:45 AM' },
-  ]},
-];
+function formatAlertDate(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    if (diffHours < 24) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  } catch {
+    return '';
+  }
+}
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [active, setActive] = useState<NotifFilter>('All');
+
+  const { data: alerts, isLoading, error, refetch } = useQuery({
+    queryKey: ['alerts', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('id, user_id, train_id, station_id, alert_type, is_active, created_at, read_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!user?.id,
+    staleTime: 30_000,
+  });
+
+  const markRead = useMutation({
+    mutationFn: async (alertId: string) => {
+      await supabase.from('alerts').update({ read_at: new Date().toISOString() }).eq('id', alertId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['alerts'] }),
+  });
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={ns.centerState}>
+          <ActivityIndicator color={C.green} size="large" />
+          <Text style={ns.stateText}>{t('common.loading')}</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={ns.centerState}>
+          <Text style={ns.stateText}>{t('common.error')}</Text>
+          <TouchableOpacity style={ns.retryBtn} onPress={() => refetch()}>
+            <Text style={ns.retryText}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (!alerts || alerts.length === 0) {
+      return (
+        <View style={ns.centerState}>
+          <Text style={ns.stateText}>{t('notifications.empty')}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={{ gap: S.sm }}>
+        {alerts.map((alert) => {
+          const isUnread = !alert.read_at;
+          return (
+            <TouchableOpacity
+              key={alert.id}
+              style={[ns.notifCard, isUnread && ns.notifCardUnread]}
+              activeOpacity={0.8}
+              onPress={() => markRead.mutate(alert.id)}
+            >
+              <View style={[ns.notifIcon, { backgroundColor: isUnread ? C.greenTint : C.surface2 }]} />
+              <View style={{ flex: 1, gap: 4 }}>
+                <View style={ns.notifTop}>
+                  <Text style={ns.notifTitle}>{alert.alert_type ?? 'Alert'}</Text>
+                  <View style={ns.notifMeta}>
+                    <Text style={ns.notifTime}>{formatAlertDate(alert.created_at)}</Text>
+                    <View style={[ns.readDot, { backgroundColor: isUnread ? C.green : C.text3 }]} />
+                  </View>
+                </View>
+                {alert.train_id && (
+                  <Text style={ns.notifDesc}>Train ID: {alert.train_id}</Text>
+                )}
+                {alert.station_id && (
+                  <Text style={ns.notifSub}>Station: {alert.station_id}</Text>
+                )}
+              </View>
+              <View style={ns.chevron} />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={ns.root}>
       <View style={ns.header}>
@@ -51,31 +151,7 @@ export default function NotificationsScreen() {
         ))}
       </ScrollView>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={ns.scroll}>
-        {GROUPS.map(group => (
-          <View key={group.label} style={ns.group}>
-            <View style={ns.groupHeader}>
-              <Text style={ns.groupLabel}>{group.label}</Text>
-              {group.markAll && <TouchableOpacity><Text style={ns.markAll}>Mark all as read</Text></TouchableOpacity>}
-            </View>
-            {group.items.map((item, i) => (
-              <TouchableOpacity key={item.id} style={ns.notifCard} activeOpacity={0.8}>
-                <View style={[ns.notifIcon, { backgroundColor: item.iconBg }]} />
-                <View style={{ flex: 1, gap: 4 }}>
-                  <View style={ns.notifTop}>
-                    <Text style={ns.notifTitle}>{item.title}</Text>
-                    <View style={ns.notifMeta}>
-                      <Text style={ns.notifTime}>{item.time}</Text>
-                      <View style={[ns.readDot, { backgroundColor: item.read ? C.text3 : C.green }]} />
-                    </View>
-                  </View>
-                  <Text style={ns.notifDesc}>{item.desc}</Text>
-                  {item.sub && <Text style={ns.notifSub}>{item.sub}</Text>}
-                </View>
-                <View style={ns.chevron} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
+        {renderContent()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -97,6 +173,7 @@ const ns = StyleSheet.create({
   groupLabel: { fontSize: T.base, fontWeight: '700', color: C.text2 },
   markAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
   notifCard: { backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: S.lg, flexDirection: 'row', alignItems: 'flex-start', gap: S.md },
+  notifCardUnread: { borderColor: C.green },
   notifIcon: { width: 44, height: 44, borderRadius: 22 },
   notifTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   notifTitle: { fontSize: T.base, fontWeight: '700', color: C.white },
@@ -106,4 +183,8 @@ const ns = StyleSheet.create({
   notifDesc: { fontSize: T.sm, color: C.text2, lineHeight: 18 },
   notifSub: { fontSize: T.xs, color: C.text3 },
   chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: S.md },
+  stateText: { fontSize: T.base, color: C.text2, textAlign: 'center' },
+  retryBtn: { backgroundColor: C.greenTint, borderRadius: R.md, paddingHorizontal: S.lg, paddingVertical: S.sm, borderWidth: 1, borderColor: C.green },
+  retryText: { fontSize: T.sm, fontWeight: '600', color: C.green },
 });

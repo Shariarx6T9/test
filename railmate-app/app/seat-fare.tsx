@@ -1,9 +1,12 @@
 // app/seat-fare.tsx — Seat & Fare Screen
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Linking } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { useTrainFares } from '../hooks/useTrainDetail';
+import { useTranslation } from '../i18n';
+import { TrainClass } from '../types/database.types';
 
 type SeatStatus = 'available' | 'selected' | 'booked' | 'blocked';
 
@@ -13,12 +16,16 @@ interface Seat {
   status: SeatStatus;
 }
 
-const CLASS_TABS = [
-  { id: 'shovon', label: 'Shovon Chair', price: '৳590' },
-  { id: 'snigdha', label: 'Snigdha', price: '৳690' },
-  { id: 'ac_seat', label: 'AC Seat', price: '৳1,320' },
-  { id: 'ac_berth', label: 'AC Berth', price: '৳1,870' },
-];
+const CLASS_LABELS: Record<TrainClass, string> = {
+  SHOVON: 'Shovon',
+  SHOVON_CHAIR: 'Shovon Chair',
+  SNIGDHA: 'Snigdha',
+  AC_BERTH: 'AC Berth',
+  AC_SEAT: 'AC Seat',
+  FIRST_BERTH: 'First Berth',
+  FIRST_SEAT: 'First Seat',
+  AC_S_CHAIR: 'AC S Chair',
+};
 
 const COACHES = ['Engine', 'SC1', 'SC2', 'SC3', 'SC4', 'SC5', 'SC6', 'S', 'LR'];
 
@@ -64,9 +71,35 @@ const seatS = StyleSheet.create({
 
 export default function SeatFareScreen() {
   const router = useRouter();
-  const [activeClass, setActiveClass] = useState('shovon');
+  const { t } = useTranslation();
+  const params = useLocalSearchParams<{ trainId: string; trainNumber: string; trainName: string; from_station_id: string; to_station_id: string }>();
+
+  const { data: fares, isLoading, error } = useTrainFares({
+    trainId: params.trainId ?? '',
+    fromStationId: params.from_station_id ?? '',
+    toStationId: params.to_station_id ?? '',
+  });
+
+  const classTabs = fares
+    ? [...new Set(fares.map(f => f.class))].map(cls => ({
+        id: cls,
+        label: CLASS_LABELS[cls] ?? cls,
+        price: `৳${(fares.find(f => f.class === cls)?.price_bdt ?? 0).toLocaleString()}`,
+      }))
+    : [];
+
+  const [activeClass, setActiveClass] = useState<TrainClass | string>('');
   const [activeCoach, setActiveCoach] = useState('SC1');
   const { left, right } = buildSeatGrid();
+
+  // Set default active class when fares load
+  useEffect(() => {
+    if (classTabs.length > 0 && !activeClass) {
+      setActiveClass(classTabs[0].id);
+    }
+  }, [classTabs.length]);
+
+  const selectedFare = fares?.find(f => f.class === activeClass);
 
   return (
     <SafeAreaView style={s.root}>
@@ -75,35 +108,43 @@ export default function SeatFareScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} />
         <View>
           <Text style={s.title}>Seat & Fare</Text>
-          <Text style={s.subtitle}>Subarna Express #721</Text>
+          <Text style={s.subtitle}>{params.trainName ?? 'Train'} #{params.trainNumber ?? ''}</Text>
         </View>
         <View style={s.availBadge}><Text style={s.availText}>Available Seats 120+</Text></View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-        {/* Class tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.classTabs}>
-          {CLASS_TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[s.classTab, activeClass === tab.id && s.classTabActive]}
-              onPress={() => setActiveClass(tab.id)}
-            >
-              <Text style={[s.classTabText, activeClass === tab.id && s.classTabTextActive]}>
-                {tab.label}
-              </Text>
-              <Text style={[s.classTabPrice, activeClass === tab.id && s.classTabPriceActive]}>
-                {tab.price}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Class tabs — dynamic from fares data */}
+        {isLoading ? (
+          <View style={{ height: 60, backgroundColor: C.surface, borderRadius: R.md, opacity: 0.6 }} />
+        ) : classTabs.length === 0 && !isLoading ? (
+          <View style={{ padding: S.lg, alignItems: 'center' }}>
+            <Text style={{ color: C.text2, fontSize: T.sm }}>{t('train.no_fares')}</Text>
+          </View>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.classTabs}>
+            {classTabs.map((tab) => (
+              <TouchableOpacity
+                key={tab.id}
+                style={[s.classTab, activeClass === tab.id && s.classTabActive]}
+                onPress={() => setActiveClass(tab.id)}
+              >
+                <Text style={[s.classTabText, activeClass === tab.id && s.classTabTextActive]}>
+                  {tab.label}
+                </Text>
+                <Text style={[s.classTabPrice, activeClass === tab.id && s.classTabPriceActive]}>
+                  {tab.price}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
         {/* Coach info */}
         <View style={s.coachInfo}>
           <View>
-            <Text style={s.coachName}>Coach: Shovon Chair (SC)</Text>
+            <Text style={s.coachName}>Coach: {CLASS_LABELS[activeClass as TrainClass] ?? activeClass} (SC)</Text>
             <Text style={s.coachMeta}>Total Seats: 78  •  <Text style={{ color: C.green }}>Available: 32</Text></Text>
           </View>
           <TouchableOpacity style={s.coachPosBtn}><Text style={s.coachPosBtnText}>Coach Position</Text></TouchableOpacity>
@@ -164,6 +205,13 @@ export default function SeatFareScreen() {
           </ScrollView>
         </View>
 
+        {/* Disclaimer note below seat grid */}
+        <View style={{ paddingHorizontal: S.sm }}>
+          <Text style={{ fontSize: T.xs, color: C.text2, textAlign: 'center', lineHeight: 16 }}>
+            Seat availability shown is for illustration only. Actual availability may differ. Book via Rail Sheba for real-time seat info.
+          </Text>
+        </View>
+
         {/* Selected seat summary */}
         <View style={s.summaryCard}>
           <View style={s.summaryTop}>
@@ -173,27 +221,29 @@ export default function SeatFareScreen() {
               <Text style={s.windowLabel}>Window Seat</Text>
             </View>
             <View style={{ alignItems: 'flex-end', gap: S.sm }}>
-              <Text style={s.classInfo}>Class  Shovon Chair (SC)</Text>
+              <Text style={s.classInfo}>Class  {CLASS_LABELS[activeClass as TrainClass] ?? activeClass}</Text>
               <Text style={s.classInfo}>Coach  SC1</Text>
-              <Text style={s.fare}>৳590</Text>
+              <Text style={s.fare}>৳{selectedFare?.price_bdt ?? '—'}</Text>
               <Text style={s.farePassenger}>1 Passenger</Text>
             </View>
           </View>
           <View style={s.divider} />
           <View style={s.fareSummary}>
             <Text style={s.fareSummaryTitle}>Fare Summary</Text>
-            <View style={s.fareRow}><Text style={s.fareLabel}>Base Fare</Text><Text style={s.fareValue}>৳550</Text></View>
-            <View style={s.fareRow}><Text style={s.fareLabel}>Service Charge</Text><Text style={s.fareValue}>৳40</Text></View>
+            <View style={s.fareRow}>
+              <Text style={s.fareLabel}>Total Fare</Text>
+              <Text style={s.fareValue}>৳{selectedFare?.price_bdt ?? '—'}</Text>
+            </View>
             <View style={s.divider} />
             <View style={s.fareRow}>
               <Text style={s.fareTotalLabel}>Total Amount</Text>
-              <Text style={s.fareTotalValue}>৳590</Text>
+              <Text style={s.fareTotalValue}>৳{selectedFare?.price_bdt ?? '—'}</Text>
             </View>
           </View>
         </View>
 
         {/* Continue */}
-        <TouchableOpacity style={s.continueBtn}>
+        <TouchableOpacity style={s.continueBtn} onPress={() => Linking.openURL('https://railwayseba.com')}>
           <Text style={s.continueBtnText}>Continue to Passenger Details</Text>
         </TouchableOpacity>
       </ScrollView>

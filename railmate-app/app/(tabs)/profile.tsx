@@ -1,9 +1,13 @@
 // app/(tabs)/profile.tsx — Profile Screen
 
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
+import { useAuthStore } from '../../stores/authStore';
+import { useAuth } from '../../hooks/useAuth';
+import { useCommunityReports } from '../../hooks/useCommunityReports';
+import { useTranslation } from '../../i18n';
 
 interface MenuItem {
   id: string;
@@ -12,26 +16,109 @@ interface MenuItem {
   route: string;
 }
 
-const MENU_ITEMS: MenuItem[] = [
-  { id: 'trips', label: 'My Trips', sub: 'View and manage your trips', route: '/journey-tools' },
-  { id: 'routes', label: 'Saved Routes', sub: 'Your frequently used routes', route: '/saved-routes' },
-  { id: 'reminders', label: 'Reminders & Alerts', sub: 'Manage your journey alerts', route: '/reminders' },
-  { id: 'payments', label: 'Payments & Tickets', sub: 'Manage payments and e-tickets', route: '/payments' },
-  { id: 'bookmarks', label: 'Bookmarks', sub: 'Saved trains, stations and info', route: '/bookmarks' },
-  { id: 'settings', label: 'Settings', sub: 'App preferences and notifications', route: '/settings' },
-  { id: 'help', label: 'Help & Support', sub: 'FAQs, guides and contact support', route: '/help' },
-  { id: 'about', label: 'About RailMate', sub: 'Version 1.0.0', route: '/about' },
-];
-
-const ACTIVITY_STATS = [
-  { icon: C.greenTint, val: '24', label: 'Trips Completed' },
-  { icon: C.blueTint, val: '127', label: 'Reports Submitted' },
-  { icon: C.orangeTint, val: '42', label: 'Helpful Votes' },
-  { icon: C.purpleTint, val: '8', label: 'Badges Earned' },
-];
-
 export default function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { user, isAuthenticated, isGuest } = useAuthStore();
+  const { signOut } = useAuth();
+  const { data: myReports } = useCommunityReports(user?.id ? { userId: user.id } : null);
+
+  // XP / Level calculation
+  const reportCount = user?.report_count ?? myReports?.length ?? 0;
+  const trustScore = user?.trust_score ?? 0;
+  const xpTotal = reportCount * 20 + (user?.helpful_vote_count ?? 0) * 5;
+  const level = xpTotal < 500 ? 1 : xpTotal < 2000 ? 2 : xpTotal < 5000 ? 3 : xpTotal < 10000 ? 4 : 5;
+  const levelNames = ['', 'Explorer', 'Contributor', 'Verified Traveler', 'Station Expert', 'Ambassador'];
+  const nextLevelXP = [500, 2000, 5000, 10000, 20000][level - 1] ?? 20000;
+  const prevLevelXP = [0, 500, 2000, 5000, 10000][level - 1] ?? 0;
+  const progress = Math.min((xpTotal - prevLevelXP) / (nextLevelXP - prevLevelXP), 1);
+
+  const ACTIVITY_STATS = [
+    { icon: C.greenTint, val: String(reportCount), label: t('profile.reports') },
+    { icon: C.blueTint, val: String(user?.helpful_vote_count ?? 0), label: t('profile.helpful') },
+    { icon: C.orangeTint, val: String(trustScore), label: t('profile.trust_score') },
+    { icon: C.purpleTint, val: '—', label: t('profile.badges') },
+  ];
+
+  const MENU_ITEMS: MenuItem[] = [
+    { id: 'trips', label: t('journey.title'), sub: 'View and manage your journeys', route: '/journey-tools' },
+    { id: 'routes', label: t('profile.saved_routes'), sub: 'Your frequently used routes', route: '/journey-tools' },
+    { id: 'reminders', label: 'Notifications', sub: 'Manage your alerts', route: '/notifications' },
+    { id: 'leaderboard', label: t('leaderboard.title'), sub: 'Top contributors', route: '/leaderboard' },
+    { id: 'badges', label: t('profile.badges'), sub: 'Your achievements', route: '/badges-reputation' },
+    { id: 'settings', label: t('profile.settings'), sub: 'App preferences', route: '/settings' },
+  ];
+
+  const handleSignOut = useCallback(() => {
+    Alert.alert(
+      t('auth.sign_out'),
+      t('profile.sign_out_confirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('profile.sign_out'),
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+            router.replace('/auth/login' as any);
+          },
+        },
+      ],
+    );
+  }, [t, signOut, router]);
+
+  const renderProfileCardContent = () => {
+    if (!isAuthenticated && !isGuest) {
+      return (
+        <View style={s.profileRow}>
+          <View style={s.avatarWrap}>
+            <View style={s.avatar} />
+          </View>
+          <View style={{ flex: 1, gap: S.sm, justifyContent: 'center' }}>
+            <Text style={s.profileName}>{t('profile.guest_user')}</Text>
+            <Text style={s.profileEmail}>{t('profile.guest_hint')}</Text>
+            <TouchableOpacity
+              style={s.travellerBadge}
+              onPress={() => router.push('/auth/login' as any)}
+            >
+              <Text style={s.travellerBadgeText}>{t('auth.sign_in')}  →</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={s.profileRow}>
+        {/* Avatar */}
+        <View style={s.avatarWrap}>
+          <View style={s.avatar} />
+          <View style={s.editBadge} />
+        </View>
+        {/* Info */}
+        <View style={s.profileInfo}>
+          <View style={s.verifiedRow}>
+            <Text style={s.profileName}>{user?.display_name ?? t('profile.guest_user')}</Text>
+            <View style={s.verifiedDot} />
+          </View>
+          <Text style={s.profileEmail}>{user?.email ?? ''}</Text>
+          <Text style={s.profilePhone}>{user?.phone ?? ''}</Text>
+          <TouchableOpacity style={s.travellerBadge} onPress={() => router.push('/badges-reputation' as any)}>
+            <Text style={s.travellerBadgeText}>Trusted Traveler  →</Text>
+          </TouchableOpacity>
+        </View>
+        {/* XP box */}
+        <View style={s.xpBox}>
+          <Text style={s.xpTitle}>{levelNames[level]}</Text>
+          <Text style={s.xpLevel}>Level {level}</Text>
+          <View style={s.xpBarBg}>
+            <View style={[s.xpBarFill, { width: Math.floor(progress * 80) }]} />
+          </View>
+          <Text style={s.xpProgress}>{xpTotal} / {nextLevelXP} XP</Text>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={s.root}>
@@ -44,8 +131,8 @@ export default function ProfileScreen() {
           </View>
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} />
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/settings')} />
+          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/notifications' as any)} />
+          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/settings' as any)} />
         </View>
       </View>
 
@@ -53,32 +140,7 @@ export default function ProfileScreen() {
 
         {/* Profile card */}
         <View style={s.profileCard}>
-          <View style={s.profileRow}>
-            {/* Avatar */}
-            <View style={s.avatarWrap}>
-              <View style={s.avatar} />
-              <View style={s.editBadge} />
-            </View>
-            {/* Info */}
-            <View style={s.profileInfo}>
-              <View style={s.verifiedRow}>
-                <Text style={s.profileName}>Najmul Hasan</Text>
-                <View style={s.verifiedDot} />
-              </View>
-              <Text style={s.profileEmail}>najmul.hasan@gmail.com</Text>
-              <Text style={s.profilePhone}>+880 1712-345678</Text>
-              <TouchableOpacity style={s.travellerBadge} onPress={() => router.push('/badges-reputation')}>
-                <Text style={s.travellerBadgeText}>Trusted Traveler  →</Text>
-              </TouchableOpacity>
-            </View>
-            {/* XP box */}
-            <View style={s.xpBox}>
-              <Text style={s.xpTitle}>Explorer</Text>
-              <Text style={s.xpLevel}>Level 3</Text>
-              <View style={s.xpBarBg}><View style={s.xpBarFill} /></View>
-              <Text style={s.xpProgress}>2,450 / 5,000 XP</Text>
-            </View>
-          </View>
+          {renderProfileCardContent()}
         </View>
 
         {/* Privacy banner */}
@@ -130,6 +192,15 @@ export default function ProfileScreen() {
             </View>
           ))}
         </View>
+
+        {/* Sign Out button */}
+        <TouchableOpacity
+          style={s.logoutBtn}
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+        >
+          <Text style={s.logoutText}>{t('profile.sign_out')}</Text>
+        </TouchableOpacity>
 
         {/* Community CTA */}
         <View style={s.communityBanner}>
@@ -201,6 +272,8 @@ const s = StyleSheet.create({
   menuSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   menuChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
   divider: { height: 1, backgroundColor: C.border, marginHorizontal: S.lg },
+  logoutBtn: { backgroundColor: C.redTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.red, padding: S.lg, alignItems: 'center' },
+  logoutText: { fontSize: T.md, fontWeight: '700', color: C.red },
   communityBanner: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
   communityIcon: { width: 44, height: 44, backgroundColor: C.greenDark, borderRadius: 22 },
   communityTitle: { fontSize: T.base, fontWeight: '700', color: C.green },

@@ -1,31 +1,66 @@
 // app/journey-tools.tsx
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView, RefreshControl, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
-
-const TRIPS = [
-  { id: '1', from: 'Dhaka', to: 'Chattogram', train: 'Subarna Express #721', date: '21 June 2026', time: '06:40 AM' },
-  { id: '2', from: 'Dhaka', to: 'Sylhet', train: 'Parabat Express #717', date: '28 June 2026', time: '07:15 AM' },
-];
-const SAVED_ROUTES = [
-  { from: 'D', to: 'C', name: 'Dhaka → Chattogram', sub: 'Today, 7:45 PM', trains: '8 Trains' },
-  { from: 'D', to: 'S', name: 'Dhaka → Sylhet', sub: '2 days ago', trains: '7 Trains' },
-  { from: 'D', to: 'R', name: 'Dhaka → Rajshahi', sub: '5 days ago', trains: '6 Trains' },
-];
-const REMINDERS = [
-  { train: 'Subarna Express #721', route: 'Dhaka → Chattogram  •  21 June 2026', when: '2 hours before departure', on: true },
-  { train: 'Parabat Express #717', route: 'Dhaka → Sylhet  •  28 June 2026', when: '1 day before departure', on: true },
-];
-const STATS = [
-  { icon: C.greenTint, val: '12', label: 'Total Trips', sub: 'This Year' },
-  { icon: C.blueTint, val: '3,245 km', label: 'Distance', sub: 'This Year' },
-  { icon: C.purpleTint, val: '48h 32m', label: 'Travel Time', sub: 'This Year' },
-  { icon: C.orangeTint, val: '87', label: 'Reports', sub: 'This Year' },
-];
+import { useSavedRoutes } from '../hooks/useSavedRoutes';
+import { useAuthStore } from '../stores/authStore';
+import { useCommunityReports } from '../hooks/useCommunityReports';
+import { supabase } from '../lib/supabase';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from '../i18n';
 
 export default function JourneyToolsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
+  const { savedRoutes, loading: routesLoading, deleteRoute, refresh: refreshRoutes } = useSavedRoutes();
+  const { data: myReports } = useCommunityReports(user?.id ? { userId: user.id } : null);
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { data: reminders, refetch: refetchAlerts } = useQuery({
+    queryKey: ['alerts', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase.from('alerts').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      if (error) return [];
+      return data ?? [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const toggleAlert = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      await supabase.from('alerts').update({ is_active }).eq('id', id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['alerts'] }),
+  });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.allSettled([refreshRoutes(), refetchAlerts()]);
+    setRefreshing(false);
+  }, [refreshRoutes, refetchAlerts]);
+
+  const handleDeleteRoute = useCallback((id: string, routeName: string) => {
+    Alert.alert(
+      t('journey.remove_route'),
+      `Remove "${routeName}"?`,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.remove'), style: 'destructive', onPress: () => deleteRoute(id) },
+      ],
+    );
+  }, [t, deleteRoute]);
+
+  const statsData = [
+    { icon: C.greenTint, val: String(savedRoutes.length), label: t('journey.saved_routes'), sub: 'Total' },
+    { icon: C.blueTint, val: String(myReports?.length ?? 0), label: t('journey.stat_journeys'), sub: t('journey.stat_journeys') },
+    { icon: C.purpleTint, val: '—', label: t('journey.stat_distance'), sub: 'N/A' },
+    { icon: C.orangeTint, val: '—', label: t('journey.stat_saved_time'), sub: 'N/A' },
+  ];
+
   return (
     <SafeAreaView style={jt.root}>
       <View style={jt.header}>
@@ -38,66 +73,116 @@ export default function JourneyToolsScreen() {
         </View>
         <TouchableOpacity style={jt.addBtn}><Text style={jt.addBtnText}>+ Add Trip</Text></TouchableOpacity>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={jt.scroll}>
-        {/* My Trips */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={jt.scroll}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />
+        }
+      >
+        {/* My Trips — Coming Soon */}
         <View style={jt.card}>
-          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>My Trips</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
-          {TRIPS.map(trip => (
-            <View key={trip.id} style={jt.tripCard}>
-              <View style={jt.tripImg} />
-              <View style={{ flex: 1, padding: S.md, gap: 4 }}>
-                <Text style={jt.tripRoute}>{trip.from} → {trip.to}</Text>
-                <Text style={jt.tripTrain}>{trip.train}</Text>
-                <View style={jt.tripMeta}><Text style={jt.tripMetaText}>{trip.date}</Text><Text style={jt.tripMetaText}>{trip.time}</Text></View>
-              </View>
-              <View style={jt.upcomingBadge}><Text style={jt.upcomingText}>Upcoming</Text></View>
+          <View style={jt.sectionHeader}>
+            <Text style={jt.sectionTitle}>My Trips</Text>
+            <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
+          </View>
+          <View style={jt.tripCard}>
+            <View style={{ padding: S.xl, alignItems: 'center', gap: S.sm }}>
+              <Text style={{ color: C.text2, fontSize: T.base }}>{t('home.coming_soon_title')}</Text>
+              <Text style={{ color: C.text3, fontSize: T.sm, textAlign: 'center' }}>{t('home.coming_soon_body')}</Text>
             </View>
-          ))}
-          <TouchableOpacity style={jt.addTripRow}><Text style={jt.addTripText}>+ Add New Trip</Text></TouchableOpacity>
+          </View>
         </View>
+
         {/* Saved Routes */}
         <View style={jt.card}>
-          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>Saved Routes</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={{ flexDirection: 'row', gap: S.sm }}>
-              {SAVED_ROUTES.map(r => (
-                <View key={r.name} style={jt.routeCard}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <View style={[jt.initCircle, { backgroundColor: C.green }]}><Text style={jt.initText}>{r.from}</Text></View>
-                    <Text style={{ color: C.text2 }}>→</Text>
-                    <View style={[jt.initCircle, { backgroundColor: C.purple }]}><Text style={jt.initText}>{r.to}</Text></View>
-                  </View>
-                  <Text style={jt.routeName}>{r.name}</Text>
-                  <Text style={jt.routeSub}>{r.sub}</Text>
-                  <Text style={jt.routeTrains}>{r.trains}</Text>
-                </View>
-              ))}
+          <View style={jt.sectionHeader}>
+            <Text style={jt.sectionTitle}>Saved Routes</Text>
+            <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
+          </View>
+          {savedRoutes.length === 0 ? (
+            <View style={{ paddingVertical: S.lg, alignItems: 'center', gap: S.sm }}>
+              <Text style={{ color: C.text2, fontSize: T.base }}>{t('journey.no_saved_routes')}</Text>
+              <Text style={{ color: C.text3, fontSize: T.sm, textAlign: 'center' }}>{t('journey.no_saved_routes_sub')}</Text>
             </View>
-          </ScrollView>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', gap: S.sm }}>
+                {savedRoutes.map((route) => {
+                  const fromInitial = (route.fromStation.name_en ?? '?')[0].toUpperCase();
+                  const toInitial = (route.toStation.name_en ?? '?')[0].toUpperCase();
+                  const routeName = `${route.fromStation.name_en} → ${route.toStation.name_en}`;
+                  const savedDate = new Date(route.savedAt);
+                  const now = new Date();
+                  const diffDays = Math.floor((now.getTime() - savedDate.getTime()) / (1000 * 60 * 60 * 24));
+                  const savedLabel = diffDays === 0 ? 'Today' : diffDays === 1 ? 'Yesterday' : `${diffDays} days ago`;
+                  return (
+                    <TouchableOpacity
+                      key={route.id}
+                      style={jt.routeCard}
+                      onLongPress={() => handleDeleteRoute(route.id, routeName)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <View style={[jt.initCircle, { backgroundColor: C.green }]}>
+                          <Text style={jt.initText}>{fromInitial}</Text>
+                        </View>
+                        <Text style={{ color: C.text2 }}>→</Text>
+                        <View style={[jt.initCircle, { backgroundColor: C.purple }]}>
+                          <Text style={jt.initText}>{toInitial}</Text>
+                        </View>
+                      </View>
+                      <Text style={jt.routeName}>{routeName}</Text>
+                      <Text style={jt.routeSub}>{savedLabel}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          )}
         </View>
+
         {/* Reminders */}
         <View style={jt.card}>
-          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>Reminders</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
-          {REMINDERS.map((rem, i) => (
-            <View key={rem.train}>
-              <View style={jt.remRow}>
-                <View style={jt.remIcon} />
-                <View style={{ flex: 1, gap: 3 }}>
-                  <Text style={jt.remTrain}>{rem.train}</Text>
-                  <Text style={jt.remRoute}>{rem.route}</Text>
-                  <Text style={jt.remWhen}>{rem.when}</Text>
-                </View>
-                <Switch value={rem.on} trackColor={{ false: C.surface2, true: C.green }} thumbColor={C.white} />
-              </View>
-              {i < REMINDERS.length - 1 && <View style={jt.divider} />}
+          <View style={jt.sectionHeader}>
+            <Text style={jt.sectionTitle}>Reminders</Text>
+            <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
+          </View>
+          {(reminders ?? []).length === 0 ? (
+            <View style={{ paddingVertical: S.lg, alignItems: 'center' }}>
+              <Text style={{ color: C.text2, fontSize: T.base }}>No reminders set</Text>
             </View>
-          ))}
+          ) : (
+            (reminders ?? []).map((rem, i) => (
+              <View key={rem.id}>
+                <View style={jt.remRow}>
+                  <View style={jt.remIcon} />
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={jt.remTrain}>{rem.alert_type ?? 'Alert'}</Text>
+                    {rem.train_id && <Text style={jt.remRoute}>Train: {rem.train_id}</Text>}
+                    {rem.station_id && <Text style={jt.remWhen}>Station: {rem.station_id}</Text>}
+                  </View>
+                  <Switch
+                    value={!!rem.is_active}
+                    onValueChange={() => toggleAlert.mutate({ id: rem.id, is_active: !rem.is_active })}
+                    trackColor={{ false: C.surface2, true: C.green }}
+                    thumbColor={C.white}
+                  />
+                </View>
+                {i < (reminders ?? []).length - 1 && <View style={jt.divider} />}
+              </View>
+            ))
+          )}
         </View>
+
         {/* Stats */}
         <View style={jt.card}>
-          <View style={jt.sectionHeader}><Text style={jt.sectionTitle}>Travel Statistics</Text><TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity></View>
+          <View style={jt.sectionHeader}>
+            <Text style={jt.sectionTitle}>Travel Statistics</Text>
+            <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
+          </View>
           <View style={jt.statsRow}>
-            {STATS.map(stat => (
+            {statsData.map(stat => (
               <View key={stat.label} style={[jt.statCard, { backgroundColor: stat.icon }]}>
                 <Text style={jt.statVal}>{stat.val}</Text>
                 <Text style={jt.statLabel}>{stat.label}</Text>

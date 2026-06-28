@@ -19,12 +19,12 @@ interface Stop {
 }
 
 const STOPS: Stop[] = [
-  { time: '06:40', station: 'Dhaka', extra: undefined, tag: 'Start', active: true },
-  { time: '06:58', station: 'Narayanganj', extra: '+ 18 min', active: false },
-  { time: '07:22', station: 'Munshiganj', extra: '+ 24 min', active: false },
-  { time: '08:16', station: 'Comilla', extra: '+ 54 min', active: true },
-  { time: '09:32', station: 'Feni', extra: '+ 1h 16m', active: false },
-  { time: '12:25', station: 'Chattogram', extra: undefined, tag: 'End', active: true },
+  { time: '06:40', station: 'Dhaka', stationBn: 'ঢাকা', extra: undefined, tag: 'Start', active: true },
+  { time: '06:58', station: 'Narayanganj', stationBn: 'নারায়ণগঞ্জ', extra: '+ 18 min', active: false },
+  { time: '07:22', station: 'Munshiganj', stationBn: 'মুন্সীগঞ্জ', extra: '+ 24 min', active: false },
+  { time: '08:16', station: 'Comilla', stationBn: 'কুমিল্লা', extra: '+ 54 min', active: true },
+  { time: '09:32', station: 'Feni', stationBn: 'ফেনী', extra: '+ 1h 16m', active: false },
+  { time: '12:25', station: 'Chattogram', stationBn: 'চট্টগ্রাম', extra: undefined, tag: 'End', active: true },
 ];
 
 export default function RouteMapScreen() {

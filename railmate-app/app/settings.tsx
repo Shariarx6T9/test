@@ -1,44 +1,102 @@
 // app/settings.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { usePrefsStore } from '../stores/prefsStore';
+import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n';
 
 interface SettingRow { id: string; label: string; sub: string; toggle?: boolean; value?: string; }
 interface SettingSection { title: string; rows: SettingRow[]; }
 
-const SECTIONS: SettingSection[] = [
-  { title: 'PREFERENCES', rows: [
-    { id: 'notif', label: 'Notifications', sub: 'Manage notification preferences' },
-    { id: 'lang', label: 'Language', sub: 'English (English)', value: 'English' },
-    { id: 'location', label: 'Default Location', sub: 'Dhaka, Bangladesh' },
-    { id: 'appearance', label: 'Appearance', sub: 'Dark Theme' },
-    { id: 'distance', label: 'Distance Unit', sub: 'Kilometer (km)' },
-  ]},
-  { title: 'JOURNEY PREFERENCES', rows: [
-    { id: 'alt_routes', label: 'Show Alternative Routes', sub: 'Display alternative routes in search', toggle: true },
-    { id: 'delay_alerts', label: 'Delay Alerts', sub: 'Get notified about train delays', toggle: true },
-    { id: 'crowding', label: 'Crowding Updates', sub: 'Show crowding level information', toggle: true },
-    { id: 'platform', label: 'Platform Change Alerts', sub: 'Notify about platform changes', toggle: false },
-  ]},
-  { title: 'ACCOUNT & DATA', rows: [
-    { id: 'privacy', label: 'Privacy & Security', sub: 'Manage your privacy and security' },
-    { id: 'data', label: 'Data Usage', sub: 'Manage offline data and storage' },
-    { id: 'backup', label: 'Backup & Restore', sub: 'Backup your data to restore later' },
-  ]},
-  { title: 'SUPPORT & ABOUT', rows: [
-    { id: 'help', label: 'Help & Support', sub: 'FAQs, guides and contact support' },
-    { id: 'about', label: 'About RailMate', sub: 'Version 1.0.0 (Build 120)' },
-  ]},
-];
-
 export default function SettingsScreen() {
   const router = useRouter();
-  const [toggles, setToggles] = useState<Record<string, boolean>>({
-    alt_routes: true, delay_alerts: true, crowding: true, platform: false,
-  });
+  const { t } = useTranslation();
+  const { language, theme, journeyPrefs, setLanguage, setTheme, setJourneyPref } = usePrefsStore();
+  const { user } = useAuthStore();
+  const { signOut } = useAuth();
 
-  const toggle = (id: string) => setToggles(prev => ({ ...prev, [id]: !prev[id] }));
+  const updateUserPref = useCallback(async (key: string, value: string) => {
+    if (!user?.id) return;
+    await supabase.from('users').update({ [key]: value }).eq('id', user.id);
+  }, [user?.id]);
+
+  const langLabel = language === 'bn' ? 'বাংলা' : 'English';
+  const themeLabel = theme === 'dark' ? 'Dark Theme' : theme === 'light' ? 'Light Theme' : 'System Default';
+
+  const SECTIONS: SettingSection[] = [
+    { title: 'PREFERENCES', rows: [
+      { id: 'notif', label: 'Notifications', sub: 'Manage notification preferences' },
+      { id: 'lang', label: 'Language', sub: langLabel, value: langLabel },
+      { id: 'location', label: 'Default Location', sub: 'Dhaka, Bangladesh' },
+      { id: 'appearance', label: 'Appearance', sub: themeLabel },
+      { id: 'distance', label: 'Distance Unit', sub: 'Kilometer (km)' },
+    ]},
+    { title: 'JOURNEY PREFERENCES', rows: [
+      { id: 'alt_routes', label: 'Show Alternative Routes', sub: 'Display alternative routes in search', toggle: true },
+      { id: 'delay_alerts', label: 'Delay Alerts', sub: 'Get notified about train delays', toggle: true },
+      { id: 'crowding', label: 'Crowding Updates', sub: 'Show crowding level information', toggle: true },
+      { id: 'platform', label: 'Platform Change Alerts', sub: 'Notify about platform changes', toggle: false },
+    ]},
+    { title: 'ACCOUNT & DATA', rows: [
+      { id: 'privacy', label: 'Privacy & Security', sub: 'Manage your privacy and security' },
+      { id: 'data', label: 'Data Usage', sub: 'Manage offline data and storage' },
+      { id: 'backup', label: 'Backup & Restore', sub: 'Backup your data to restore later' },
+    ]},
+    { title: 'SUPPORT & ABOUT', rows: [
+      { id: 'help', label: 'Help & Support', sub: 'FAQs, guides and contact support' },
+      { id: 'about', label: 'About RailMate', sub: 'Version 1.0.0 (Build 120)' },
+    ]},
+  ];
+
+  const getToggleValue = (id: string): boolean => {
+    switch (id) {
+      case 'alt_routes': return journeyPrefs.showAlternativeRoutes;
+      case 'delay_alerts': return journeyPrefs.delayAlerts;
+      case 'crowding': return journeyPrefs.crowdingUpdates;
+      case 'platform': return journeyPrefs.platformChangeAlerts;
+      default: return false;
+    }
+  };
+
+  const handleToggle = (id: string) => {
+    switch (id) {
+      case 'alt_routes':
+        setJourneyPref('showAlternativeRoutes', !journeyPrefs.showAlternativeRoutes);
+        break;
+      case 'delay_alerts':
+        setJourneyPref('delayAlerts', !journeyPrefs.delayAlerts);
+        break;
+      case 'crowding':
+        setJourneyPref('crowdingUpdates', !journeyPrefs.crowdingUpdates);
+        break;
+      case 'platform':
+        setJourneyPref('platformChangeAlerts', !journeyPrefs.platformChangeAlerts);
+        break;
+    }
+  };
+
+  const handleRowPress = (id: string) => {
+    if (id === 'lang') {
+      Alert.alert('Language', 'Select language', [
+        { text: 'English', onPress: () => { setLanguage('en'); updateUserPref('language_pref', 'en'); } },
+        { text: 'বাংলা', onPress: () => { setLanguage('bn'); updateUserPref('language_pref', 'bn'); } },
+        { text: t('common.cancel'), style: 'cancel' },
+      ]);
+    } else if (id === 'appearance') {
+      Alert.alert('Appearance', 'Select theme', [
+        { text: 'Dark', onPress: () => { setTheme('dark'); updateUserPref('theme_pref', 'dark'); } },
+        { text: 'Light', onPress: () => { setTheme('light'); updateUserPref('theme_pref', 'light'); } },
+        { text: 'System', onPress: () => { setTheme('system'); updateUserPref('theme_pref', 'system'); } },
+        { text: t('common.cancel'), style: 'cancel' },
+      ]);
+    } else if (id === 'notif') {
+      router.push('/notifications' as any);
+    }
+  };
 
   return (
     <SafeAreaView style={ss.root}>
@@ -57,7 +115,12 @@ export default function SettingsScreen() {
             <View style={ss.sectionCard}>
               {section.rows.map((row, i) => (
                 <View key={row.id}>
-                  <View style={ss.row}>
+                  <TouchableOpacity
+                    style={ss.row}
+                    onPress={() => handleRowPress(row.id)}
+                    disabled={row.toggle !== undefined}
+                    activeOpacity={row.toggle !== undefined ? 1 : 0.7}
+                  >
                     <View style={ss.rowIcon} />
                     <View style={{ flex: 1 }}>
                       <Text style={ss.rowLabel}>{row.label}</Text>
@@ -65,22 +128,35 @@ export default function SettingsScreen() {
                     </View>
                     {row.toggle !== undefined ? (
                       <Switch
-                        value={toggles[row.id]}
-                        onValueChange={() => toggle(row.id)}
+                        value={getToggleValue(row.id)}
+                        onValueChange={() => handleToggle(row.id)}
                         trackColor={{ false: C.surface2, true: C.green }}
                         thumbColor={C.white}
                       />
                     ) : (
                       <View style={ss.chevron} />
                     )}
-                  </View>
+                  </TouchableOpacity>
                   {i < section.rows.length - 1 && <View style={ss.divider} />}
                 </View>
               ))}
             </View>
           </View>
         ))}
-        <TouchableOpacity style={ss.logoutBtn} onPress={() => Alert.alert('Log Out', 'Are you sure?', [{ text: 'Cancel' }, { text: 'Log Out', style: 'destructive' }])}>
+        <TouchableOpacity
+          style={ss.logoutBtn}
+          onPress={() => Alert.alert(t('auth.sign_out'), t('profile.sign_out_confirm'), [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('profile.sign_out'),
+              style: 'destructive',
+              onPress: async () => {
+                await signOut();
+                router.replace('/auth/login' as any);
+              },
+            },
+          ])}
+        >
           <Text style={ss.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>

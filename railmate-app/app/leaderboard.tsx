@@ -1,51 +1,103 @@
 // app/leaderboard.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { supabase } from '../lib/supabase';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n';
 
 type Period = 'Weekly' | 'Monthly' | 'All Time';
-
-interface LeaderboardUser {
-  rank: number;
-  name: string;
-  level: string;
-  trustScore: number;
-  scoreLabel: string;
-  points: string;
-  rankColor?: string;
-  isMe?: boolean;
-}
-
-const USERS: LeaderboardUser[] = [
-  { rank: 1, name: 'Farhan Ahmed', level: 'Level 5 • Expert Reporter', trustScore: 950, scoreLabel: 'Excellent', points: '2,840', rankColor: C.gold },
-  { rank: 2, name: 'Ayesha Akter', level: 'Level 4 • Trusted Reporter', trustScore: 920, scoreLabel: 'Excellent', points: '2,520', rankColor: C.text2 },
-  { rank: 3, name: 'Raihan Uddin', level: 'Level 4 • Trusted Reporter', trustScore: 880, scoreLabel: 'Excellent', points: '2,310', rankColor: C.orange },
-  { rank: 4, name: 'Mehedi Hasan', level: 'Level 4 • Trusted Reporter', trustScore: 850, scoreLabel: 'Very Good', points: '2,150' },
-  { rank: 5, name: 'Arif Hossain', level: 'Level 3 • Reliable Reporter', trustScore: 760, scoreLabel: 'Very Good', points: '1,860' },
-  { rank: 6, name: 'Sadia Islam', level: 'Level 3 • Reliable Reporter', trustScore: 720, scoreLabel: 'Good', points: '1,540' },
-  { rank: 7, name: 'Tahsin Rahman', level: 'Level 3 • Reliable Reporter', trustScore: 680, scoreLabel: 'Good', points: '1,420' },
-  { rank: 8, name: 'Najmul Hasan', level: 'Level 4 • Trusted Reporter', trustScore: 810, scoreLabel: 'Very Good', points: '1,240', isMe: true },
-  { rank: 9, name: 'Fahim Rahat', level: 'Level 2 • Active Reporter', trustScore: 620, scoreLabel: 'Good', points: '1,020' },
-  { rank: 10, name: 'Nusrat Jahan', level: 'Level 2 • Active Reporter', trustScore: 580, scoreLabel: 'Fair', points: '860' },
-];
 
 const SCORE_COLORS: Record<string, string> = {
   Excellent: C.green, 'Very Good': C.blue, Good: C.green, Fair: C.orange,
 };
 
+function getScoreLabel(score: number): string {
+  if (score >= 900) return 'Excellent';
+  if (score >= 750) return 'Very Good';
+  if (score >= 600) return 'Good';
+  return 'Fair';
+}
+
 export default function LeaderboardScreen() {
   const router = useRouter();
-  const [period, setPeriod] = useState<Period>('Weekly');
+  const [activePeriod, setActivePeriod] = useState<Period>('Weekly');
+  const { user } = useAuthStore();
+  const { t } = useTranslation();
+  const [refreshing, setRefreshing] = useState(false);
   const periods: Period[] = ['Weekly', 'Monthly', 'All Time'];
+
+  const { data: leaderboard, isLoading, refetch, error } = useQuery({
+    queryKey: ['leaderboard', activePeriod],
+    queryFn: async () => {
+      const now = new Date();
+      let fromDate: string | null = null;
+      if (activePeriod === 'Weekly') {
+        const d = new Date(now); d.setDate(d.getDate() - 7);
+        fromDate = d.toISOString();
+      } else if (activePeriod === 'Monthly') {
+        const d = new Date(now); d.setMonth(d.getMonth() - 1);
+        fromDate = d.toISOString();
+      }
+
+      if (fromDate) {
+        const { data, error } = await supabase
+          .from('community_reports')
+          .select('user_id, user:users!community_reports_user_id_fkey(id, display_name, avatar_url, trust_score, report_count)')
+          .gte('created_at', fromDate)
+          .limit(100);
+        if (error) return [];
+        const countMap = new Map<string, { user: any; count: number }>();
+        for (const row of (data ?? []) as any[]) {
+          if (!row.user_id) continue;
+          const existing = countMap.get(row.user_id);
+          if (existing) existing.count++;
+          else countMap.set(row.user_id, { user: row.user, count: 1 });
+        }
+        const keys = Array.from(countMap.keys());
+        return Array.from(countMap.values())
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 20)
+          .map((entry, i) => ({
+            rank: i + 1,
+            user_id: keys[i],
+            display_name: entry.user?.display_name ?? 'Anonymous',
+            trust_score: entry.user?.trust_score ?? 0,
+            report_count: entry.count,
+          }));
+      } else {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, display_name, trust_score, report_count, avatar_url')
+          .order('report_count', { ascending: false })
+          .limit(20);
+        if (error) return [];
+        return (data ?? []).map((u: any, i: number) => ({
+          rank: i + 1,
+          user_id: u.id,
+          display_name: u.display_name ?? 'Anonymous',
+          trust_score: u.trust_score ?? 0,
+          report_count: u.report_count ?? 0,
+        }));
+      }
+    },
+    staleTime: 60_000,
+  });
+
+  const currentUserRank = leaderboard?.findIndex(e => e.user_id === user?.id);
+  const currentUserEntry = currentUserRank !== undefined && currentUserRank >= 0
+    ? leaderboard![currentUserRank]
+    : null;
 
   return (
     <SafeAreaView style={lb.root}>
       <View style={lb.header}>
         <TouchableOpacity style={lb.backBtn} onPress={() => router.back()} />
         <View style={{ alignItems: 'center' }}>
-          <Text style={lb.title}>👑 Leaderboard</Text>
-          <Text style={lb.subtitle}>Top contributors in the RailMate community</Text>
+          <Text style={lb.title}>👑 {t('leaderboard.title')}</Text>
+          <Text style={lb.subtitle}>{t('leaderboard.sub')}</Text>
         </View>
         <TouchableOpacity style={lb.infoBtn} />
       </View>
@@ -53,72 +105,119 @@ export default function LeaderboardScreen() {
       {/* Period tabs */}
       <View style={lb.periodTabs}>
         {periods.map(p => (
-          <TouchableOpacity key={p} style={[lb.periodTab, period === p && lb.periodTabActive]} onPress={() => setPeriod(p)}>
-            <Text style={[lb.periodText, period === p && lb.periodTextActive]}>{p}</Text>
+          <TouchableOpacity key={p} style={[lb.periodTab, activePeriod === p && lb.periodTabActive]} onPress={() => setActivePeriod(p)}>
+            <Text style={[lb.periodText, activePeriod === p && lb.periodTextActive]}>{p}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* My rank */}
-      <View style={lb.myRank}>
-        <Text style={lb.myRankNum}>8</Text>
-        <View style={lb.myRankAvatar} />
-        <View style={{ flex: 1 }}>
-          <Text style={lb.myRankName}>Najmul Hasan</Text>
-          <Text style={lb.myRankLevel}>Trusted Reporter</Text>
-        </View>
-        <View style={lb.myRankStats}>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={lb.myRankLabel}>Trust Score</Text>
-            <Text style={lb.myRankScore}>✓ 810</Text>
+      {currentUserEntry ? (
+        <View style={lb.myRank}>
+          <Text style={lb.myRankNum}>{currentUserEntry.rank}</Text>
+          <View style={lb.myRankAvatar} />
+          <View style={{ flex: 1 }}>
+            <Text style={lb.myRankName}>{currentUserEntry.display_name}</Text>
+            <Text style={lb.myRankLevel}>{getScoreLabel(currentUserEntry.trust_score)} Reporter</Text>
           </View>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={lb.myRankLabel}>Points</Text>
-            <Text style={lb.myRankPoints}>⭐ 1,240</Text>
+          <View style={lb.myRankStats}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={lb.myRankLabel}>Trust Score</Text>
+              <Text style={lb.myRankScore}>✓ {currentUserEntry.trust_score}</Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={lb.myRankLabel}>Reports</Text>
+              <Text style={lb.myRankPoints}>⭐ {currentUserEntry.report_count}</Text>
+            </View>
           </View>
         </View>
-      </View>
+      ) : user ? (
+        <View style={[lb.myRank, { opacity: 0.6 }]}>
+          <Text style={lb.myRankNum}>—</Text>
+          <View style={lb.myRankAvatar} />
+          <View style={{ flex: 1 }}>
+            <Text style={lb.myRankName}>{user.display_name ?? 'You'}</Text>
+            <Text style={lb.myRankLevel}>Not ranked yet</Text>
+          </View>
+        </View>
+      ) : null}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={lb.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={lb.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => { setRefreshing(true); await refetch(); setRefreshing(false); }}
+            tintColor={C.green}
+          />
+        }
+      >
         {/* Table header */}
         <View style={lb.tableHeader}>
           <Text style={lb.thNum}>#</Text>
           <Text style={lb.thReporter}>Reporter</Text>
           <Text style={lb.thScore}>Trust Score</Text>
-          <Text style={lb.thPoints}>Points</Text>
+          <Text style={lb.thPoints}>Reports</Text>
         </View>
         <View style={lb.divider} />
 
-        {/* Rows */}
-        <View style={lb.tableCard}>
-          {USERS.map((user, i) => (
-            <View key={user.rank}>
-              <View style={[lb.userRow, user.isMe && lb.userRowMe]}>
-                <View style={[lb.rankCircle, user.rankColor ? { backgroundColor: user.rankColor } : {}]}>
-                  <Text style={[lb.rankNum, user.rankColor ? { color: C.bg } : {}]}>{user.rank}</Text>
+        {isLoading ? (
+          <View style={{ paddingVertical: S.xl, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={C.green} />
+          </View>
+        ) : error ? (
+          <View style={{ paddingVertical: S.xl, alignItems: 'center' }}>
+            <Text style={{ color: C.text2, fontSize: T.sm }}>Failed to load leaderboard.</Text>
+            <TouchableOpacity onPress={() => refetch()} style={{ marginTop: S.md }}>
+              <Text style={{ color: C.green, fontSize: T.sm, fontWeight: '600' }}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !leaderboard?.length ? (
+          <View style={{ paddingVertical: S.xl, alignItems: 'center' }}>
+            <Text style={{ color: C.text2, fontSize: T.sm }}>{t('leaderboard.no_data')}</Text>
+          </View>
+        ) : (
+          /* Rows */
+          <View style={lb.tableCard}>
+            {leaderboard.map((entry, i) => {
+              const rankColor = entry.rank === 1 ? C.gold : entry.rank === 2 ? C.text2 : entry.rank === 3 ? C.orange : undefined;
+              const isMe = entry.user_id === user?.id;
+              const scoreLabel = getScoreLabel(entry.trust_score);
+              return (
+                <View key={entry.user_id + entry.rank}>
+                  <View style={[lb.userRow, isMe && lb.userRowMe]}>
+                    <View style={[lb.rankCircle, rankColor ? { backgroundColor: rankColor } : {}]}>
+                      <Text style={[lb.rankNum, rankColor ? { color: C.bg } : {}]}>{entry.rank}</Text>
+                    </View>
+                    <View style={lb.userAvatar} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[lb.userName, isMe && { color: C.green }]}>{entry.display_name}</Text>
+                      <Text style={lb.userLevel}>{scoreLabel} Reporter</Text>
+                    </View>
+                    <View style={{ alignItems: 'center', width: 70 }}>
+                      <Text style={lb.scoreNum}>{entry.trust_score}</Text>
+                      <Text style={[lb.scoreLabel, { color: SCORE_COLORS[scoreLabel] ?? C.text2 }]}>{scoreLabel}</Text>
+                    </View>
+                    <View style={lb.pointsCol}>
+                      <Text style={lb.pointsStar}>⭐</Text>
+                      <Text style={lb.pointsVal}>{entry.report_count}</Text>
+                    </View>
+                  </View>
+                  {i < leaderboard.length - 1 && <View style={lb.rowDivider} />}
                 </View>
-                <View style={lb.userAvatar} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[lb.userName, user.isMe && { color: C.green }]}>{user.name}</Text>
-                  <Text style={lb.userLevel}>{user.level}</Text>
-                </View>
-                <View style={{ alignItems: 'center', width: 70 }}>
-                  <Text style={lb.scoreNum}>{user.trustScore}</Text>
-                  <Text style={[lb.scoreLabel, { color: SCORE_COLORS[user.scoreLabel] }]}>{user.scoreLabel}</Text>
-                </View>
-                <View style={lb.pointsCol}>
-                  <Text style={lb.pointsStar}>⭐</Text>
-                  <Text style={lb.pointsVal}>{user.points}</Text>
-                </View>
-              </View>
-              {i < USERS.length - 1 && <View style={lb.rowDivider} />}
-            </View>
-          ))}
-        </View>
+              );
+            })}
+          </View>
+        )}
 
         <View style={lb.footer}>
-          <Text style={lb.footerTime}>Last updated: May 21, 2025 09:30 AM</Text>
-          <TouchableOpacity><Text style={lb.refreshText}>Refresh</Text></TouchableOpacity>
+          <Text style={lb.footerTime}>
+            Last updated: {new Date().toLocaleString('en', { dateStyle: 'medium', timeStyle: 'short' })}
+          </Text>
+          <TouchableOpacity onPress={() => refetch()}>
+            <Text style={lb.refreshText}>Refresh</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

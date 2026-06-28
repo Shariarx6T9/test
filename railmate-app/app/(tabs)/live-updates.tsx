@@ -1,42 +1,15 @@
-// app/(tabs)/live.tsx — Live Updates Screen
+// app/(tabs)/live-updates.tsx — Live Updates Screen
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
-
-type FilterTab = 'All' | 'Active' | 'Delays' | 'Alerts' | 'Past';
-
-interface LiveUpdate {
-  id: string;
-  trainName: string;
-  trainNumber: string;
-  route: string;
-  time: string;
-  reportedAgo: string;
-  travelers: number;
-  type: 'delay' | 'crowding' | 'ontime' | 'announcement';
-  statusText: string;
-  statusColor: string;
-  statusBg: string;
-  note?: string;
-  announcement?: boolean;
-}
-
-const UPDATES: LiveUpdate[] = [
-  { id: '1', trainName: 'Subarna Express', trainNumber: '#721', route: 'Dhaka (Kamlapur) → Chattogram', time: '9:35 PM', reportedAgo: 'Reported 8 min ago', travelers: 8, type: 'delay', statusText: '15 min delay', statusColor: C.red, statusBg: C.redTint, note: undefined },
-  { id: '2', trainName: 'Mahanagar Express', trainNumber: '#236', route: 'Dhaka → Chattogram', time: '9:28 PM', reportedAgo: 'Reported 12 min ago', travelers: 12, type: 'crowding', statusText: 'Crowding High', statusColor: C.orange, statusBg: C.orangeTint, note: 'High passenger load in Coach 3-5' },
-  { id: '3', trainName: 'Sonar Bangla Express', trainNumber: '#787', route: 'Dhaka → Rajshahi', time: '9:25 PM', reportedAgo: 'Updated 5 min ago', travelers: 6, type: 'ontime', statusText: 'Running On Time', statusColor: C.green, statusBg: C.greenTint, note: 'On schedule. Next stop: Ishwardi Bypass' },
-  { id: '4', trainName: 'Platform Change', trainNumber: '#131', route: 'Kanchanjungha Express - Chattogram Railway Station', time: '9:15 PM', reportedAgo: 'Official Announcement', travelers: 0, type: 'announcement', statusText: 'Platform 3', statusColor: C.blue, statusBg: C.blueTint, announcement: true },
-  { id: '5', trainName: 'Temporary Service Halt', trainNumber: '#707', route: 'Tista Express - Joydebpur to Bangabandhu Bridge', time: '8:58 PM', reportedAgo: 'Official Announcement', travelers: 0, type: 'announcement', statusText: 'Service Halted', statusColor: C.orange, statusBg: C.orangeTint, announcement: true },
-];
-
-const STATS = [
-  { val: '12', label: 'Delay Reports', sub: 'Active Now', bg: C.redTint },
-  { val: '7', label: 'Crowding Alerts', sub: 'Active Now', bg: C.orangeTint },
-  { val: '5', label: 'Trains On Time', sub: 'Running Smooth', bg: C.greenTint },
-  { val: '3', label: 'Service Alerts', sub: 'Announcements', bg: C.blueTint },
-];
+import { useCommunityReports } from '../../hooks/useCommunityReports';
+import { supabase } from '../../lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import { communityKeys } from '../../hooks/useCommunityReports';
+import { useTranslation } from '../../i18n';
+import type { ReportFilter, ReportType } from '../../types/report.types';
 
 const DEPARTURES = [
   { time: '10:00 PM', name: 'Turag Express #748', route: 'Dhaka → Tongi' },
@@ -47,8 +20,88 @@ const DEPARTURES = [
 
 export default function LiveUpdatesScreen() {
   const router = useRouter();
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
-  const filters: FilterTab[] = ['All', 'Active', 'Delays', 'Alerts', 'Past'];
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Delays' | 'Crowding' | 'Condition'>('All');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const filter: ReportFilter = activeFilter === 'Delays' ? { type: 'DELAY' }
+    : activeFilter === 'Crowding' ? { type: 'CROWD' }
+    : activeFilter === 'Condition' ? { type: 'GENERAL' }
+    : null;
+
+  const { data: reports, isLoading, refetch } = useCommunityReports(filter);
+
+  const filters = ['All', 'Delays', 'Crowding', 'Condition'] as const;
+
+  // Supabase Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('live-updates')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'community_reports',
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: communityKeys.all });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
+  // Stats computed from real data
+  const todayISO = new Date().toISOString().split('T')[0];
+  const todayReports = (reports ?? []).filter(r => r.journey_date === todayISO || r.reported_at?.startsWith(todayISO));
+  const delayCount = todayReports.filter(r => r.report_type === 'DELAY').length;
+  const crowdCount = todayReports.filter(r => r.report_type === 'CROWD').length;
+  const verifiedCount = todayReports.filter(r => r.status === 'VERIFIED').length;
+  const generalCount = todayReports.filter(r => r.report_type !== 'DELAY' && r.report_type !== 'CROWD').length;
+
+  const STATS = [
+    { val: String(delayCount), label: t('notifications.delay'), sub: 'Active Now', bg: C.redTint },
+    { val: String(crowdCount), label: t('notifications.crowding'), sub: 'Active Now', bg: C.orangeTint },
+    { val: String(verifiedCount), label: t('notifications.verified'), sub: 'Verified', bg: C.greenTint },
+    { val: String(generalCount), label: 'Other Reports', sub: 'Today', bg: C.blueTint },
+  ];
+
+  const liveUpdates = (reports ?? []).slice(0, 10).map(report => {
+    let statusText: string;
+    let statusColor: string;
+    let statusBg: string;
+
+    if (report.report_type === 'DELAY') {
+      statusText = `${report.delay_minutes ?? '?'} min delay`;
+      statusColor = C.red;
+      statusBg = C.redTint;
+    } else if (report.report_type === 'CROWD') {
+      statusText = `Crowding ${report.crowd_level ?? 'High'}`;
+      statusColor = C.orange;
+      statusBg = C.orangeTint;
+    } else {
+      statusText = report.report_type;
+      statusColor = C.blue;
+      statusBg = C.blueTint;
+    }
+
+    const reportedTime = report.reported_at
+      ? new Date(report.reported_at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
+      : '';
+
+    return {
+      id: report.id,
+      trainName: report.train?.name_en ?? 'Unknown Train',
+      trainNumber: report.train ? '#' + report.train.number : '',
+      route: report.station?.name_en ?? 'Unknown',
+      time: reportedTime,
+      statusText,
+      statusColor,
+      statusBg,
+      travelers: report.verification_count,
+    };
+  });
+
+  const lastUpdated = new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <SafeAreaView style={s.root}>
@@ -67,7 +120,21 @@ export default function LiveUpdatesScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await refetch();
+              setRefreshing(false);
+            }}
+            tintColor={C.green}
+          />
+        }
+      >
 
         {/* Filter tabs */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterScroll}>
@@ -97,40 +164,57 @@ export default function LiveUpdatesScreen() {
         <View style={s.section}>
           <View style={s.sectionHeader}>
             <Text style={s.sectionTitle}>Live Train Updates</Text>
-            <Text style={s.lastUpdated}>Last updated: 9:41 PM</Text>
+            <Text style={s.lastUpdated}>Last updated: {lastUpdated}</Text>
           </View>
 
-          {UPDATES.map((update) => (
-            <TouchableOpacity
-              key={update.id}
-              style={s.updateCard}
-              onPress={() => router.push({ pathname: '/report-detail', params: { id: update.id } })}
-              activeOpacity={0.8}
-            >
-              <View style={s.updateTop}>
-                <View style={[s.updateImg, { borderColor: update.statusColor }]} />
-                <View style={{ flex: 1 }}>
-                  <View style={s.updateTitleRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={s.updateName}>{update.trainName} {update.trainNumber}</Text>
-                      <Text style={s.updateRoute}>{update.route}</Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={s.updateTime}>{update.time}</Text>
-                      <Text style={s.updateReported}>{update.reportedAgo}</Text>
-                    </View>
+          {isLoading ? (
+            // Loading skeleton
+            [0, 1, 2].map(i => (
+              <View key={i} style={[s.updateCard, { opacity: 0.4 }]}>
+                <View style={s.updateTop}>
+                  <View style={[s.updateImg, { borderColor: C.border }]} />
+                  <View style={{ flex: 1, gap: S.sm }}>
+                    <View style={{ height: 14, backgroundColor: C.surface2, borderRadius: 4, width: '60%' }} />
+                    <View style={{ height: 10, backgroundColor: C.surface2, borderRadius: 4, width: '40%' }} />
                   </View>
-                  <View style={[s.statusBadge, { backgroundColor: update.statusBg }]}>
-                    <Text style={[s.statusText, { color: update.statusColor }]}>{update.statusText}</Text>
-                  </View>
-                  {update.note && <Text style={s.updateNote}>{update.note}</Text>}
-                  {update.travelers > 0 && (
-                    <Text style={s.travelersText}>{update.travelers} travelers confirmed</Text>
-                  )}
                 </View>
               </View>
-            </TouchableOpacity>
-          ))}
+            ))
+          ) : liveUpdates.length === 0 ? (
+            <View style={[s.updateCard, { alignItems: 'center', paddingVertical: S.xl }]}>
+              <Text style={{ color: C.text2, fontSize: T.sm }}>No reports right now. Check back soon.</Text>
+            </View>
+          ) : (
+            liveUpdates.map((update) => (
+              <TouchableOpacity
+                key={update.id}
+                style={s.updateCard}
+                onPress={() => router.push({ pathname: '/report-detail', params: { id: update.id } })}
+                activeOpacity={0.8}
+              >
+                <View style={s.updateTop}>
+                  <View style={[s.updateImg, { borderColor: update.statusColor }]} />
+                  <View style={{ flex: 1 }}>
+                    <View style={s.updateTitleRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.updateName}>{update.trainName} {update.trainNumber}</Text>
+                        <Text style={s.updateRoute}>{update.route}</Text>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={s.updateTime}>{update.time}</Text>
+                      </View>
+                    </View>
+                    <View style={[s.statusBadge, { backgroundColor: update.statusBg }]}>
+                      <Text style={[s.statusText, { color: update.statusColor }]}>{update.statusText}</Text>
+                    </View>
+                    {update.travelers > 0 && (
+                      <Text style={s.travelersText}>{update.travelers} travelers confirmed</Text>
+                    )}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Upcoming departures */}
@@ -160,7 +244,7 @@ export default function LiveUpdatesScreen() {
             <Text style={s.alertsTitle}>Stay Informed, Travel Smart</Text>
             <Text style={s.alertsSub}>Enable live alerts for your favorite routes</Text>
           </View>
-          <TouchableOpacity style={s.alertsBtn}>
+          <TouchableOpacity style={s.alertsBtn} onPress={() => router.push('/notifications')}>
             <Text style={s.alertsBtnText}>Manage Alerts</Text>
           </TouchableOpacity>
         </View>

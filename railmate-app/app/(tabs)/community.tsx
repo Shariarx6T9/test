@@ -1,64 +1,55 @@
 // app/(tabs)/community.tsx — Community Screen
 
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
+import { useCommunityReports, useVoteReport } from '../../hooks/useCommunityReports';
+import { useAuthStore } from '../../stores/authStore';
+import { useTranslation } from '../../i18n';
+import type { CommunityReport, ReportFilter } from '../../types/report.types';
 
-type CommunityTab = 'All' | 'Following' | 'My Posts';
-type ReportType = 'delay' | 'crowding' | 'ontime';
+const formatReportedAt = (iso: string, t: (key: any, params?: any) => string) => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return t('community.just_now');
+  if (mins < 60) return t('community.min_ago', { n: mins });
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return t('community.hour_ago', { n: hours });
+  return new Date(iso).toLocaleDateString();
+};
 
-interface CommunityPost {
-  id: string;
-  userId: string;
-  userName: string;
-  userBadge: string;
-  badgeColor: string;
-  trainName: string;
-  trainNumber: string;
-  route: string;
-  time: string;
-  timeColor: string;
-  reportType: ReportType;
-  reportLabel: string;
-  reportColor: string;
-  reportBg: string;
-  description: string;
-  photo?: boolean;
-  confirmedCount: number;
-  commentCount: number;
-  votes: number;
-  verified: boolean;
-}
+function PostCard({
+  post,
+  onPress,
+  onVote,
+  onComment,
+  onShare,
+}: {
+  post: CommunityReport;
+  onPress: () => void;
+  onVote: () => void;
+  onComment: () => void;
+  onShare: () => void;
+}) {
+  const { t } = useTranslation();
 
-const POSTS: CommunityPost[] = [
-  {
-    id: '1', userId: 'u1', userName: 'Najmul Hasan', userBadge: 'Trusted Reporter', badgeColor: C.green,
-    trainName: 'Subarna Express', trainNumber: '#721', route: 'Today, 8:35 PM  •  Dhaka → Chattogram',
-    time: '15m ago', timeColor: C.red, reportType: 'delay', reportLabel: '15 min delay reported',
-    reportColor: C.red, reportBg: C.redTint,
-    description: 'Delay confirmed between Kamalapur & Narayanganj. Train expected to reach Ctg around 11:30 PM.',
-    photo: true, confirmedCount: 8, commentCount: 4, votes: 23, verified: true,
-  },
-  {
-    id: '2', userId: 'u2', userName: 'Fahim Ahmed', userBadge: 'Helpful Traveler', badgeColor: C.gold,
-    trainName: 'Mahanagar Express', trainNumber: '#236', route: 'Today, 7:50 PM  •  Dhaka → Chattogram',
-    time: '45m ago', timeColor: C.orange, reportType: 'crowding', reportLabel: 'Crowding High',
-    reportColor: C.orange, reportBg: C.orangeTint,
-    description: 'High passenger pressure in Coach 3-5. Consider other coaches for comfortable journey.',
-    photo: true, confirmedCount: 12, commentCount: 6, votes: 31, verified: true,
-  },
-  {
-    id: '3', userId: 'u3', userName: 'Ayesha Akter', userBadge: 'Helpful Traveler', badgeColor: C.gold,
-    trainName: 'Sonar Bangla Express', trainNumber: '#787', route: 'Today, 6:40 PM  •  Dhaka → Rajshahi',
-    time: '1h ago', timeColor: C.green, reportType: 'ontime', reportLabel: 'Running On Time',
-    reportColor: C.green, reportBg: C.greenTint,
-    description: 'Train is running as per schedule. Departure: 06:00 PM (On Time)\nNext stop: Ishwardi Bypass',
-    photo: true, confirmedCount: 6, commentCount: 2, votes: 18, verified: true,
-  },
-];
+  let reportLabel: string = post.report_type;
+  let reportColor: string = C.blue;
+  let reportBg: string = C.blueTint;
 
-function PostCard({ post, onPress }: { post: CommunityPost; onPress: () => void }) {
+  if (post.report_type === 'DELAY') {
+    reportLabel = `${post.delay_minutes ?? '?'} min delay`;
+    reportColor = C.red;
+    reportBg = C.redTint;
+  } else if (post.report_type === 'CROWD') {
+    reportLabel = `Crowding: ${post.crowd_level ?? 'High'}`;
+    reportColor = C.orange;
+    reportBg = C.orangeTint;
+  }
+
+  const isTrusted = post.user?.is_trusted ?? false;
+
   return (
     <TouchableOpacity style={s.postCard} onPress={onPress} activeOpacity={0.9}>
       {/* User row */}
@@ -66,41 +57,47 @@ function PostCard({ post, onPress }: { post: CommunityPost; onPress: () => void 
         <View style={s.avatar} />
         <View style={{ flex: 1 }}>
           <View style={s.userNameRow}>
-            <Text style={s.userName}>{post.userName}</Text>
-            <View style={[s.badge, { backgroundColor: post.badgeColor === C.green ? C.greenTint : C.orangeTint }]}>
-              <Text style={[s.badgeText, { color: post.badgeColor }]}>{post.userBadge}</Text>
-            </View>
+            <Text style={s.userName}>{post.user?.display_name ?? 'Anonymous'}</Text>
+            {isTrusted && (
+              <View style={[s.badge, { backgroundColor: C.greenTint }]}>
+                <Text style={[s.badgeText, { color: C.green }]}>{t('community.trusted_reporter')}</Text>
+              </View>
+            )}
           </View>
-          <Text style={s.trainRef}>{post.trainName} {post.trainNumber}</Text>
-          <Text style={s.routeRef}>{post.route}</Text>
+          <Text style={s.trainRef}>{post.train?.name_en ?? ''} {post.train ? '#' + post.train.number : ''}</Text>
+          <Text style={s.routeRef}>{post.station?.name_en ?? ''}  •  {formatReportedAt(post.reported_at, t)}</Text>
         </View>
-        <Text style={[s.postTime, { color: post.timeColor }]}>{post.time}</Text>
+        <Text style={[s.postTime, { color: C.text2 }]}>{formatReportedAt(post.reported_at, t)}</Text>
       </View>
 
       <View style={s.divider} />
 
       {/* Report type */}
-      <View style={[s.reportTag, { backgroundColor: post.reportBg }]}>
-        <View style={[s.reportDot, { backgroundColor: post.reportColor }]} />
-        <Text style={[s.reportLabel, { color: post.reportColor }]}>{post.reportLabel}</Text>
+      <View style={[s.reportTag, { backgroundColor: reportBg }]}>
+        <View style={[s.reportDot, { backgroundColor: reportColor }]} />
+        <Text style={[s.reportLabel, { color: reportColor }]}>{reportLabel}</Text>
       </View>
 
-      <Text style={s.postDesc}>{post.description}</Text>
-      {post.photo && <View style={s.postPhoto} />}
-      <Text style={s.confirmedText}>{post.confirmedCount} travelers confirmed</Text>
-      <Text style={s.commentCountText}>{post.commentCount} comments</Text>
+      <Text style={s.postDesc}>{post.description ?? ''}</Text>
+      {post.photo_url ? <View style={s.postPhoto} /> : null}
+      <Text style={s.confirmedText}>{post.verification_count} travelers confirmed</Text>
+      <Text style={s.commentCountText}>{post.comment_count} comments</Text>
 
       <View style={s.divider} />
 
       {/* Actions */}
       <View style={s.postActions}>
-        <TouchableOpacity style={s.voteRow}>
-          <View style={s.voteUp} />
-          <Text style={s.voteCount}>{post.votes}</Text>
+        <TouchableOpacity style={s.voteRow} onPress={onVote}>
+          <View style={[s.voteUp, post.current_user_vote === 'CONFIRM' ? { backgroundColor: C.green } : {}]} />
+          <Text style={s.voteCount}>{post.helpful_count}</Text>
           <View style={s.voteDown} />
         </TouchableOpacity>
-        <TouchableOpacity style={s.actionBtn}><Text style={s.actionBtnText}>Comment</Text></TouchableOpacity>
-        <TouchableOpacity style={s.actionBtn}><Text style={s.actionBtnText}>Share</Text></TouchableOpacity>
+        <TouchableOpacity style={s.actionBtn} onPress={onComment}>
+          <Text style={s.actionBtnText}>Comment</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.actionBtn} onPress={onShare}>
+          <Text style={s.actionBtnText}>Share</Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -108,8 +105,45 @@ function PostCard({ post, onPress }: { post: CommunityPost; onPress: () => void 
 
 export default function CommunityScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<CommunityTab>('All');
-  const tabs: CommunityTab[] = ['All', 'Following', 'My Posts'];
+  const { t } = useTranslation();
+  const { user, isAuthenticated, isGuest } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'All' | 'Following' | 'My Posts'>('All');
+  const [refreshing, setRefreshing] = useState(false);
+  const tabs: Array<'All' | 'Following' | 'My Posts'> = ['All', 'Following', 'My Posts'];
+
+  const filter: ReportFilter =
+    activeTab === 'My Posts' && user?.id
+      ? { userId: user.id }
+      : activeTab === 'Following'
+      ? { status: 'VERIFIED' }
+      : null;
+
+  const { data: reports, isLoading, refetch } = useCommunityReports(filter);
+  const voteReport = useVoteReport();
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  const handleVote = (
+    reportId: string,
+    voteType: 'CONFIRM' | 'DISPUTE',
+    existingVote: 'CONFIRM' | 'DISPUTE' | null | undefined,
+  ) => {
+    if (!isAuthenticated && !isGuest) {
+      router.push('/auth/login' as any);
+      return;
+    }
+    voteReport.mutate({ reportId, voteType, existingVote: existingVote ?? null, activeFilter: filter });
+  };
+
+  const handleShare = async (report: CommunityReport) => {
+    const trainName = report.train?.name_en ?? 'Train';
+    const message = `${trainName}: ${report.description ?? report.report_type}`;
+    await Share.share({ message });
+  };
 
   return (
     <SafeAreaView style={s.root}>
@@ -123,7 +157,10 @@ export default function CommunityScreen() {
         </View>
         <View style={s.headerRight}>
           <TouchableOpacity style={s.iconBtn} />
-          <TouchableOpacity style={[s.iconBtn, { backgroundColor: C.green }]} onPress={() => router.push('/submit-report')} />
+          <TouchableOpacity
+            style={[s.iconBtn, { backgroundColor: C.green }]}
+            onPress={() => router.push('/submit-report' as any)}
+          />
         </View>
       </View>
 
@@ -140,14 +177,47 @@ export default function CommunityScreen() {
         ))}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
-        {POSTS.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onPress={() => router.push({ pathname: '/comments-discussion', params: { postId: post.id } })}
-          />
-        ))}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />
+        }
+      >
+        {isLoading && (
+          <>
+            <View style={{ height: 180, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
+            <View style={{ height: 180, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
+            <View style={{ height: 180, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
+          </>
+        )}
+
+        {reports?.length === 0 && !isLoading && (
+          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: S.xxxl }}>
+            <Text style={{ color: C.white, fontSize: T.lg, fontWeight: '700', marginBottom: S.sm }}>
+              {t('community.empty_title')}
+            </Text>
+            <Text style={{ color: C.text2, fontSize: T.base, textAlign: 'center' }}>
+              {t('community.empty_body')}
+            </Text>
+          </View>
+        )}
+
+        {!isLoading &&
+          (reports ?? []).map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onPress={() =>
+                router.push({ pathname: '/report-detail' as any, params: { id: post.id } })
+              }
+              onVote={() => handleVote(post.id, 'CONFIRM', post.current_user_vote)}
+              onComment={() =>
+                router.push({ pathname: '/comments-discussion' as any, params: { report_id: post.id } })
+              }
+              onShare={() => handleShare(post)}
+            />
+          ))}
 
         <View style={s.heroBanner}>
           <View style={s.heroIcon} />
@@ -155,7 +225,7 @@ export default function CommunityScreen() {
             <Text style={s.heroTitle}>Be a Community Hero!</Text>
             <Text style={s.heroSub}>Your updates help thousands of travelers make better journey decisions.</Text>
           </View>
-          <TouchableOpacity style={s.heroBtn} onPress={() => router.push('/submit-report')}>
+          <TouchableOpacity style={s.heroBtn} onPress={() => router.push('/submit-report' as any)}>
             <Text style={s.heroBtnText}>Submit Report</Text>
           </TouchableOpacity>
         </View>
