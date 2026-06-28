@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import '../global.css';
-import {
-  View, Image, StyleSheet, Animated,
-} from 'react-native';
+import { View } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colorScheme as nativewindColorScheme } from 'nativewind';
+import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
   Inter_400Regular,
@@ -32,15 +31,15 @@ import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
 
-function RootLayout() {
+// Keep the native splash visible until fonts + auth are ready.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+export default function RootLayout() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
   const { isGuest } = useAuthStore();
   const { theme: themePref, hasFinishedOnboarding } = usePrefsStore();
   const router = useRouter();
   const segments = useSegments();
-  const [initialized, setInitialized] = useState(false);
-  const [splashDone, setSplashDone] = useState(false);
-  const fadeAnim = React.useRef(new Animated.Value(1)).current;
 
   const resolvedTheme = useResolvedTheme();
   const colors = useThemeColors();
@@ -50,7 +49,7 @@ function RootLayout() {
   try {
     themeVars = getThemeVars(resolvedTheme);
   } catch {
-    // NativeWind vars() not available yet — skip on first render
+    // vars() not yet available — safe fallback
   }
 
   const [fontsLoaded, fontError] = useFonts({
@@ -66,11 +65,12 @@ function RootLayout() {
     JetBrainsMono_500Medium,
   });
 
-  // Keep NativeWind `dark:` variant resolution in sync with user preference.
+  // Sync NativeWind color scheme with user preference.
   useEffect(() => {
     nativewindColorScheme.set(themePref === 'system' ? 'system' : resolvedTheme);
   }, [themePref, resolvedTheme]);
 
+  // Init auth then hide the native splash.
   useEffect(() => {
     if (!fontsLoaded && !fontError) return;
 
@@ -78,73 +78,43 @@ function RootLayout() {
       try {
         await initialize();
       } catch {
-        // Auth init failed — continue; the navigation guard below will redirect
+        // Auth init failed — proceed anyway; nav guard will redirect
       }
-      setInitialized(true);
-      setTimeout(() => {
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }).start(() => setSplashDone(true));
-      }, 600);
+      // Hide native splash now that fonts + auth are ready
+      await SplashScreen.hideAsync().catch(() => {});
     })();
   }, [fontsLoaded, fontError]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Navigation guard — runs after auth is settled.
   useEffect(() => {
-    if (!initialized || isLoading) return;
+    if (isLoading) return;
 
     const seg0 = segments[0] as string | undefined;
     const inAuthGroup       = seg0 === 'auth';
     const inOnboardingGroup = seg0 === 'onboarding';
 
-    // 1. New user who hasn't completed onboarding → show onboarding
     if (!hasFinishedOnboarding && !inOnboardingGroup) {
       router.replace('/onboarding/welcome' as any);
       return;
     }
-
-    // 2. Authenticated user landing on auth screens → go home
     if ((isAuthenticated || isGuest) && inAuthGroup) {
       router.replace('/(tabs)');
       return;
     }
-
-    // 3. Unauthenticated, not guest, onboarding done → send to login
     if (!isAuthenticated && !isGuest && !inAuthGroup && !inOnboardingGroup && hasFinishedOnboarding) {
       router.replace('/auth/login' as any);
       return;
     }
-  }, [initialized, isLoading, isAuthenticated, isGuest, hasFinishedOnboarding, segments, router]);
+  }, [isLoading, isAuthenticated, isGuest, hasFinishedOnboarding, segments, router]);
+
+  // Don't render anything until fonts are ready — native splash is still showing
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <QueryClientProvider client={queryClient}>
       <View style={[{ flex: 1, backgroundColor: colors['bg-base'] }, themeVars as any]}>
         <Slot />
-        {!splashDone && (
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFill,
-              s.splash,
-              { backgroundColor: '#080D17' },
-              { opacity: fadeAnim },
-            ]}
-          >
-            <Image
-              source={require('../assets/images/splash.png')}
-              style={s.splashImage}
-              resizeMode="cover"
-            />
-          </Animated.View>
-        )}
       </View>
     </QueryClientProvider>
   );
 }
-
-export default RootLayout;
-
-const s = StyleSheet.create({
-  splash:      { zIndex: 9999 },
-  splashImage: { ...StyleSheet.absoluteFillObject },
-});
