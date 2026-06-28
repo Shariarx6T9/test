@@ -31,23 +31,27 @@ import { useAuthStore } from '../stores/authStore';
 import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
-import * as Sentry from '@sentry/react-native';
 
-Sentry.init({
-  // DSN sourced from environment — never hardcode secrets in source.
-  // Set EXPO_PUBLIC_SENTRY_DSN in your .env file.
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
-  sendDefaultPii: false,
-  replaysSessionSampleRate: 0.05,
-  replaysOnErrorSampleRate: 1.0,
-  integrations: [Sentry.mobileReplayIntegration()],
-  // Enable Spotlight in dev for local error inspection
-  spotlight: __DEV__,
-  // Don't send events during development — reduces noise
-  enabled: !__DEV__,
-});
+// Sentry: initialise only when a real DSN is configured to avoid a white
+// screen caused by the SDK trying to contact an empty/placeholder endpoint.
+let SentryWrap: <T extends React.ComponentType<any>>(c: T) => T = (c) => c;
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN ?? '';
+if (sentryDsn && !sentryDsn.includes('placeholder') && !sentryDsn.startsWith('https://your')) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Sentry = require('@sentry/react-native');
+    Sentry.init({
+      dsn: sentryDsn,
+      sendDefaultPii: false,
+      enabled: !__DEV__,
+    });
+    SentryWrap = Sentry.wrap;
+  } catch {
+    // Sentry unavailable — continue without it
+  }
+}
 
-export default Sentry.wrap(function RootLayout() {
+function RootLayout() {
   const { initialize, isAuthenticated, isLoading } = useAuth();
   const { isGuest } = useAuthStore();
   const { theme: themePref, hasFinishedOnboarding } = usePrefsStore();
@@ -59,11 +63,15 @@ export default Sentry.wrap(function RootLayout() {
 
   const resolvedTheme = useResolvedTheme();
   const colors = useThemeColors();
-  const themeVars = getThemeVars(resolvedTheme);
 
-  // BLOCKER 1 FIX: Load all four font families required by the design system.
-  // @expo-google-fonts packages require an explicit useFonts() call — the
-  // expo-font plugin alone only handles locally-bundled assets, not npm packages.
+  // Safely compute NativeWind CSS vars — fall back to empty object on error
+  let themeVars: object = {};
+  try {
+    themeVars = getThemeVars(resolvedTheme);
+  } catch {
+    // NativeWind vars() not available yet — skip on first render
+  }
+
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -83,23 +91,22 @@ export default Sentry.wrap(function RootLayout() {
   }, [themePref, resolvedTheme]);
 
   useEffect(() => {
-    // Wait for fonts before initializing auth so the first rendered frame uses
-    // the correct typefaces. fontError is treated as loaded (font failed but
-    // the app should still work with system font fallback rather than hang).
     if (!fontsLoaded && !fontError) return;
 
     (async () => {
-      await initialize();
+      try {
+        await initialize();
+      } catch {
+        // Auth init failed — continue; the navigation guard below will redirect
+      }
       setInitialized(true);
-      // Reduce splash delay: fonts are already loaded by this point so 800ms
-      // is enough to avoid a flash-of-unstyled-content without over-blocking.
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
           duration: 400,
           useNativeDriver: true,
         }).start(() => setSplashDone(true));
-      }, 800);
+      }, 600);
     })();
   }, [fontsLoaded, fontError]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -131,14 +138,14 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <View style={[{ flex: 1, backgroundColor: colors['bg-base'] }, themeVars]}>
+      <View style={[{ flex: 1, backgroundColor: colors['bg-base'] }, themeVars as any]}>
         <Slot />
         {!splashDone && (
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
               s.splash,
-              { backgroundColor: colors['bg-base'] },
+              { backgroundColor: '#080D17' },
               { opacity: fadeAnim },
             ]}
           >
@@ -152,7 +159,9 @@ export default Sentry.wrap(function RootLayout() {
       </View>
     </QueryClientProvider>
   );
-});
+}
+
+export default SentryWrap(RootLayout);
 
 const s = StyleSheet.create({
   splash:      { zIndex: 9999 },
