@@ -14,6 +14,7 @@ import { useSearchStore } from '../../stores/searchStore';
 import { useSavedRoutes } from '../../hooks/useSavedRoutes';
 import { useCommunityReports } from '../../hooks/useCommunityReports';
 import { useTranslation } from '../../i18n';
+import { supabase } from '../../lib/supabase';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -30,8 +31,24 @@ export default function HomeScreen() {
   const { t } = useTranslation();
 
   // Auth
-  const { user } = useAuthStore();
-  const displayName = user?.display_name ?? t('profile.traveler');
+  const { user, session } = useAuthStore();
+  const [displayName, setDisplayName] = React.useState(user?.display_name ?? t('profile.traveler'));
+
+  // Fetch display_name from users table on mount and when session changes
+  React.useEffect(() => {
+    const fetchDisplayName = async () => {
+      if (!session?.user?.id) return;
+      const { data, error } = await supabase
+        .from('users')
+        .select('display_name')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      if (!error && data?.display_name) {
+        setDisplayName(data.display_name);
+      }
+    };
+    fetchDisplayName();
+  }, [session?.user?.id]);
 
   // Greeting based on hour
   const hour = new Date().getHours();
@@ -131,9 +148,9 @@ export default function HomeScreen() {
             <View style={s.brand}>
               <View style={s.brandIcon}>
                 <Image
-                  source={require('../../assets/images/logo.png')}
-                  style={{ width: 24, height: 24 }}
-                  resizeMode="contain"
+                  source={require('../../assets/images/icon.png')}
+                  style={{ width: 40, height: 40, borderRadius: 12 }}
+                  resizeMode="cover"
                 />
               </View>
               <View>
@@ -337,7 +354,7 @@ const s = StyleSheet.create({
   hero: { backgroundColor: C.bg, paddingHorizontal: S.xxl, paddingTop: S.md, paddingBottom: S.xxl },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: S.lg },
   brand: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  brandIcon: { width: 40, height: 40, backgroundColor: C.green, borderRadius: 12, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  brandIcon: { width: 40, height: 40, borderRadius: 12, overflow: 'hidden' },
   brandRow: { flexDirection: 'row' },
   brandRail: { fontSize: T.lg, fontWeight: '800', color: C.white },
   brandMate: { fontSize: T.lg, fontWeight: '800', color: C.green },

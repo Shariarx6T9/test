@@ -21,7 +21,10 @@ export default function WelcomeScreen() {
   const { setLanguage } = usePrefsStore();
   const s = useMemo(() => createStyles(colors), [colors]);
 
-  const handleGetStarted = () => router.push('/onboarding/features' as any);
+  const handleGetStarted = () => {
+    setLanguage('en');
+    router.push('/onboarding/features' as any);
+  };
 
   const handleBengali = () => {
     setLanguage('bn');

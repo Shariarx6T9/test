@@ -133,8 +133,11 @@ export default function BadgesReputationScreen() {
             {LEVELS.map(lv => (
               <View key={lv.num} style={br.levelItem}>
                 {lv.current && <View style={br.currentBadge}><Text style={br.currentText}>Current</Text></View>}
-                <View style={[br.levelBadge, { borderColor: lv.color, backgroundColor: lv.current ? C.purpleTint : lv.done ? C.greenTint : C.surface2 }]}>
-                  <Star size={20} color={lv.color} weight={lv.done || lv.current ? 'fill' : 'regular'} />
+                <View style={[br.levelBadge, {
+                  backgroundColor: lv.current ? C.purple : lv.done ? C.green : '#1A1F2E',
+                  borderColor: lv.current ? C.purple : lv.done ? C.green : '#1A1F2E'
+                }]}>
+                  <Star size={20} color={lv.current || lv.done ? C.white : '#4E6480'} weight="fill" />
                 </View>
                 <Text style={br.levelNum}>Level {lv.num}</Text>
                 <Text style={[br.levelName, lv.current && { color: lv.color }]}>{lv.name}</Text>
@@ -157,14 +160,14 @@ export default function BadgesReputationScreen() {
             <View style={br.badgesGrid}>
               {ALL_BADGES.map((badge) => {
                 const locked = !earnedKeys.has(badge.key);
-                const iconBg = locked ? C.surface2 : badge.color + '22';
-                const iconColor = locked ? C.text3 : badge.color;
+                const iconBg = locked ? '#1A1F2E' : badge.color;
+                const iconColor = locked ? '#4E6480' : C.white;
                 const { Icon } = badge;
                 return (
                   <View key={badge.key} style={[br.badgeCard, { borderColor: locked ? C.border : badge.color }]}>
                     {!locked && <View style={br.checkMark} />}
-                    <View style={[br.badgeIcon, { backgroundColor: iconBg, borderColor: locked ? C.border : badge.color }]}>
-                      <Icon size={28} color={iconColor} weight={locked ? 'regular' : 'fill'} />
+                    <View style={[br.badgeIcon, { backgroundColor: iconBg, borderWidth: 0 }]}>
+                      <Icon size={28} color={iconColor} weight="fill" />
                     </View>
                     <Text style={[br.badgeName, locked && { color: C.text2 }]}>{badge.label}</Text>
                     <Text style={br.badgeDesc}>{badge.desc}</Text>
@@ -256,7 +259,7 @@ const br = StyleSheet.create({
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
   badgeCard: { width: '31%', backgroundColor: C.surface2, borderRadius: 14, borderWidth: 1, padding: S.md, alignItems: 'center', gap: S.xs },
   checkMark: { width: 20, height: 20, backgroundColor: C.green, borderRadius: 10, alignSelf: 'flex-end' },
-  badgeIcon: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  badgeIcon: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
   badgeName: { fontSize: T.xs, fontWeight: '700', color: C.white, textAlign: 'center' },
   badgeDesc: { fontSize: 8, color: C.text2, textAlign: 'center' },
   badgeEarned: { fontSize: 8, fontWeight: '600', color: C.green, textAlign: 'center' },

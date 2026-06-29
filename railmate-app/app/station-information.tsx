@@ -85,8 +85,27 @@ export default function StationInformationScreen() {
   if (!station && !stationLoading) {
     return (
       <SafeAreaView style={si.root}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: C.text2, fontSize: T.base }}>Station not found</Text>
+        <View style={si.header}>
+          <TouchableOpacity style={si.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={18} color={C.white} />
+          </TouchableOpacity>
+          <Text style={si.title}>Station Information</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg, padding: S.xl }}>
+          <View style={{ width: 80, height: 80, backgroundColor: C.surface2, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 40, color: C.text3 }}>🚉</Text>
+          </View>
+          <Text style={{ color: C.white, fontSize: T.lg, fontWeight: '700', textAlign: 'center' }}>Station Not Found</Text>
+          <Text style={{ color: C.text2, fontSize: T.base, textAlign: 'center' }}>
+            The station you're looking for doesn't exist or has been removed.
+          </Text>
+          <TouchableOpacity
+            style={{ backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md }}
+            onPress={() => router.back()}
+          >
+            <Text style={{ color: C.bg, fontWeight: '700', fontSize: T.base }}>Go Back</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );

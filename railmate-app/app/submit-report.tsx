@@ -8,6 +8,7 @@ import { useSubmitReport, useTrainSearch } from '../hooks/useCommunityReports';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n';
 import type { ReportType } from '../types/report.types';
+import { supabase } from '../lib/supabase';
 
 const STEPS = ['Train', 'Report Type', 'Details', 'Review', 'Submit'];
 
@@ -56,9 +57,48 @@ export default function SubmitReportScreen() {
   }
 
   const handleSubmit = async () => {
-    if (!selectedTrain || !reportType) return;
+    if (!selectedTrain || !reportType || !user?.id) return;
+
     try {
       setSubmittedError('');
+
+      // Ensure user exists in users table (create if missing)
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (checkError) {
+        console.log('[SubmitReport] user check error:', JSON.stringify(checkError, null, 2));
+      }
+
+      if (!existingUser) {
+        console.log('[SubmitReport] creating user row for:', user.id);
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            display_name: user.display_name || user.email?.split('@')[0] || 'Traveler',
+          });
+
+        if (insertError) {
+          console.log('[SubmitReport] user insert error:', JSON.stringify(insertError, null, 2));
+        }
+      }
+
+      // Now submit the report
+      console.log('[SubmitReport] Submitting with data:', JSON.stringify({
+        train_id: selectedTrain.id,
+        train_number: selectedTrain.number,
+        user_id: user.id,
+        report_type: reportType,
+        delay_minutes: reportType === 'DELAY' && delayMinutes ? parseInt(delayMinutes, 10) : null,
+        journey_date: new Date().toISOString().split('T')[0],
+      }, null, 2));
+
       await submitReport.mutateAsync({
         data: {
           train_id: selectedTrain.id,

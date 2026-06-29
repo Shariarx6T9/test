@@ -144,7 +144,7 @@ export default function NotificationsScreen() {
           <TouchableOpacity style={ns.iconBtn} />
         </View>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ns.filterRow} contentContainerStyle={{ paddingHorizontal: S.xl, gap: S.sm }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ns.filterRow} contentContainerStyle={{ flexDirection: 'row', gap: S.sm, paddingHorizontal: S.xl }}>
         {FILTERS.map(f => (
           <TouchableOpacity key={f.label} style={[ns.chip, active === f.label && { backgroundColor: f.bg, borderColor: f.color }]} onPress={() => setActive(f.label)}>
             <Text style={[ns.chipText, active === f.label && { color: f.color, fontWeight: '700' }]}>{f.label}</Text>
@@ -167,7 +167,7 @@ const ns = StyleSheet.create({
   headerRight: { flexDirection: 'row', gap: S.sm },
   iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
   filterRow: { marginBottom: S.md },
-  chip: { backgroundColor: C.surface, borderRadius: 20, paddingHorizontal: S.md, paddingVertical: 8, borderWidth: 1, borderColor: C.border },
+  chip: { backgroundColor: C.surface, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, height: 36, borderWidth: 1, borderColor: C.border, justifyContent: 'center' },
   chipText: { fontSize: T.sm, color: C.text2 },
   group: { gap: S.sm },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: S.sm },

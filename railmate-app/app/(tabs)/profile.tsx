@@ -94,10 +94,10 @@ export default function ProfileScreen() {
     return (
       <View style={s.profileRow}>
         {/* Avatar */}
-        <View style={s.avatarWrap}>
+        <TouchableOpacity style={s.avatarWrap} onPress={() => router.push('/profile-edit' as any)}>
           <Avatar uri={user?.avatar_url} name={user?.display_name ?? 'অতিথি'} size={72} />
           <View style={s.editBadge}><PencilSimple size={12} color={C.bg} /></View>
-        </View>
+        </TouchableOpacity>
         {/* Info */}
         <View style={s.profileInfo}>
           <View style={s.verifiedRow}>
