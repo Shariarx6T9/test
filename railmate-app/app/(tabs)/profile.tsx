@@ -1,7 +1,7 @@
 // app/(tabs)/profile.tsx — Profile Screen
 
 import React, { useCallback } from 'react';
-import { Bell, Gear, PencilSimple } from 'phosphor-react-native';
+import { Bell, Gear, PencilSimple, CaretRight, Shield, Train, MapPin, BookmarkSimple, UsersThree, Trophy, CheckCircle } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
@@ -16,6 +16,7 @@ interface MenuItem {
   label: string;
   sub: string;
   route: string;
+  icon: React.ReactElement;
 }
 
 export default function ProfileScreen() {
@@ -43,12 +44,12 @@ export default function ProfileScreen() {
   ];
 
   const MENU_ITEMS: MenuItem[] = [
-    { id: 'trips', label: t('journey.title'), sub: 'View and manage your journeys', route: '/journey-tools' },
-    { id: 'routes', label: t('profile.saved_routes'), sub: 'Your frequently used routes', route: '/journey-tools' },
-    { id: 'reminders', label: 'Notifications', sub: 'Manage your alerts', route: '/notifications' },
-    { id: 'leaderboard', label: t('leaderboard.title'), sub: 'Top contributors', route: '/leaderboard' },
-    { id: 'badges', label: t('profile.badges'), sub: 'Your achievements', route: '/badges-reputation' },
-    { id: 'settings', label: t('profile.settings'), sub: 'App preferences', route: '/settings' },
+    { id: 'trips', label: t('journey.title'), sub: t('profile.menu_trips_sub'), route: '/journey-tools', icon: <Train size={18} color={C.green} weight="fill" /> },
+    { id: 'routes', label: t('profile.saved_routes'), sub: t('profile.menu_routes_sub'), route: '/journey-tools', icon: <BookmarkSimple size={18} color={C.green} weight="fill" /> },
+    { id: 'reminders', label: t('profile.notifications'), sub: t('profile.menu_notif_sub'), route: '/notifications', icon: <Bell size={18} color={C.green} weight="fill" /> },
+    { id: 'leaderboard', label: t('leaderboard.title'), sub: t('profile.menu_leaderboard_sub'), route: '/leaderboard', icon: <Trophy size={18} color={C.green} weight="fill" /> },
+    { id: 'badges', label: t('profile.badges'), sub: t('profile.menu_badges_sub'), route: '/badges-reputation', icon: <CheckCircle size={18} color={C.green} weight="fill" /> },
+    { id: 'settings', label: t('profile.settings'), sub: t('profile.menu_settings_sub'), route: '/settings', icon: <Gear size={18} color={C.green} weight="fill" /> },
   ];
 
   const handleSignOut = useCallback(() => {
@@ -120,7 +121,7 @@ export default function ProfileScreen() {
         {/* XP box */}
           <Text style={s.xpLevel}>Level {level}</Text>
           <View style={s.xpBarBg}>
-            <View style={[s.xpBarFill, { width: Math.floor(progress * 80) }]} />
+            <View style={[s.xpBarFill, { width: `${Math.round(progress * 100)}%` as any }]} />
           </View>
           <Text style={s.xpProgress}>{xpTotal} / {nextLevelXP} XP</Text>
         </View>
@@ -153,13 +154,15 @@ export default function ProfileScreen() {
 
         {/* Privacy banner */}
         <View style={s.privacyBanner}>
-          <View style={s.privacyIcon} />
-          <View style={{ flex: 1 }}>
-            <Text style={s.privacyTitle}>Your data is safe and private</Text>
-            <Text style={s.privacySub}>RailMate never shares your personal information.</Text>
+          <View style={[s.privacyIcon, { alignItems: 'center', justifyContent: 'center' }]}>
+            <Shield size={18} color={C.green} weight="fill" />
           </View>
-          <TouchableOpacity style={s.privacyBtn}>
-            <Text style={s.privacyBtnText}>View Privacy</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.privacyTitle}>{t('profile.privacy_title')}</Text>
+            <Text style={s.privacySub}>{t('profile.privacy_sub')}</Text>
+          </View>
+          <TouchableOpacity style={s.privacyBtn} onPress={() => router.push('/settings' as any)}>
+            <Text style={s.privacyBtnText}>{t('profile.privacy_btn')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -189,12 +192,12 @@ export default function ProfileScreen() {
                 onPress={() => router.push(item.route as any)}
                 activeOpacity={0.7}
               >
-                <View style={s.menuIcon} />
+                <View style={s.menuIcon}>{item.icon}</View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.menuLabel}>{item.label}</Text>
                   <Text style={s.menuSub}>{item.sub}</Text>
                 </View>
-                <View style={s.menuChevron} />
+                <CaretRight size={16} color={C.text3} />
               </TouchableOpacity>
               {i < MENU_ITEMS.length - 1 && <View style={s.divider} />}
             </View>
@@ -212,16 +215,18 @@ export default function ProfileScreen() {
 
         {/* Community CTA */}
         <View style={s.communityBanner}>
-          <View style={s.communityIcon} />
+          <View style={[s.communityIcon, { alignItems: 'center', justifyContent: 'center' }]}>
+            <UsersThree size={22} color={C.green} weight="fill" />
+          </View>
           <View style={{ flex: 1 }}>
-            <Text style={s.communityTitle}>Together, We Travel Better</Text>
-            <Text style={s.communitySub}>Your updates help thousands of travelers every day.</Text>
+            <Text style={s.communityTitle}>{t('profile.community_cta_title')}</Text>
+            <Text style={s.communitySub}>{t('profile.community_cta_sub')}</Text>
           </View>
           <TouchableOpacity
             style={s.communityBtn}
             onPress={() => router.push('/(tabs)/community')}
           >
-            <Text style={s.communityBtnText}>Go to Community</Text>
+            <Text style={s.communityBtnText}>{t('profile.community_cta_btn')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -275,7 +280,7 @@ const s = StyleSheet.create({
   activityLabel: { fontSize: T.xs, color: C.text2, textAlign: 'center' },
   menuCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, padding: S.lg },
-  menuIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 10 },
+  menuIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   menuLabel: { fontSize: 14, fontWeight: '600', color: C.white },
   menuSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
   menuChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },

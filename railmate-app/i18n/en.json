@@ -444,5 +444,20 @@
   "settings.help_sub": "FAQs, guides and contact support",
   "settings.about": "About RailMate",
   "settings.about_sub": "Version 1.0.0 (Build 120)",
-  "train.arrive": "Arrive"
+  "train.arrive": "Arrive",
+  "community.subtitle": "Share updates, help fellow travelers",
+  "community.submit_report": "Submit Report",
+  "profile.privacy_title": "Your data is safe and private",
+  "profile.privacy_sub": "RailMate never shares your personal information.",
+  "profile.privacy_btn": "View Privacy",
+  "profile.community_cta_title": "Together, We Travel Better",
+  "profile.community_cta_sub": "Your updates help thousands of travelers every day.",
+  "profile.community_cta_btn": "Go to Community",
+  "profile.notifications": "Notifications",
+  "profile.menu_trips_sub": "View and manage your journeys",
+  "profile.menu_routes_sub": "Your frequently used routes",
+  "profile.menu_notif_sub": "Manage your alerts",
+  "profile.menu_leaderboard_sub": "Top contributors",
+  "profile.menu_badges_sub": "Your achievements",
+  "profile.menu_settings_sub": "App preferences"
 }

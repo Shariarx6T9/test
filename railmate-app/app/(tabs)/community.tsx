@@ -1,7 +1,7 @@
 // app/(tabs)/community.tsx — Community Screen
 
 import React, { useState, useCallback } from 'react';
-import { Bell, Plus } from 'phosphor-react-native';
+import { Bell, Plus, ThumbsUp, ChatCircle, ShareNetwork, UsersThree } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
@@ -55,7 +55,11 @@ function PostCard({
     <TouchableOpacity style={s.postCard} onPress={onPress} activeOpacity={0.9}>
       {/* User row */}
       <View style={s.userRow}>
-        <View style={s.avatar} />
+        <View style={[s.avatar, { alignItems: 'center', justifyContent: 'center' }]}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text2 }}>
+            {(post.user?.display_name ?? 'A').charAt(0).toUpperCase()}
+          </Text>
+        </View>
         <View style={{ flex: 1 }}>
           <View style={s.userNameRow}>
             <Text style={s.userName}>{post.user?.display_name ?? 'Anonymous'}</Text>
@@ -89,15 +93,16 @@ function PostCard({
       {/* Actions */}
       <View style={s.postActions}>
         <TouchableOpacity style={s.voteRow} onPress={onVote}>
-          <View style={[s.voteUp, post.current_user_vote === 'CONFIRM' ? { backgroundColor: C.green } : {}]} />
+          <ThumbsUp size={16} color={post.current_user_vote === 'CONFIRM' ? C.green : C.text2} weight={post.current_user_vote === 'CONFIRM' ? 'fill' : 'regular'} />
           <Text style={s.voteCount}>{post.helpful_count}</Text>
-          <View style={s.voteDown} />
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={onComment}>
-          <Text style={s.actionBtnText}>Comment</Text>
+          <ChatCircle size={14} color={C.text2} />
+          <Text style={s.actionBtnText}>{t('community.comment')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={onShare}>
-          <Text style={s.actionBtnText}>Share</Text>
+          <ShareNetwork size={14} color={C.text2} />
+          <Text style={s.actionBtnText}>{t('community.share')}</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -117,9 +122,7 @@ export default function CommunityScreen() {
       ? { userId: user.id }
       : activeTab === 2
       ? { status: 'VERIFIED' as const }
-      : activeTab === 1
-      ? { status: 'VERIFIED' as const }
-      : null;
+      : null; // tab 0 (All) and tab 1 (Following — not yet built) show all reports
 
   const { data: reports, isLoading, refetch } = useCommunityReports(filter);
   const voteReport = useVoteReport();
@@ -152,10 +155,12 @@ export default function CommunityScreen() {
     <SafeAreaView style={s.root}>
       <View style={s.header}>
         <View style={s.headerLeft}>
-          <View style={s.headerIcon} />
+          <View style={[s.headerIcon, { alignItems: 'center', justifyContent: 'center' }]}>
+            <UsersThree size={16} color={C.green} weight="fill" />
+          </View>
           <View>
-            <Text style={s.title}>Community</Text>
-            <Text style={s.subtitle}>Share updates, help fellow travelers</Text>
+            <Text style={s.title}>{t('community.title')}</Text>
+            <Text style={s.subtitle}>{t('community.subtitle')}</Text>
           </View>
         </View>
         <View style={s.headerRight}>
@@ -223,13 +228,15 @@ export default function CommunityScreen() {
           ))}
 
         <View style={s.heroBanner}>
-          <View style={s.heroIcon} />
+          <View style={[s.heroIcon, { alignItems: 'center', justifyContent: 'center' }]}>
+            <UsersThree size={22} color={C.green} weight="fill" />
+          </View>
           <View style={{ flex: 1 }}>
-            <Text style={s.heroTitle}>Be a Community Hero!</Text>
-            <Text style={s.heroSub}>Your updates help thousands of travelers make better journey decisions.</Text>
+            <Text style={s.heroTitle}>{t('community.hero_title')}</Text>
+            <Text style={s.heroSub}>{t('community.hero_sub')}</Text>
           </View>
           <TouchableOpacity style={s.heroBtn} onPress={() => router.push('/submit-report' as any)}>
-            <Text style={s.heroBtnText}>Submit Report</Text>
+            <Text style={s.heroBtnText}>{t('community.submit_report')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

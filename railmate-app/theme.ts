@@ -2,7 +2,7 @@
 // Use these across all screens for consistency
 
 export const colors = {
-  bg: '#0A0D13',
+  bg: '#080D17',
   surface: '#141826',
   surface2: '#1A1F2E',
   border: '#232B3E',
@@ -42,9 +42,9 @@ export const radius = {
 } as const;
 
 export const typography = {
-  xs: 9,
-  sm: 11,
-  base: 13,
+  xs: 12,
+  sm: 13,
+  base: 14,
   md: 15,
   lg: 17,
   xl: 20,

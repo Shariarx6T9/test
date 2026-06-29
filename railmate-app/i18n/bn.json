@@ -444,5 +444,20 @@
   "settings.help_sub": "প্রশ্নোত্তর, গাইড ও সহায়তা",
   "settings.about": "RailMate সম্পর্কে",
   "settings.about_sub": "ভার্সন ১.০.০ (বিল্ড ১২০)",
-  "train.arrive": "পৌঁছানোর সময়"
+  "train.arrive": "পৌঁছানোর সময়",
+  "community.subtitle": "আপডেট শেয়ার করুন, সহযাত্রীকে সাহায্য করুন",
+  "community.submit_report": "রিপোর্ট জমা দিন",
+  "profile.privacy_title": "আপনার ডেটা নিরাপদ ও ব্যক্তিগত",
+  "profile.privacy_sub": "RailMate কখনো আপনার ব্যক্তিগত তথ্য শেয়ার করে না।",
+  "profile.privacy_btn": "গোপনীয়তা দেখুন",
+  "profile.community_cta_title": "একসাথে, আমরা ভালো ভ্রমণ করি",
+  "profile.community_cta_sub": "আপনার আপডেট প্রতিদিন হাজারো যাত্রীকে সাহায্য করে।",
+  "profile.community_cta_btn": "কমিউনিটিতে যান",
+  "profile.notifications": "নোটিফিকেশন",
+  "profile.menu_trips_sub": "আপনার যাত্রা দেখুন ও পরিচালনা করুন",
+  "profile.menu_routes_sub": "আপনার ঘন ব্যবহৃত রুট",
+  "profile.menu_notif_sub": "সতর্কতা পরিচালনা করুন",
+  "profile.menu_leaderboard_sub": "শীর্ষ অবদানকারী",
+  "profile.menu_badges_sub": "আপনার অর্জন",
+  "profile.menu_settings_sub": "অ্যাপ পছন্দসমূহ"
 }

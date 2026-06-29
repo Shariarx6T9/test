@@ -123,6 +123,9 @@ export function useAuth() {
     const trimmed = email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signInWithOtp({
       email: trimmed,
+      options: {
+        shouldCreateUser: true,
+      },
     });
     if (error) return { error: error.message, data: null };
     return { error: null, data: { ...data, contact: trimmed } };

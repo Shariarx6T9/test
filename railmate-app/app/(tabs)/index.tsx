@@ -6,7 +6,7 @@ import {
   StyleSheet, SafeAreaView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Bell, ArrowsLeftRight, Lightning, Train, Bell as BellIcon, MapPin, Armchair, Calculator } from 'phosphor-react-native';
+import { Bell, ArrowsLeftRight, Lightning, Train, Bell as BellIcon, MapPin, Armchair, Calculator, UsersThree, WarningCircle } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 import { useAuthStore } from '../../stores/authStore';
 import { usePrefsStore } from '../../stores/prefsStore';
@@ -129,7 +129,9 @@ export default function HomeScreen() {
         <View style={s.hero}>
           <View style={s.heroTop}>
             <View style={s.brand}>
-              <View style={s.brandIcon} />
+              <View style={s.brandIcon}>
+                <Train size={20} color={C.bg} weight="fill" />
+              </View>
               <View>
                 <View style={s.brandRow}>
                   <Text style={s.brandRail}>Rail</Text>
@@ -274,7 +276,9 @@ export default function HomeScreen() {
                   return (
                     <View key={report.id}>
                       <View style={s.liveItem}>
-                        <View style={[s.liveIcon, { backgroundColor: statusBg }]} />
+                        <View style={[s.liveIcon, { backgroundColor: statusBg, alignItems: 'center', justifyContent: 'center' }]}>
+                          <WarningCircle size={20} color={statusColor} weight="fill" />
+                        </View>
                         <View style={s.liveInfo}>
                           <Text style={s.liveTrain}>{trainName}</Text>
                           <Text style={[s.liveStatus, { color: statusColor }]}>{statusText}</Text>
@@ -294,7 +298,9 @@ export default function HomeScreen() {
 
           {/* ── Community Banner ── */}
           <TouchableOpacity style={s.communityBanner} onPress={() => router.push('/(tabs)/community')}>
-            <View style={s.communityIcon} />
+            <View style={[s.communityIcon, { alignItems: 'center', justifyContent: 'center' }]}>
+              <UsersThree size={22} color={C.green} weight="fill" />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={s.communityLabel}>{t('home.today_activity')}</Text>
               <View style={s.communityStats}>
@@ -324,10 +330,10 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   scroll: { paddingBottom: 24 },
-  hero: { backgroundColor: '#070B12', paddingHorizontal: S.xxl, paddingTop: S.md, paddingBottom: S.xxl },
+  hero: { backgroundColor: C.bg, paddingHorizontal: S.xxl, paddingTop: S.md, paddingBottom: S.xxl },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: S.lg },
   brand: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  brandIcon: { width: 32, height: 32, backgroundColor: C.green, borderRadius: 8 },
+  brandIcon: { width: 32, height: 32, backgroundColor: C.green, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   brandRow: { flexDirection: 'row' },
   brandRail: { fontSize: T.lg, fontWeight: '800', color: C.white },
   brandMate: { fontSize: T.lg, fontWeight: '800', color: C.green },
