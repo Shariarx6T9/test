@@ -3,10 +3,10 @@
 import React from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, SafeAreaView,
+  StyleSheet, SafeAreaView, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Bell, ArrowsLeftRight, Lightning, Train, Bell as BellIcon, MapPin, Armchair, Calculator, UsersThree, WarningCircle } from 'phosphor-react-native';
+import { Bell, ArrowsLeftRight, Train, Briefcase, BellSimple, Buildings, Bus, Calculator, UsersThree, WarningCircle } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
 import { useAuthStore } from '../../stores/authStore';
 import { usePrefsStore } from '../../stores/prefsStore';
@@ -90,11 +90,11 @@ export default function HomeScreen() {
 
   // Quick action icons
   const QA_ICONS: Record<string, React.ReactElement> = {
-    live:    <Lightning size={20} color={C.green} weight="fill" />,
-    trips:   <Train size={20} color={C.green} weight="fill" />,
-    alert:   <BellIcon size={20} color={C.green} weight="fill" />,
-    station: <MapPin size={20} color={C.green} weight="fill" />,
-    coach:   <Armchair size={20} color={C.green} weight="fill" />,
+    live:    <Train size={20} color={C.green} weight="fill" />,
+    trips:   <Briefcase size={20} color={C.green} weight="fill" />,
+    alert:   <BellSimple size={20} color={C.green} weight="fill" />,
+    station: <Buildings size={20} color={C.green} weight="fill" />,
+    coach:   <Bus size={20} color={C.green} weight="fill" />,
     fare:    <Calculator size={20} color={C.green} weight="fill" />,
   };
 
@@ -130,7 +130,11 @@ export default function HomeScreen() {
           <View style={s.heroTop}>
             <View style={s.brand}>
               <View style={s.brandIcon}>
-                <Train size={20} color={C.bg} weight="fill" />
+                <Image
+                  source={require('../../assets/images/logo.png')}
+                  style={{ width: 24, height: 24 }}
+                  resizeMode="contain"
+                />
               </View>
               <View>
                 <View style={s.brandRow}>
@@ -333,7 +337,7 @@ const s = StyleSheet.create({
   hero: { backgroundColor: C.bg, paddingHorizontal: S.xxl, paddingTop: S.md, paddingBottom: S.xxl },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: S.lg },
   brand: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  brandIcon: { width: 32, height: 32, backgroundColor: C.green, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  brandIcon: { width: 40, height: 40, backgroundColor: C.green, borderRadius: 12, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   brandRow: { flexDirection: 'row' },
   brandRail: { fontSize: T.lg, fontWeight: '800', color: C.white },
   brandMate: { fontSize: T.lg, fontWeight: '800', color: C.green },

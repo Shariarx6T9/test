@@ -70,15 +70,20 @@ export default function SubmitReportScreen() {
       });
       setSubmitted(true);
     } catch (err: any) {
+      console.log('[SubmitReport] error:', JSON.stringify(err, null, 2));
       const msg = (err?.message || '').toLowerCase();
       if (err?.status === 429 || msg.includes('rate limit') || msg.includes('too many')) {
         setSubmittedError('অনেক বেশি রিপোর্ট করা হয়েছে। একটু পরে আবার চেষ্টা করুন।');
+      } else if (msg.includes('foreign key') || msg.includes('violates') || msg.includes('fk_')) {
+        setSubmittedError('প্রোফাইল সেটআপ প্রয়োজন। আবার চেষ্টা করুন।');
       } else if (msg.includes('schema') || msg.includes('column') || msg.includes('relation')) {
         setSubmittedError('রিপোর্ট জমা দেওয়া যায়নি। আবার চেষ্টা করুন।');
       } else if (msg.includes('network') || msg.includes('fetch')) {
         setSubmittedError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
+      } else if (msg.includes('jwt') || msg.includes('unauthorized') || msg.includes('not authenticated')) {
+        setSubmittedError('সেশন মেয়াদ উত্তীর্ণ। আবার লগইন করুন।');
       } else {
-        setSubmittedError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        setSubmittedError(`একটি সমস্যা হয়েছে: ${err?.message ?? 'অজানা ত্রুটি'}`);
       }
     }
   };

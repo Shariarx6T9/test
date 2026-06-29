@@ -154,7 +154,7 @@ export async function voteOnReport(
 export async function submitReport(
   data: ReportSubmitData & { user_id: string; photo_url?: string },
 ): Promise<void> {
-  const { error } = await supabase.from('community_reports').insert({
+  const payload = {
     user_id: data.user_id,
     train_id: data.train_id ?? null,
     station_id: data.station_id ?? null,
@@ -165,9 +165,16 @@ export async function submitReport(
     photo_url: data.photo_url ?? null,
     journey_date: data.journey_date ?? new Date().toISOString().split('T')[0],
     status: 'ACTIVE',
-  });
+  };
 
-  if (error) throw new Error(`submitReport: ${error.message}`);
+  console.log('[submitReport] payload:', JSON.stringify(payload, null, 2));
+
+  const { error } = await supabase.from('community_reports').insert(payload);
+
+  if (error) {
+    console.log('[submitReport] error:', JSON.stringify(error, null, 2));
+    throw new Error(`submitReport: ${error.message} (code: ${error.code})`);
+  }
 }
 
 // ─── Photo upload ─────────────────────────────────────────────────────────────

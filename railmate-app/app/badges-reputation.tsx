@@ -1,6 +1,6 @@
 // app/badges-reputation.tsx
 import React from 'react';
-import { ArrowLeft } from 'phosphor-react-native';
+import { ArrowLeft, Flag, ShieldCheck, Clock, Diamond, Lightning, Star } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -38,13 +38,13 @@ export default function BadgesReputationScreen() {
 
   // Badge definitions (all possible badges)
   const ALL_BADGES = [
-    { key: 'CONTRIBUTOR', label: t('badges.bronze'), desc: t('badges.desc_bronze'), color: C.orange },
-    { key: 'VERIFIED', label: t('badges.silver'), desc: t('badges.desc_silver'), color: C.text2 },
-    { key: 'REPORTER', label: t('badges.gold'), desc: t('badges.desc_gold'), color: C.gold },
-    { key: 'ELITE_REPORTER', label: t('badges.diamond'), desc: t('badges.desc_diamond'), color: C.blue },
-    { key: 'TRUSTED_REPORTER', label: t('badges.green'), desc: t('badges.desc_green'), color: C.green },
-    { key: 'DELAY_MASTER', label: t('badges.amber'), desc: t('badges.desc_amber'), color: C.orange },
-    { key: 'SPEED_REPORTER', label: t('badges.speed'), desc: t('badges.desc_speed'), color: C.purple },
+    { key: 'CONTRIBUTOR',    label: t('badges.bronze'), desc: t('badges.desc_bronze'), color: C.orange, Icon: Flag },
+    { key: 'VERIFIED',       label: t('badges.silver'), desc: t('badges.desc_silver'), color: C.text2,  Icon: ShieldCheck },
+    { key: 'REPORTER',       label: t('badges.gold'),   desc: t('badges.desc_gold'),   color: C.gold,   Icon: Star },
+    { key: 'ELITE_REPORTER', label: t('badges.diamond'),desc: t('badges.desc_diamond'),color: C.blue,   Icon: Diamond },
+    { key: 'TRUSTED_REPORTER',label: t('badges.green'), desc: t('badges.desc_green'),  color: C.green,  Icon: ShieldCheck },
+    { key: 'DELAY_MASTER',   label: t('badges.amber'),  desc: t('badges.desc_amber'),  color: C.orange, Icon: Clock },
+    { key: 'SPEED_REPORTER', label: t('badges.speed'),  desc: t('badges.desc_speed'),  color: C.purple, Icon: Lightning },
   ];
 
   const earnedKeys = new Set((userBadges ?? []).map((b: any) => b.badge_type));
@@ -134,7 +134,7 @@ export default function BadgesReputationScreen() {
               <View key={lv.num} style={br.levelItem}>
                 {lv.current && <View style={br.currentBadge}><Text style={br.currentText}>Current</Text></View>}
                 <View style={[br.levelBadge, { borderColor: lv.color, backgroundColor: lv.current ? C.purpleTint : lv.done ? C.greenTint : C.surface2 }]}>
-                  <Text style={[br.levelStar, { color: lv.color }]}>★</Text>
+                  <Star size={20} color={lv.color} weight={lv.done || lv.current ? 'fill' : 'regular'} />
                 </View>
                 <Text style={br.levelNum}>Level {lv.num}</Text>
                 <Text style={[br.levelName, lv.current && { color: lv.color }]}>{lv.name}</Text>
@@ -157,12 +157,14 @@ export default function BadgesReputationScreen() {
             <View style={br.badgesGrid}>
               {ALL_BADGES.map((badge) => {
                 const locked = !earnedKeys.has(badge.key);
-                const bg = locked ? C.surface2 : badge.color + '20';
+                const iconBg = locked ? C.surface2 : badge.color + '22';
+                const iconColor = locked ? C.text3 : badge.color;
+                const { Icon } = badge;
                 return (
                   <View key={badge.key} style={[br.badgeCard, { borderColor: locked ? C.border : badge.color }]}>
                     {!locked && <View style={br.checkMark} />}
-                    <View style={[br.badgeIcon, { backgroundColor: bg, borderColor: badge.color }]}>
-                      <Text style={[br.badgeStar, { color: badge.color }]}>★</Text>
+                    <View style={[br.badgeIcon, { backgroundColor: iconBg, borderColor: locked ? C.border : badge.color }]}>
+                      <Icon size={28} color={iconColor} weight={locked ? 'regular' : 'fill'} />
                     </View>
                     <Text style={[br.badgeName, locked && { color: C.text2 }]}>{badge.label}</Text>
                     <Text style={br.badgeDesc}>{badge.desc}</Text>
@@ -247,7 +249,6 @@ const br = StyleSheet.create({
   currentBadge: { backgroundColor: C.purple, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
   currentText: { fontSize: 8, fontWeight: '700', color: C.white },
   levelBadge: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  levelStar: { fontSize: 20 },
   levelNum: { fontSize: T.xs, fontWeight: '700', color: C.white, textAlign: 'center' },
   levelName: { fontSize: 8, color: C.text2, textAlign: 'center' },
   levelRange: { fontSize: 8, color: C.text3, textAlign: 'center' },
@@ -256,7 +257,6 @@ const br = StyleSheet.create({
   badgeCard: { width: '31%', backgroundColor: C.surface2, borderRadius: 14, borderWidth: 1, padding: S.md, alignItems: 'center', gap: S.xs },
   checkMark: { width: 20, height: 20, backgroundColor: C.green, borderRadius: 10, alignSelf: 'flex-end' },
   badgeIcon: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  badgeStar: { fontSize: 24 },
   badgeName: { fontSize: T.xs, fontWeight: '700', color: C.white, textAlign: 'center' },
   badgeDesc: { fontSize: 8, color: C.text2, textAlign: 'center' },
   badgeEarned: { fontSize: 8, fontWeight: '600', color: C.green, textAlign: 'center' },
