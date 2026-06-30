@@ -1,0 +1,432 @@
+[
+  {
+    "train_number": "787",
+    "station_code": "DHKA",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "07:00",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "787",
+    "station_code": "DABB",
+    "stop_sequence": 2,
+    "arrive_time": "07:20",
+    "depart_time": "07:22",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "787",
+    "station_code": "CTG",
+    "stop_sequence": 3,
+    "arrive_time": "11:55",
+    "depart_time": null,
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "788",
+    "station_code": "CTG",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "15:00",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "788",
+    "station_code": "DABB",
+    "stop_sequence": 2,
+    "arrive_time": "19:38",
+    "depart_time": "19:40",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "788",
+    "station_code": "DHKA",
+    "stop_sequence": 3,
+    "arrive_time": "19:55",
+    "depart_time": null,
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "703",
+    "station_code": "CTG",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "15:00",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "703",
+    "station_code": "COM",
+    "stop_sequence": 2,
+    "arrive_time": "17:10",
+    "depart_time": "17:15",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "703",
+    "station_code": "AKH",
+    "stop_sequence": 3,
+    "arrive_time": "17:55",
+    "depart_time": "18:00",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "703",
+    "station_code": "BBZ",
+    "stop_sequence": 4,
+    "arrive_time": "18:45",
+    "depart_time": "18:50",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "703",
+    "station_code": "NSD",
+    "stop_sequence": 5,
+    "arrive_time": "19:20",
+    "depart_time": "19:22",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "703",
+    "station_code": "DHKA",
+    "stop_sequence": 6,
+    "arrive_time": "21:40",
+    "depart_time": null,
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "704",
+    "station_code": "DHKA",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "07:45",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "704",
+    "station_code": "NSD",
+    "stop_sequence": 2,
+    "arrive_time": "08:45",
+    "depart_time": "08:47",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "704",
+    "station_code": "BBZ",
+    "stop_sequence": 3,
+    "arrive_time": "09:20",
+    "depart_time": "09:25",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "704",
+    "station_code": "AKH",
+    "stop_sequence": 4,
+    "arrive_time": "10:10",
+    "depart_time": "10:15",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "704",
+    "station_code": "COM",
+    "stop_sequence": 5,
+    "arrive_time": "10:55",
+    "depart_time": "11:00",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "704",
+    "station_code": "CTG",
+    "stop_sequence": 6,
+    "arrive_time": "14:25",
+    "depart_time": null,
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "701",
+    "station_code": "DHKA",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "07:00",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "701",
+    "station_code": "DABB",
+    "stop_sequence": 2,
+    "arrive_time": "07:20",
+    "depart_time": "07:22",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "701",
+    "station_code": "NSD",
+    "stop_sequence": 3,
+    "arrive_time": "08:20",
+    "depart_time": "08:22",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "701",
+    "station_code": "COM",
+    "stop_sequence": 4,
+    "arrive_time": "10:00",
+    "depart_time": "10:05",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "701",
+    "station_code": "CTG",
+    "stop_sequence": 5,
+    "arrive_time": "13:30",
+    "depart_time": null,
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "739",
+    "station_code": "DHKA",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "21:40",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "739",
+    "station_code": "DABB",
+    "stop_sequence": 2,
+    "arrive_time": "22:00",
+    "depart_time": "22:02",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "739",
+    "station_code": "BBZ",
+    "stop_sequence": 3,
+    "arrive_time": "23:10",
+    "depart_time": "23:15",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "739",
+    "station_code": "AKH",
+    "stop_sequence": 4,
+    "arrive_time": "00:10",
+    "depart_time": "00:15",
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "739",
+    "station_code": "SRM",
+    "stop_sequence": 5,
+    "arrive_time": "02:15",
+    "depart_time": "02:20",
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "739",
+    "station_code": "SYT",
+    "stop_sequence": 6,
+    "arrive_time": "04:50",
+    "depart_time": null,
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "707",
+    "station_code": "DHKA",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "19:00",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "DABB",
+    "stop_sequence": 2,
+    "arrive_time": "19:20",
+    "depart_time": "19:22",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "TNG",
+    "stop_sequence": 3,
+    "arrive_time": "19:45",
+    "depart_time": "19:48",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "IWD",
+    "stop_sequence": 4,
+    "arrive_time": "23:20",
+    "depart_time": "23:30",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "STH",
+    "stop_sequence": 5,
+    "arrive_time": "01:10",
+    "depart_time": "01:20",
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "BOG",
+    "stop_sequence": 6,
+    "arrive_time": "02:20",
+    "depart_time": "02:25",
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "PBP",
+    "stop_sequence": 7,
+    "arrive_time": "03:55",
+    "depart_time": "04:05",
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "707",
+    "station_code": "LMH",
+    "stop_sequence": 8,
+    "arrive_time": "04:30",
+    "depart_time": null,
+    "day_offset": 1,
+    "is_origin": false,
+    "is_destination": true
+  },
+  {
+    "train_number": "725",
+    "station_code": "DHKA",
+    "stop_sequence": 1,
+    "arrive_time": null,
+    "depart_time": "06:20",
+    "day_offset": 0,
+    "is_origin": true,
+    "is_destination": false
+  },
+  {
+    "train_number": "725",
+    "station_code": "DABB",
+    "stop_sequence": 2,
+    "arrive_time": "06:40",
+    "depart_time": "06:42",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "725",
+    "station_code": "TNG",
+    "stop_sequence": 3,
+    "arrive_time": "07:05",
+    "depart_time": "07:08",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "725",
+    "station_code": "IWD",
+    "stop_sequence": 4,
+    "arrive_time": "10:40",
+    "depart_time": "10:50",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "725",
+    "station_code": "JS",
+    "stop_sequence": 5,
+    "arrive_time": "13:05",
+    "depart_time": "13:10",
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": false
+  },
+  {
+    "train_number": "725",
+    "station_code": "KHU",
+    "stop_sequence": 6,
+    "arrive_time": "14:50",
+    "depart_time": null,
+    "day_offset": 0,
+    "is_origin": false,
+    "is_destination": true
+  }
+]

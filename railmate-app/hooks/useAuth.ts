@@ -18,8 +18,11 @@ export function useAuth() {
     session,
     isLoading,
     isAuthenticated,
+    isGuest,
+    isPremium,
     setUser,
     setSession,
+    setPremium,
     clearAuth,
     setLoading,
   } = useAuthStore();
@@ -231,11 +234,30 @@ export function useAuth() {
     clearAuth();
   }, [clearAuth]);
 
+  const refreshPremiumStatus = useCallback(async () => {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser?.id) return;
+
+    const profile = await fetchProfile(currentUser.id);
+    if (profile) {
+      setUser(profile);
+      setPremium(profile.is_premium ?? false);
+    }
+  }, [setUser, setPremium, fetchProfile]);
+
+  // Computed properties
+  const displayName = user?.display_name ?? (isGuest ? 'Guest' : 'Traveler');
+  const avatarUrl = user?.avatar_url ?? null;
+
   return {
     user,
     session,
     isAuthenticated,
+    isGuest,
+    isPremium,
     isLoading,
+    displayName,
+    avatarUrl,
     initialize,
     signInWithPhone,
     signInWithEmail,
@@ -243,5 +265,6 @@ export function useAuth() {
     register,
     signOut,
     deleteAccount,
+    refreshPremiumStatus,
   };
 }

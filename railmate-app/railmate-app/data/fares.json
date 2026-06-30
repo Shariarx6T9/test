@@ -1,0 +1,78 @@
+{
+  "_meta": {
+    "source": [
+      "shakiliitju/Bangladesh-Railway README.md — fare matrix response structure (confirmed format)",
+      "Shohoz API search-trips-v2 — live fare data embedded in trip search response",
+      "nishatrhythm/Bangladesh-Railway-Train-and-Fare-List-with-Route-Map — bdrailway.vercel.app"
+    ],
+    "confidence": "Low for specific fare values. Medium for structure and sample data. Fares change periodically and vary by train.",
+    "last_verified": "2026-06-10",
+    "critical_note": "⚠️ DO NOT hardcode fares in production. Bangladesh Railway adjusts fares without notice. Always fetch live fares from the Shohoz API search-trips-v2 endpoint and cache them with a TTL of 24 hours maximum.",
+    "manual_work_required": [
+      "Call POST /v1.0/web/bookings/search-trips-v2 for each major route pair",
+      "Extract fare fields: base_fare, vat_amount, online_service_charge from response",
+      "Store with route key: from_city + to_city + train_number + seat_class",
+      "Set up daily refresh job — fares change when BR issues new fare schedules"
+    ],
+    "fare_structure": {
+      "base_fare": "Base ticket price in BDT",
+      "vat_amount": "VAT (currently 15% on AC classes, 0% on non-AC as of 2025)",
+      "online_service_charge": "Per-ticket online booking fee in BDT",
+      "total": "base_fare + vat_amount + online_service_charge"
+    },
+    "api_response_fare_field_path": "data[].seat_types[].fare"
+  },
+  "sample_fares": [
+    {
+      "_note": "These are SAMPLE fares from community sources for reference only. Not for production use.",
+      "route": "DHAKA → CHATTOGRAM",
+      "distance_km": 321,
+      "fares": {
+        "S_CHAIR":  { "base_fare": 350,  "vat_amount": 0,  "online_service_charge": 25, "total": 375,  "source": "community" },
+        "SNIGDHA":  { "base_fare": 672,  "vat_amount": 101,"online_service_charge": 25, "total": 798,  "source": "community" },
+        "F_BERTH":  { "base_fare": 960,  "vat_amount": 0,  "online_service_charge": 25, "total": 985,  "source": "community" },
+        "AC_B":     { "base_fare": 1447, "vat_amount": 217,"online_service_charge": 25, "total": 1689, "source": "community" },
+        "AC_S":     { "base_fare": 1050, "vat_amount": 158,"online_service_charge": 25, "total": 1233, "source": "community" }
+      }
+    },
+    {
+      "route": "DHAKA → SYLHET",
+      "distance_km": 317,
+      "fares": {
+        "S_CHAIR":  { "base_fare": 315,  "vat_amount": 0,  "online_service_charge": 25, "total": 340,  "source": "community" },
+        "SNIGDHA":  { "base_fare": 624,  "vat_amount": 94, "online_service_charge": 25, "total": 743,  "source": "community" },
+        "AC_B":     { "base_fare": 1344, "vat_amount": 202,"online_service_charge": 25, "total": 1571, "source": "community" }
+      }
+    },
+    {
+      "route": "DHAKA → RAJSHAHI",
+      "distance_km": 348,
+      "fares": {
+        "S_CHAIR":  { "base_fare": 380,  "vat_amount": 0,  "online_service_charge": 25, "total": 405,  "source": "community" },
+        "SNIGDHA":  { "base_fare": 730,  "vat_amount": 110,"online_service_charge": 25, "total": 865,  "source": "community" },
+        "AC_B":     { "base_fare": 1570, "vat_amount": 236,"online_service_charge": 25, "total": 1831, "source": "community" }
+      }
+    },
+    {
+      "route": "DHAKA → KHULNA",
+      "distance_km": 392,
+      "fares": {
+        "S_CHAIR":  { "base_fare": 430,  "vat_amount": 0,  "online_service_charge": 25, "total": 455,  "source": "community" },
+        "SNIGDHA":  { "base_fare": 826,  "vat_amount": 124,"online_service_charge": 25, "total": 975,  "source": "community" },
+        "F_BERTH":  { "base_fare": 1181, "vat_amount": 0,  "online_service_charge": 25, "total": 1206, "source": "community" },
+        "AC_B":     { "base_fare": 1780, "vat_amount": 267,"online_service_charge": 25, "total": 2072, "source": "community" }
+      }
+    }
+  ],
+  "live_fare_api": {
+    "endpoint": "GET https://railspaapi.shohoz.com/v1.0/web/bookings/search-trips-v2",
+    "params": {
+      "from_city": "DHAKA",
+      "to_city": "CHATTOGRAM",
+      "date_of_journey": "YYYY-MM-DD",
+      "seat_class": "S_CHAIR"
+    },
+    "fare_location_in_response": "data[n].seat_types[n].fare",
+    "cache_ttl_recommended_hours": 24
+  }
+}

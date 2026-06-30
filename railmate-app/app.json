@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "RailMate",
-    "slug": "railmate",
-    "owner": "railmate-bd",
+    "slug": "trainproject",
+    "owner": "shariarshahed",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -27,7 +27,8 @@
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -39,6 +40,7 @@
       "backgroundColor": "#080D17"
     },
     "plugins": [
+      "./app.plugin.js",
       "expo-router",
       "expo-font",
       "@react-native-community/datetimepicker",
@@ -77,7 +79,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "5755480b-490f-4d76-87ec-e88a8ccce89c"
+        "projectId": "bfff13f1-579f-4c78-ad82-71c99306ab6c"
       }
     },
     "experiments": {
