@@ -84,7 +84,8 @@ export default function JourneyToolsScreen() {
         <View style={jt.card}>
           <View style={jt.sectionHeader}>
             <Text style={jt.sectionTitle}>My Trips</Text>
-            <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
+            {/* BUG 3 FIX: Remove dead "View All" button since feature is coming soon */}
+            {/* <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity> */}
           </View>
           <View style={jt.tripCard}>
             <View style={{ padding: S.xl, alignItems: 'center', gap: S.sm }}>

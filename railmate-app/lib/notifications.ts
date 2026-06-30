@@ -1,25 +1,18 @@
-// Notifications stub - expo-notifications not installed yet
-// TODO: Install expo-notifications and expo-device when implementing push notifications
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
-// Mock Notifications object until package is installed
-const Notifications = {
-  setNotificationHandler: () => {},
-  getPermissionsAsync: async () => ({ status: 'granted' as const }),
-  requestPermissionsAsync: async () => ({ status: 'granted' as const }),
-  getExpoPushTokenAsync: async (_options?: any) => ({ data: '' }),
-  setNotificationChannelAsync: async (_channelId: string, _options: any) => {},
-  scheduleNotificationAsync: async (_request: any) => '',
-  cancelScheduledNotificationAsync: async (_id: string) => {},
-  cancelAllScheduledNotificationsAsync: async () => {},
-  AndroidImportance: { MAX: 5 },
-  AndroidNotificationPriority: { HIGH: 1 },
-};
-
-const Device = {
-  isDevice: true,
-};
+/**
+ * Configure notification behavior
+ */
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 /**
  * Register for push notifications and save token to database

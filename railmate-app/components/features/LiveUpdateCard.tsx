@@ -1,0 +1,225 @@
+import React from 'react';
+import { View, Pressable, StyleSheet, Image } from 'react-native';
+import { AppText } from '../ui/AppText';
+import { StatusPill } from '../ui/StatusPill';
+import { Colors } from '../../constants/colors';
+import { Radius } from '../../constants/radius';
+
+type StatusType = 'delay' | 'crowding' | 'on_time' | 'platform' | 'halted';
+
+interface LiveUpdate {
+  train_name: string;
+  train_number: string;
+  route_from: string;
+  route_to: string;
+  status_type: StatusType;
+  status_label: string;
+  description?: string;
+  image_url?: string;
+  delay_minutes?: number;
+  reported_at: string;
+  reporter_count: number;
+  reporter_avatars?: string[];
+  stops?: Array<{ name: string; passed: boolean }>;
+}
+
+interface LiveUpdateCardProps {
+  update: LiveUpdate;
+  onPress?: () => void;
+}
+
+/**
+ * LiveUpdateCard - Compact live update card for feed
+ * Shows train, status, and reporter info
+ */
+export const LiveUpdateCard: React.FC<LiveUpdateCardProps> = ({ update, onPress }) => {
+  const borderColor = getBorderColorForStatus(update.status_type);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        pressed && styles.pressed,
+      ]}
+    >
+      {/* Left: Image with status overlay */}
+      {update.image_url && (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: update.image_url }}
+            style={[styles.image, { borderColor }]}
+          />
+          {update.delay_minutes && (
+            <View style={styles.delayBadge}>
+              <AppText variant="labelSm" color="#FFF">
+                {update.delay_minutes}m
+              </AppText>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Middle: Content */}
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <AppText variant="h4" numberOfLines={1}>
+            {update.train_name}
+          </AppText>
+          <AppText variant="mono" color={Colors.dark['text-tertiary']}>
+            #{update.train_number}
+          </AppText>
+        </View>
+
+        <AppText variant="caption" color={Colors.dark['text-secondary']} numberOfLines={1}>
+          {update.route_from} → {update.route_to}
+        </AppText>
+
+        <StatusPill type={update.status_type} label={update.status_label} style={styles.status} />
+
+        {update.description && (
+          <AppText variant="caption" color={Colors.dark['text-secondary']} numberOfLines={1}>
+            {update.description}
+          </AppText>
+        )}
+
+        {/* Progress dots for stops */}
+        {update.stops && update.stops.length > 0 && (
+          <View style={styles.stopsRow}>
+            {update.stops.map((stop, idx) => (
+              <View
+                key={idx}
+                style={[
+                  styles.stopDot,
+                  stop.passed ? styles.stopDotPassed : styles.stopDotAhead,
+                ]}
+              />
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Right: Reporter info */}
+      <View style={styles.reporterInfo}>
+        <AppText variant="caption" color={Colors.dark['text-tertiary']} align="right">
+          {update.reported_at}
+        </AppText>
+        {update.reporter_avatars && update.reporter_avatars.length > 0 && (
+          <View style={styles.avatarStack}>
+            {update.reporter_avatars.slice(0, 3).map((avatar, idx) => (
+              <Image
+                key={idx}
+                source={{ uri: avatar }}
+                style={[styles.avatar, { marginLeft: idx > 0 ? -8 : 0 }]}
+              />
+            ))}
+            {update.reporter_count > 3 && (
+              <View style={[styles.avatar, styles.avatarMore, { marginLeft: -8 }]}>
+                <AppText variant="labelSm" color="#FFF">
+                  +{update.reporter_count - 3}
+                </AppText>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    </Pressable>
+  );
+};
+
+function getBorderColorForStatus(type: StatusType): string {
+  switch (type) {
+    case 'delay':
+    case 'halted':
+      return Colors.dark.danger;
+    case 'on_time':
+      return Colors.dark.success;
+    case 'crowding':
+    case 'platform':
+    case 'warning':
+      return Colors.dark.accent;
+    default:
+      return Colors.dark.border;
+  }
+}
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    backgroundColor: Colors.dark['bg-card'],
+    borderRadius: Radius['radius-md'],
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    padding: 12,
+    gap: 12,
+  },
+  pressed: {
+    opacity: 0.9,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  delayBadge: {
+    position: 'absolute',
+    bottom: -4,
+    left: -4,
+    backgroundColor: Colors.dark.danger,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  content: {
+    flex: 1,
+    gap: 4,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  status: {
+    marginTop: 2,
+  },
+  stopsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 4,
+  },
+  stopDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  stopDotPassed: {
+    backgroundColor: Colors.dark.primary,
+  },
+  stopDotAhead: {
+    backgroundColor: Colors.dark['border-strong'],
+  },
+  reporterInfo: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  avatarStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.dark['bg-card'],
+  },
+  avatarMore: {
+    backgroundColor: Colors.dark['bg-overlay'],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

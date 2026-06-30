@@ -18,11 +18,8 @@ export function useAuth() {
     session,
     isLoading,
     isAuthenticated,
-    isGuest,
-    isPremium,
     setUser,
     setSession,
-    setPremium,
     clearAuth,
     setLoading,
   } = useAuthStore();
@@ -234,28 +231,19 @@ export function useAuth() {
     clearAuth();
   }, [clearAuth]);
 
-  const refreshPremiumStatus = useCallback(async () => {
-    const currentUser = useAuthStore.getState().user;
-    if (!currentUser?.id) return;
-
-    const profile = await fetchProfile(currentUser.id);
-    if (profile) {
-      setUser(profile);
-      setPremium(profile.is_premium ?? false);
-    }
-  }, [setUser, setPremium, fetchProfile]);
-
-  // Computed properties
-  const displayName = user?.display_name ?? (isGuest ? 'Guest' : 'Traveler');
-  const avatarUrl = user?.avatar_url ?? null;
+  // Computed properties from store
+  const { isGuest, isPremium } = useAuthStore();
+  // BUG 6 FIX: Never fall back to email prefix, always use "Traveler"
+  const displayName = user?.display_name?.trim() || 'Traveler';
+  const avatarUrl = user?.avatar_url || null;
 
   return {
     user,
     session,
     isAuthenticated,
+    isLoading,
     isGuest,
     isPremium,
-    isLoading,
     displayName,
     avatarUrl,
     initialize,
@@ -265,6 +253,5 @@ export function useAuth() {
     register,
     signOut,
     deleteAccount,
-    refreshPremiumStatus,
   };
 }

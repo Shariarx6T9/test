@@ -1,293 +1,143 @@
-// app/(tabs)/community.tsx — Community Screen
-
-import React, { useState, useCallback } from 'react';
-import { Bell, Plus, ThumbsUp, ChatCircle, ShareNetwork, UsersThree } from 'phosphor-react-native';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, Share } from 'react-native';
-import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
-import { useCommunityReports, useVoteReport } from '../../hooks/useCommunityReports';
-import { useAuthStore } from '../../stores/authStore';
-import { useTranslation } from '../../i18n';
-import type { CommunityReport, ReportFilter } from '../../types/report.types';
-
-const formatReportedAt = (iso: string, t: (key: any, params?: any) => string) => {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return t('community.just_now');
-  if (mins < 60) return t('community.min_ago', { n: mins });
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return t('community.hour_ago', { n: hours });
-  return new Date(iso).toLocaleDateString();
-};
-
-function PostCard({
-  post,
-  onPress,
-  onVote,
-  onComment,
-  onShare,
-}: {
-  post: CommunityReport;
-  onPress: () => void;
-  onVote: () => void;
-  onComment: () => void;
-  onShare: () => void;
-}) {
-  const { t } = useTranslation();
-
-  let reportLabel: string = post.report_type;
-  let reportColor: string = C.blue;
-  let reportBg: string = C.blueTint;
-
-  if (post.report_type === 'DELAY') {
-    reportLabel = `${post.delay_minutes ?? '?'} min delay`;
-    reportColor = C.red;
-    reportBg = C.redTint;
-  } else if (post.report_type === 'CROWD') {
-    reportLabel = `Crowding: ${post.crowd_level ?? 'High'}`;
-    reportColor = C.orange;
-    reportBg = C.orangeTint;
-  }
-
-  const isTrusted = post.user?.is_trusted ?? false;
-
-  return (
-    <TouchableOpacity style={s.postCard} onPress={onPress} activeOpacity={0.9}>
-      {/* User row */}
-      <View style={s.userRow}>
-        <View style={[s.avatar, { alignItems: 'center', justifyContent: 'center' }]}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text2 }}>
-            {(post.user?.display_name ?? 'A').charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <View style={s.userNameRow}>
-            <Text style={s.userName}>{post.user?.display_name ?? 'Anonymous'}</Text>
-            {isTrusted && (
-              <View style={[s.badge, { backgroundColor: C.greenTint }]}>
-                <Text style={[s.badgeText, { color: C.green }]}>{t('community.trusted_reporter')}</Text>
-              </View>
-            )}
-          </View>
-          <Text style={s.trainRef}>{post.train?.name_en ?? ''} {post.train ? '#' + post.train.number : ''}</Text>
-          <Text style={s.routeRef}>{post.station?.name_en ?? ''}  •  {formatReportedAt(post.reported_at, t)}</Text>
-        </View>
-        <Text style={[s.postTime, { color: C.text2 }]}>{formatReportedAt(post.reported_at, t)}</Text>
-      </View>
-
-      <View style={s.divider} />
-
-      {/* Report type */}
-      <View style={[s.reportTag, { backgroundColor: reportBg }]}>
-        <View style={[s.reportDot, { backgroundColor: reportColor }]} />
-        <Text style={[s.reportLabel, { color: reportColor }]}>{reportLabel}</Text>
-      </View>
-
-      <Text style={s.postDesc}>{post.description ?? ''}</Text>
-      {post.photo_url ? <View style={s.postPhoto} /> : null}
-      <Text style={s.confirmedText}>{post.verification_count} travelers confirmed</Text>
-      <Text style={s.commentCountText}>{post.comment_count} comments</Text>
-
-      <View style={s.divider} />
-
-      {/* Actions */}
-      <View style={s.postActions}>
-        <TouchableOpacity style={s.voteRow} onPress={onVote}>
-          <ThumbsUp size={16} color={post.current_user_vote === 'CONFIRM' ? C.green : C.text2} weight={post.current_user_vote === 'CONFIRM' ? 'fill' : 'regular'} />
-          <Text style={s.voteCount}>{post.helpful_count}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.actionBtn} onPress={onComment}>
-          <ChatCircle size={14} color={C.text2} />
-          <Text style={s.actionBtnText}>{t('community.comment')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.actionBtn} onPress={onShare}>
-          <ShareNetwork size={14} color={C.text2} />
-          <Text style={s.actionBtnText}>{t('community.share')}</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-}
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../hooks/useAuth';
+import { useCommunityReports } from '../../hooks/useCommunityReports';
+import { AppText } from '../../components/ui/AppText';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Skeleton } from '../../components/ui/Skeleton';
+import { ReportCard, SignInPrompt } from '../../components/features';
+import { Colors } from '../../constants/colors';
+import { Spacing } from '../../constants/spacing';
 
 export default function CommunityScreen() {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const { user, isAuthenticated, isGuest } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<number>(0);
-  const [refreshing, setRefreshing] = useState(false);
-  const tabs = [t('community.tab_all'), t('community.tab_following'), t('community.tab_verified'), t('community.tab_my_posts')];
+  const { user, isGuest } = useAuth();
+  const [activeTab, setActiveTab] = useState<'recent' | 'my'>('recent');
 
-  const filter: ReportFilter =
-    activeTab === 3 && user?.id
-      ? { userId: user.id }
-      : activeTab === 2
-      ? { status: 'VERIFIED' as const }
-      : null; // tab 0 (All) and tab 1 (Following — not yet built) show all reports
+  // Filter for my reports if user is logged in
+  const filter = activeTab === 'my' && user?.id ? { userId: user.id } : null;
+  const { data: reports = [], isLoading } = useCommunityReports(filter);
 
-  const { data: reports, isLoading, refetch } = useCommunityReports(filter);
-  const voteReport = useVoteReport();
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
-
-  const handleVote = (
-    reportId: string,
-    voteType: 'CONFIRM' | 'DISPUTE',
-    existingVote: 'CONFIRM' | 'DISPUTE' | null | undefined,
-  ) => {
-    if (!isAuthenticated && !isGuest) {
-      router.push('/auth/login' as any);
-      return;
-    }
-    voteReport.mutate({ reportId, voteType, existingVote: existingVote ?? null, activeFilter: filter });
-  };
-
-  const handleShare = async (report: CommunityReport) => {
-    const trainName = report.train?.name_en ?? 'Train';
-    const message = `${trainName}: ${report.description ?? report.report_type}`;
-    await Share.share({ message });
-  };
+  // Guest users see sign-in prompt
+  if (isGuest) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <SignInPrompt message="Sign in to join the community and report train status" />
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={s.root}>
-      <View style={s.header}>
-        <View style={s.headerLeft}>
-          <View style={[s.headerIcon, { alignItems: 'center', justifyContent: 'center' }]}>
-            <UsersThree size={16} color={C.green} weight="fill" />
-          </View>
-          <View>
-            <Text style={s.title}>{t('community.title')}</Text>
-            <Text style={s.subtitle}>{t('community.subtitle')}</Text>
-          </View>
-        </View>
-        <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn}><Bell size={18} color={C.text2} /></TouchableOpacity>
-          <TouchableOpacity
-            style={[s.iconBtn, { backgroundColor: C.green }]}
-            onPress={() => router.push('/submit-report' as any)}
-          ><Plus size={18} color={C.bg} /></TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <AppText variant="h1" style={styles.title}>Community</AppText>
+        <AppText variant="body" color={Colors.dark['text-secondary']}>
+          Share and view real-time train updates
+        </AppText>
       </View>
 
       {/* Tabs */}
-      <View style={s.tabsRow}>
-        {tabs.map((tab, idx) => (
-          <TouchableOpacity
-            key={tab}
-            style={[s.tab, activeTab === idx && s.tabActive]}
-            onPress={() => setActiveTab(idx)}
+      <View style={styles.tabs}>
+        <Pressable
+          style={[styles.tab, activeTab === 'recent' && styles.tabActive]}
+          onPress={() => setActiveTab('recent')}
+        >
+          <AppText
+            variant="labelLg"
+            color={activeTab === 'recent' ? Colors.dark.primary : Colors.dark['text-secondary']}
           >
-            <Text style={[s.tabText, activeTab === idx && s.tabTextActive]}>{tab}</Text>
-          </TouchableOpacity>
-        ))}
+            Recent Reports
+          </AppText>
+        </Pressable>
+        <Pressable
+          style={[styles.tab, activeTab === 'my' && styles.tabActive]}
+          onPress={() => setActiveTab('my')}
+        >
+          <AppText
+            variant="labelLg"
+            color={activeTab === 'my' ? Colors.dark.primary : Colors.dark['text-secondary']}
+          >
+            My Reports
+          </AppText>
+        </Pressable>
       </View>
 
       <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={s.scroll}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />
-        }
       >
-        {isLoading && (
+        {isLoading ? (
           <>
-            <View style={{ height: 180, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
-            <View style={{ height: 180, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
-            <View style={{ height: 180, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
+            <Skeleton width="100%" height={120} style={styles.skeleton} />
+            <Skeleton width="100%" height={120} style={styles.skeleton} />
+            <Skeleton width="100%" height={120} style={styles.skeleton} />
           </>
-        )}
-
-        {reports?.length === 0 && !isLoading && (
-          <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: S.xxxl }}>
-            <Text style={{ color: C.white, fontSize: T.lg, fontWeight: '700', marginBottom: S.sm }}>
-              {t('community.empty_title')}
-            </Text>
-            <Text style={{ color: C.text2, fontSize: T.base, textAlign: 'center' }}>
-              {t('community.empty_body')}
-            </Text>
-          </View>
-        )}
-
-        {!isLoading &&
-          (reports ?? []).map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onPress={() =>
-                router.push({ pathname: '/report-detail' as any, params: { id: post.id } })
-              }
-              onVote={() => handleVote(post.id, 'CONFIRM', post.current_user_vote)}
-              onComment={() =>
-                router.push({ pathname: '/comments-discussion' as any, params: { report_id: post.id } })
-              }
-              onShare={() => handleShare(post)}
+        ) : reports.length === 0 ? (
+          <EmptyState
+            iconName="Users"
+            title={activeTab === 'my' ? 'No reports yet' : 'No community reports'}
+            description={
+              activeTab === 'my'
+                ? 'Report train status to help fellow travelers'
+                : 'Be the first to report train status'
+            }
+          />
+        ) : (
+          reports.map((report) => (
+            <ReportCard
+              key={report.id}
+              report={report}
+              onPress={() => {
+                // TODO: Navigate to report detail
+              }}
             />
-          ))}
+          ))
+        )}
 
-        <View style={s.heroBanner}>
-          <View style={[s.heroIcon, { alignItems: 'center', justifyContent: 'center' }]}>
-            <UsersThree size={22} color={C.green} weight="fill" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.heroTitle}>{t('community.hero_title')}</Text>
-            <Text style={s.heroSub}>{t('community.hero_sub')}</Text>
-          </View>
-          <TouchableOpacity style={s.heroBtn} onPress={() => router.push('/submit-report' as any)}>
-            <Text style={s.heroBtnText}>{t('community.submit_report')}</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: S.xl, paddingVertical: S.md },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  headerIcon: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14 },
-  title: { fontSize: T.lg, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
-  headerRight: { flexDirection: 'row', gap: S.sm },
-  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  tabsRow: { flexDirection: 'row', marginHorizontal: S.xl, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border },
-  tab: { flex: 1, paddingVertical: S.md, alignItems: 'center', borderRadius: R.md },
-  tabActive: { backgroundColor: C.green },
-  tabText: { fontSize: T.base, fontWeight: '500', color: C.text2 },
-  tabTextActive: { fontWeight: '700', color: C.bg },
-  postCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
-  userRow: { flexDirection: 'row', alignItems: 'flex-start', gap: S.sm },
-  avatar: { width: 40, height: 40, backgroundColor: C.surface2, borderRadius: 20 },
-  userNameRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  userName: { fontSize: T.base, fontWeight: '700', color: C.white },
-  badge: { borderRadius: 20, paddingHorizontal: S.sm, paddingVertical: 3 },
-  badgeText: { fontSize: T.xs, fontWeight: '600' },
-  trainRef: { fontSize: T.sm, fontWeight: '600', color: C.text2, marginTop: 2 },
-  routeRef: { fontSize: T.xs, color: C.text3, marginTop: 1 },
-  postTime: { fontSize: T.sm, fontWeight: '600' },
-  divider: { height: 1, backgroundColor: C.border },
-  reportTag: { flexDirection: 'row', alignItems: 'center', gap: S.sm, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 6, alignSelf: 'flex-start' },
-  reportDot: { width: 16, height: 16, borderRadius: 8 },
-  reportLabel: { fontSize: T.base, fontWeight: '700' },
-  postDesc: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
-  postPhoto: { width: '100%', height: 100, backgroundColor: C.surface2, borderRadius: R.md },
-  confirmedText: { fontSize: T.sm, color: C.green },
-  commentCountText: { fontSize: T.sm, color: C.text3 },
-  postActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  voteRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  voteUp: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 10 },
-  voteCount: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  voteDown: { width: 20, height: 20, backgroundColor: C.surface2, borderRadius: 10 },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: S.xs },
-  actionBtnText: { fontSize: T.sm, color: C.text2 },
-  heroBanner: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
-  heroIcon: { width: 44, height: 44, backgroundColor: C.greenDark, borderRadius: 22 },
-  heroTitle: { fontSize: T.base, fontWeight: '700', color: C.green },
-  heroSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  heroBtn: { backgroundColor: C.green, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: S.sm },
-  heroBtnText: { fontSize: T.sm, fontWeight: '700', color: C.bg },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.dark['bg-base'],
+  },
+  header: {
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.base,
+    paddingBottom: Spacing.md,
+  },
+  title: {
+    marginBottom: Spacing.xs,
+  },
+  tabs: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.base,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.dark.border,
+  },
+  tab: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.base,
+    marginRight: Spacing.lg,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.dark.primary,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.base,
+  },
+  skeleton: {
+    borderRadius: 12,
+    marginBottom: Spacing.md,
+  },
 });

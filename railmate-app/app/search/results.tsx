@@ -11,6 +11,8 @@ import { useSearchTrains } from '../../hooks/useTrains';
 import { useTrainDelayStatus } from '../../hooks/useCommunityReports';
 import { TrainSearchResult } from '../../types/database.types';
 import { useTranslation } from '../../i18n';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../../lib/supabase';
 
 function SkeletonCard() {
   return (
@@ -132,6 +134,24 @@ export default function SearchResultsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await refetch(); setRefreshing(false); };
 
+  // BUG 4 FIX: When 0 results, fetch alternate trains from same origin station
+  const { data: alternateTrains } = useQuery({
+    queryKey: ['alternate_trains', params.from_station_id],
+    queryFn: async () => {
+      if (!params.from_station_id) return [];
+      const { data, error } = await supabase
+        .from('trains')
+        .select('id, number, name_en, type, origin_id, destination_id, days_of_week')
+        .eq('origin_id', params.from_station_id)
+        .eq('is_active', true)
+        .limit(5);
+      if (error) return [];
+      return data ?? [];
+    },
+    enabled: !isLoading && !error && (trains?.length ?? 0) === 0 && !!params.from_station_id,
+    staleTime: 5 * 60 * 1000,
+  });
+
   return (
     <SafeAreaView style={s.root}>
       {/* Header */}
@@ -194,15 +214,36 @@ export default function SearchResultsScreen() {
           </View>
         )}
 
-        {/* Empty state */}
+        {/* Empty state with alternate suggestions (BUG 4 FIX) */}
         {!isLoading && !error && trains?.length === 0 && (
-          <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
-            <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
-            <Text style={{ color: C.text2, fontSize: T.sm }}>{t('results.none_hint')}</Text>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
-            </TouchableOpacity>
-          </View>
+          <>
+            <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
+              <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
+              <Text style={{ color: C.text2, fontSize: T.sm }}>{t('results.none_hint')}</Text>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Alternate trains from same origin */}
+            {alternateTrains && alternateTrains.length > 0 && (
+              <View style={s.card}>
+                <Text style={s.sectionTitle}>Other trains from {params.from_name}</Text>
+                <Text style={[s.trainRoute, { marginBottom: S.md }]}>These trains depart from the same station</Text>
+                {alternateTrains.map((train) => (
+                  <TouchableOpacity
+                    key={train.id}
+                    style={[s.numberField, { marginBottom: S.sm }]}
+                    onPress={() => router.push({ pathname: '/train/[id]', params: { id: train.number } })}
+                  >
+                    <Text style={s.numBadgeText}>#{train.number}</Text>
+                    <Text style={[s.trainName, { flex: 1 }]}>{train.name_en}</Text>
+                    <Text style={s.trainRoute}>{train.type}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
         {/* Train list */}
@@ -281,4 +322,7 @@ const s = StyleSheet.create({
   communityTitle: { fontSize: T.sm, fontWeight: '600', color: C.green },
   communitySub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
   reportersStack: { width: 40, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
+  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
+  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white, marginBottom: S.sm },
+  numberField: { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: C.surface2, borderRadius: R.md, padding: S.md, borderWidth: 1, borderColor: C.border },
 });

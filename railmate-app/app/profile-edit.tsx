@@ -29,16 +29,27 @@ export default function ProfileEditScreen() {
 
     setIsSaving(true);
     try {
+      console.log('[ProfileEdit] SAVE START - user.id:', user.id);
+      console.log('[ProfileEdit] Payload:', JSON.stringify({
+        display_name: displayName.trim(),
+        phone: phone.trim() || null,
+        avatar_url: avatarUrl || null,
+      }, null, 2));
+
+      // BUG 1 FIX: Use UPSERT instead of UPDATE to handle missing rows
       const { data, error } = await supabase
         .from('users')
-        .update({
+        .upsert({
+          id: user.id,
           display_name: displayName.trim(),
           phone: phone.trim() || null,
           avatar_url: avatarUrl || null,
+          email: user.email || null,
         })
-        .eq('id', user.id)
         .select()
         .single();
+
+      console.log('[ProfileEdit] SAVE RESPONSE:', JSON.stringify({ data, error }, null, 2));
 
       if (error) throw error;
 
@@ -48,6 +59,7 @@ export default function ProfileEditScreen() {
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (err: any) {
+      console.log('[ProfileEdit] SAVE ERROR:', JSON.stringify(err, null, 2));
       Alert.alert('Error', err?.message ?? 'Failed to update profile');
     } finally {
       setIsSaving(false);
