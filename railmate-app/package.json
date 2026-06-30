@@ -11,7 +11,8 @@
     "type-check": "tsc",
     "typecheck": "tsc",
     "test:data": "node --test tests/*.test.mjs",
-    "generate:seed": "node scripts/generate_canonical_seed.mjs"
+    "generate:seed": "node scripts/generate_canonical_seed.mjs",
+    "postinstall": "patch-package && node scripts/postinstall.js"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",
@@ -68,6 +69,7 @@
     "@types/react": "~18.3.12",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~8.0.1",
+    "patch-package": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "private": true
