@@ -40,7 +40,6 @@
       "backgroundColor": "#080D17"
     },
     "plugins": [
-      "./app.plugin.js",
       "expo-router",
       "expo-font",
       "@react-native-community/datetimepicker",
