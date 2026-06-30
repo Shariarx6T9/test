@@ -1,0 +1,17 @@
+﻿node_modules
+.git
+.expo
+.expo-shared
+dist
+dist-test
+android/app/build
+android/.gradle
+ios/Pods
+ios/build
+*.apk
+*.zip
+*.log
+RailMate_UI_Screens/
+docs/
+*.md
+!README.md
