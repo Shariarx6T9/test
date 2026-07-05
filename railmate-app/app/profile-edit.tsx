@@ -87,17 +87,15 @@ export default function ProfileEditScreen() {
 
     try {
       // Upload to Supabase Storage
+      // On React Native Android, fetch().blob() fails with "Creating blobs from
+      // ArrayBuffer not supported". The correct approach is to pass the file
+      // object directly — the React Native polyfill handles it.
       const fileName = `avatar-${user?.id}-${Date.now()}.jpg`;
-      const formData = new FormData();
-      formData.append('file', {
-        uri: imageUri,
-        name: fileName,
-        type: 'image/jpeg',
-      } as any);
+      const fileObject = { uri: imageUri, type: 'image/jpeg', name: fileName } as any;
 
       const { data, error } = await supabase.storage
         .from('avatars')
-        .upload(fileName, formData, {
+        .upload(fileName, fileObject, {
           contentType: 'image/jpeg',
           upsert: true,
         });

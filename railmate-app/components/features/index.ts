@@ -13,3 +13,6 @@ export { ReportCard } from './ReportCard/ReportCard';
 export { StationSelector } from './StationSelector/StationSelector';
 export { SavedRouteChip } from './SavedRouteChip/SavedRouteChip';
 export { SignInPrompt } from './SignInPrompt';
+export { LiveTrainCard } from './LiveTrainCard';
+export { LiveTrackingSection } from './LiveTrackingSection';
+export { TrainProgressBar } from './TrainProgressBar';

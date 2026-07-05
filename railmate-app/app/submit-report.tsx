@@ -1,6 +1,6 @@
 // app/submit-report.tsx
 import React, { useState } from 'react';
-import { ArrowLeft } from 'phosphor-react-native';
+import { ArrowLeft, Train as TrainIcon } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
@@ -26,6 +26,7 @@ export default function SubmitReportScreen() {
   const { user, isAuthenticated } = useAuthStore();
   const [step, setStep] = useState(0);
   const [trainQuery, setTrainQuery] = useState('');
+  const [trainNumberQuery, setTrainNumberQuery] = useState('');
   const [selectedTrain, setSelectedTrain] = useState<{ id: string; name_en: string; number: string } | null>(null);
   const [reportType, setReportType] = useState<ReportType | null>(null);
   const [delayMinutes, setDelayMinutes] = useState('');
@@ -35,6 +36,7 @@ export default function SubmitReportScreen() {
 
   // All hooks must be called before any conditional returns
   const { data: trainResults } = useTrainSearch(trainQuery);
+  const { data: trainNumberResults } = useTrainSearch(trainNumberQuery);
   const submitReport = useSubmitReport();
 
   // Auth guard (after all hooks)
@@ -200,8 +202,8 @@ export default function SubmitReportScreen() {
               <View style={sr.stepHeader}>
                 <View style={sr.stepIcon} />
                 <View>
-                  <Text style={sr.stepTitle}>Step 1: Select Train</Text>
-                  <Text style={sr.stepDesc}>Choose the train you want to report on</Text>
+                  <Text style={sr.stepTitle}>{t('report.step1')}</Text>
+                  <Text style={sr.stepDesc}>{t('report.step1_desc')}</Text>
                 </View>
               </View>
 
@@ -222,7 +224,7 @@ export default function SubmitReportScreen() {
                     style={[sr.trainChip, selectedTrain?.id === train.id && sr.trainChipActive]}
                     onPress={() => setSelectedTrain({ id: train.id, name_en: train.name_en, number: train.number })}
                   >
-                    <View style={sr.trainChipIcon} />
+                    <TrainIcon size={16} color={selectedTrain?.id === train.id ? C.green : C.text2} />
                     <Text style={[sr.trainChipNum, selectedTrain?.id === train.id && { color: C.green }]}>
                       {train.number}
                     </Text>
@@ -232,15 +234,48 @@ export default function SubmitReportScreen() {
               </View>
 
               <Text style={sr.orText}>OR</Text>
-              <View style={sr.numberField}>
+              <View style={[sr.numberField, { flexDirection: 'row', alignItems: 'center' }]}>
                 <Text style={sr.numHash}>#</Text>
-                <Text style={sr.numPlaceholder}>e.g., 701</Text>
+                <TextInput
+                  style={{ flex: 1, color: C.white, fontSize: T.base, paddingVertical: S.sm }}
+                  placeholder={t('community.train_number_placeholder')}
+                  placeholderTextColor={C.text3}
+                  keyboardType="number-pad"
+                  value={trainNumberQuery}
+                  onChangeText={(v) => {
+                    const cleaned = v.replace(/[^0-9]/g, '');
+                    setTrainNumberQuery(cleaned);
+                    // Auto-select if exactly one match found
+                    if (trainNumberResults?.length === 1) {
+                      const match = trainNumberResults[0];
+                      setSelectedTrain({ id: match.id, name_en: match.name_en, number: match.number });
+                    }
+                  }}
+                />
               </View>
+              {/* Show number-based search results */}
+              {trainNumberQuery.length >= 2 && (trainNumberResults ?? []).length > 0 && (
+                <View style={{ gap: 4, marginTop: S.sm }}>
+                  {(trainNumberResults ?? []).slice(0, 3).map((train) => (
+                    <TouchableOpacity
+                      key={train.id}
+                      style={[sr.numberField, selectedTrain?.id === train.id && { borderColor: C.green, backgroundColor: C.greenTint }]}
+                      onPress={() => setSelectedTrain({ id: train.id, name_en: train.name_en, number: train.number })}
+                    >
+                      <TrainIcon size={16} color={selectedTrain?.id === train.id ? C.green : C.text2} />
+                      <Text style={{ flex: 1, color: selectedTrain?.id === train.id ? C.green : C.white, fontSize: T.sm, marginLeft: S.sm }}>
+                        #{train.number} — {train.name_en}
+                      </Text>
+                      {selectedTrain?.id === train.id && <Text style={{ color: C.green }}>✓</Text>}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
 
             {selectedTrain && (
               <View style={sr.selectedCard}>
-                <View style={sr.selectedIcon} />
+                <View style={sr.selectedIconWrap}><TrainIcon size={20} color={C.green} /></View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={sr.selectedName}>{selectedTrain.name_en} ({selectedTrain.number})</Text>
                   <View style={sr.selectedMeta}>
@@ -278,8 +313,8 @@ export default function SubmitReportScreen() {
               <View style={sr.stepHeader}>
                 <View style={sr.stepIcon} />
                 <View>
-                  <Text style={sr.stepTitle}>Step 2: Report Type</Text>
-                  <Text style={sr.stepDesc}>What would you like to report?</Text>
+                  <Text style={sr.stepTitle}>{t('report.step2')}</Text>
+                  <Text style={sr.stepDesc}>{t('report.step2_desc')}</Text>
                 </View>
               </View>
               <View style={{ gap: S.sm }}>
@@ -327,8 +362,8 @@ export default function SubmitReportScreen() {
               <View style={sr.stepHeader}>
                 <View style={sr.stepIcon} />
                 <View>
-                  <Text style={sr.stepTitle}>Step 3: Details</Text>
-                  <Text style={sr.stepDesc}>Add more information about the report</Text>
+                  <Text style={sr.stepTitle}>{t('report.step3')}</Text>
+                  <Text style={sr.stepDesc}>{t('report.step3_desc')}</Text>
                 </View>
               </View>
 
@@ -374,13 +409,13 @@ export default function SubmitReportScreen() {
               <View style={sr.stepHeader}>
                 <View style={sr.stepIcon} />
                 <View>
-                  <Text style={sr.stepTitle}>Step 4: Review</Text>
-                  <Text style={sr.stepDesc}>Confirm your report before submitting</Text>
+                  <Text style={sr.stepTitle}>{t('report.step4')}</Text>
+                  <Text style={sr.stepDesc}>{t('report.step4_desc')}</Text>
                 </View>
               </View>
 
               <View style={sr.selectedCard}>
-                <View style={sr.selectedIcon} />
+                <View style={sr.selectedIconWrap}><TrainIcon size={20} color={C.green} /></View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={sr.selectedName}>{selectedTrain?.name_en} ({selectedTrain?.number})</Text>
                   <Text style={sr.selectedRoute}>{reportType}</Text>
@@ -457,6 +492,7 @@ const sr = StyleSheet.create({
   numPlaceholder: { fontSize: T.base, color: C.text3 },
   selectedCard: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.green, padding: S.lg },
   selectedIcon: { width: 48, height: 48, backgroundColor: C.greenTint, borderRadius: 24 },
+  selectedIconWrap: { width: 48, height: 48, backgroundColor: C.greenTint, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   selectedName: { fontSize: 14, fontWeight: '700', color: C.white },
   selectedRoute: { fontSize: T.sm, color: C.text2 },
   selectedMeta: { flexDirection: 'row', gap: S.md },

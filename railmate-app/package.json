@@ -28,21 +28,21 @@
     "@supabase/supabase-js": "^2.45.0",
     "@tanstack/react-query": "^5.101.2",
     "buffer": "^6.0.3",
-    "expo": "^56.0.12",
+    "expo": "^56.0.14",
     "expo-application": "~56.0.3",
-    "expo-constants": "^56.0.18",
-    "expo-dev-client": "^56.0.20",
+    "expo-constants": "^56.0.20",
+    "expo-dev-client": "^56.0.22",
     "expo-device": "~56.0.4",
     "expo-file-system": "~56.0.8",
     "expo-font": "~56.0.7",
     "expo-haptics": "~56.0.3",
-    "expo-image-picker": "~56.0.18",
+    "expo-image-picker": "~56.0.19",
     "expo-linear-gradient": "~56.0.4",
-    "expo-linking": "^56.0.14",
+    "expo-linking": "^56.0.15",
     "expo-localization": "~56.0.6",
-    "expo-location": "~56.0.18",
-    "expo-router": "~56.2.11",
-    "expo-splash-screen": "^56.0.10",
+    "expo-location": "~56.0.19",
+    "expo-router": "^56.2.13",
+    "expo-splash-screen": "^56.0.12",
     "expo-status-bar": "~56.0.4",
     "nanoid": "^5.0.0",
     "nativewind": "^4.2.6",
@@ -54,7 +54,7 @@
     "react-native": "0.85.3",
     "react-native-css-interop": "^0.2.5",
     "react-native-get-random-values": "~1.11.0",
-    "react-native-reanimated": "4.3.1",
+    "react-native-reanimated": "^4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-svg": "15.15.4",
@@ -66,13 +66,19 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@expo/config-plugins": "^56.0.9",
     "@react-native-community/cli": "latest",
-    "@types/react": "~18.3.12",
+    "@types/react": "~19.2.14",
     "eslint": "^9.39.4",
-    "eslint-config-expo": "~8.0.1",
+    "eslint-config-expo": "~56.0.4",
     "patch-package": "^8.0.1",
-    "typescript": "^5.3.3"
+    "typescript": "~6.0.3"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native-worklets"
+      ]
+    }
+  }
 }

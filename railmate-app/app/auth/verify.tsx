@@ -38,16 +38,20 @@ export default function VerifyScreen() {
     setLoading(true);
 
     try {
-      const { error: verifyError } = await verifyOTP(contact, otp, type);
+      const { error: verifyError, isNewUser } = await verifyOTP(contact, otp, type);
       if (verifyError) {
         setError(verifyError);
       } else {
-        // Success - redirect to home or back to previous screen
-        const redirect = params.redirect as string;
-        if (redirect) {
-          router.replace(redirect as any);
+        // SUCCESS FIX: New users must complete profile, existing users go to home
+        if (isNewUser) {
+          router.replace('/auth/register' as any);
         } else {
-          router.replace('/(tabs)' as any);
+          const redirect = params.redirect as string;
+          if (redirect) {
+            router.replace(redirect as any);
+          } else {
+            router.replace('/(tabs)' as any);
+          }
         }
       }
     } catch (e) {

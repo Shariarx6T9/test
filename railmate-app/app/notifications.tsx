@@ -1,7 +1,8 @@
 // app/notifications.tsx
 import React, { useState } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
 import { supabase } from '../lib/supabase';
@@ -47,14 +48,24 @@ export default function NotificationsScreen() {
     queryKey: ['alerts', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('alerts')
-        .select('id, user_id, train_id, station_id, alert_type, is_active, created_at, read_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(30);
-      if (error) throw error;
-      return data ?? [];
+      try {
+        const { data, error } = await supabase
+          .from('alerts')
+          .select('id, user_id, train_id, station_id, alert_type, is_active, created_at, read_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(30);
+        if (error) {
+          const msg = (error as any)?.message ?? '';
+          if (msg.includes('does not exist') || msg.includes('relation')) return [];
+          throw error;
+        }
+        return data ?? [];
+      } catch (err: any) {
+        const msg = err?.message ?? '';
+        if (msg.includes('does not exist') || msg.includes('relation')) return [];
+        throw err;
+      }
     },
     enabled: !!user?.id,
     staleTime: 30_000,

@@ -1,53 +1,43 @@
+// app/onboarding/features.tsx
 import React, { useMemo, useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, Dimensions, ScrollView,
+  View, Text, StyleSheet, Pressable, Dimensions, ScrollView, ImageBackground,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MagnifyingGlass, UsersThree, BellSimple, ArrowRight } from 'phosphor-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowRight } from 'phosphor-react-native';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
+import { useTranslation } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 const PRIMARY = '#00A859';
 
-// Exactly matching the approved specification and Image 1:
-// Slide 1: Search & Plan
-// Slide 2: Community Intelligence
-// Slide 3: Smart Alerts
-const SLIDES = [
-  {
-    Icon: MagnifyingGlass,
-    color: PRIMARY,
-    bg: 'rgba(0,168,89,0.12)',
-    title: 'Search & Plan',
-    desc: 'Find trains, schedules and fares instantly.',
-  },
-  {
-    Icon: UsersThree,
-    color: '#4EA8E0',
-    bg: 'rgba(78,168,224,0.12)',
-    title: 'Community Intelligence',
-    desc: 'Passengers helping passengers travel smarter.',
-  },
-  {
-    Icon: BellSimple,
-    color: '#F5A623',
-    bg: 'rgba(245,166,35,0.12)',
-    title: 'Smart Alerts',
-    desc: 'Never miss important journey updates.',
-  },
-] as const;
+const SLIDES_EN = [
+  { image: require('../../assets/images/onboarding-1.png'), title: 'Search & Plan', desc: 'Find trains, schedules and fares instantly.' },
+  { image: require('../../assets/images/onboarding-2.png'), title: 'Community Intelligence', desc: 'Passengers helping passengers travel smarter.' },
+  { image: require('../../assets/images/onboarding-3.png'), title: 'Smart Alerts', desc: 'Never miss important journey updates.' },
+];
 
-const TOTAL_SLIDES = 5; // welcome(1) + features(3) + permissions(1)
-const FEATURE_START_IDX = 1; // features occupy dots 1,2,3 (0-indexed)
+const SLIDES_BN = [
+  { image: require('../../assets/images/onboarding-1.png'), title: 'খুঁজুন ও পরিকল্পনা করুন', desc: 'তাৎক্ষণিকভাবে ট্রেন, সময়সূচি ও ভাড়া খুঁজুন।' },
+  { image: require('../../assets/images/onboarding-2.png'), title: 'কমিউনিটি ইন্টেলিজেন্স', desc: 'যাত্রীরা যাত্রীদের সাহায্য করে স্মার্টভাবে যাত্রা করতে।' },
+  { image: require('../../assets/images/onboarding-3.png'), title: 'স্মার্ট অ্যালার্ট', desc: 'গুরুত্বপূর্ণ যাত্রা আপডেট কখনো মিস করবেন না।' },
+];
+
+const TOTAL_SLIDES = 5;
+const FEATURE_START_IDX = 1;
 
 export default function FeaturesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const { isBengali } = useTranslation();
   const s = useMemo(() => createStyles(colors), [colors]);
   const [activeIdx, setActiveIdx] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
+
+  const SLIDES = isBengali ? SLIDES_BN : SLIDES_EN;
 
   const handleScroll = (e: any) =>
     setActiveIdx(Math.round(e.nativeEvent.contentOffset.x / width));
@@ -60,7 +50,6 @@ export default function FeaturesScreen() {
     }
   };
 
-  // Current position in the global 5-dot row
   const globalDotIdx = FEATURE_START_IDX + activeIdx;
 
   return (
@@ -69,7 +58,7 @@ export default function FeaturesScreen() {
         style={[s.skip, { top: insets.top + 12 }]}
         onPress={() => router.push('/onboarding/auth' as any)}
       >
-        <Text style={s.skipText}>Skip</Text>
+        <Text style={s.skipText}>{isBengali ? 'এড়িয়ে যান' : 'Skip'}</Text>
       </Pressable>
 
       <ScrollView
@@ -80,14 +69,27 @@ export default function FeaturesScreen() {
         onMomentumScrollEnd={handleScroll}
         style={{ flex: 1 }}
       >
-        {SLIDES.map(({ Icon, color, bg, title, desc }, i) => (
-          <View key={i} style={[s.slide, { width }]}>
-            <View style={[s.iconWrap, { backgroundColor: bg }]}>
-              <Icon size={72} color={color} weight="duotone" />
+        {SLIDES.map(({ image, title, desc }, i) => (
+          <ImageBackground key={i} source={image} style={[s.slide, { width }]} resizeMode="cover">
+            {/* One consistent vignette for every slide. Dark top (skip button
+                legibility) and dark bottom (text legibility), clear middle so
+                the actual photo shows through — no per-slide special casing. */}
+            <LinearGradient
+              colors={[
+                'rgba(8,13,23,0.65)',
+                'rgba(8,13,23,0.05)',
+                'rgba(8,13,23,0.05)',
+                'rgba(8,13,23,0.85)',
+              ]}
+              locations={[0, 0.32, 0.55, 1]}
+              style={s.gradientFill}
+              pointerEvents="none"
+            />
+            <View style={s.slideContent}>
+              <Text style={s.title}>{title}</Text>
+              <Text style={s.desc}>{desc}</Text>
             </View>
-            <Text style={s.title}>{title}</Text>
-            <Text style={s.desc}>{desc}</Text>
-          </View>
+          </ImageBackground>
         ))}
       </ScrollView>
 
@@ -96,10 +98,7 @@ export default function FeaturesScreen() {
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
           <View
             key={i}
-            style={[
-              s.dot,
-              i === globalDotIdx && s.dotActive,
-            ]}
+            style={[s.dot, i === globalDotIdx && s.dotActive]}
           />
         ))}
       </View>
@@ -107,7 +106,9 @@ export default function FeaturesScreen() {
       <View style={[s.footer, { paddingBottom: insets.bottom + 24 }]}>
         <Pressable style={s.nextBtn} onPress={handleNext}>
           <Text style={s.nextText}>
-            {activeIdx === SLIDES.length - 1 ? 'Continue' : 'Next'}
+            {activeIdx === SLIDES.length - 1
+              ? (isBengali ? 'চালিয়ে যান' : 'Continue')
+              : (isBengali ? 'পরবর্তী' : 'Next')}
           </Text>
           <ArrowRight size={18} color="#fff" weight="bold" />
         </Pressable>
@@ -118,31 +119,26 @@ export default function FeaturesScreen() {
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    root:    { flex: 1, backgroundColor: colors['bg-base'] },
+    root:    { flex: 1, backgroundColor: '#080D17' },
     skip:    { position: 'absolute', right: 24, zIndex: 10 },
     skipText:{ fontFamily: 'Inter_500Medium', fontSize: 14, color: colors['text-tertiary'] },
 
-    slide:   {
-      flex: 1, alignItems: 'center', justifyContent: 'center',
-      paddingHorizontal: 36, gap: 24,
-    },
-    iconWrap:{
-      width: 130, height: 130, borderRadius: 40,
-      alignItems: 'center', justifyContent: 'center',
-      marginBottom: 8,
-    },
+    slide:        { flex: 1, justifyContent: 'flex-end' },
+    // explicit inset object, not StyleSheet.absoluteFillObject — that caused
+    // a TS error last round when spread into this style array, deliberately avoided here
+    gradientFill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+    slideContent: { paddingHorizontal: 36, paddingBottom: 32, gap: 12 },
     title:   {
       fontFamily: 'PlusJakartaSans_700Bold',
-      fontSize: 28, color: colors['text-primary'],
+      fontSize: 30, color: '#FFFFFF',
       textAlign: 'center',
     },
     desc:    {
       fontFamily: 'Inter_400Regular',
-      fontSize: 17, lineHeight: 28, color: colors['text-secondary'],
+      fontSize: 17, lineHeight: 28, color: 'rgba(255,255,255,0.8)',
       textAlign: 'center',
     },
 
-    // 5-dot global pagination
     dots:    { flexDirection: 'row', justifyContent: 'center', gap: 7, paddingVertical: 20 },
     dot:     { width: 7, height: 7, borderRadius: 3.5, backgroundColor: colors['border'] },
     dotActive:{ width: 22, backgroundColor: PRIMARY, borderRadius: 3.5 },

@@ -2,8 +2,9 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Modal, Platform,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { X } from 'phosphor-react-native';
@@ -155,7 +156,7 @@ export default function SearchTabScreen() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView style={s.root}>
+    <SafeAreaView style={s.root} edges={['top']}>
       {/* Header — no back button (tab screen) */}
       <View style={s.header}>
         <View style={s.backBtn} />

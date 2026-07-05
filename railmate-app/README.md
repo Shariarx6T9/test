@@ -1,77 +1,81 @@
 # RailMate Bangladesh
 
-Your Railway, Simplified. / আপনার রেলযাত্রা, সহজ করা হলো।
+> Your smart companion for every train journey across Bangladesh.
 
-RailMate Bangladesh is the most trusted railway companion app for Bangladeshi travelers — the app they open before, during, and after every train journey.
+---
+
+## About
+
+RailMate is a real-time train tracking and community update app built for Bangladeshi travelers. It helps passengers find trains, check live delay reports, get platform alerts, and connect with fellow travelers — all in one place.
+
+This is the **first mobile app built by [Navicore](https://navicore.io)**, developed in collaboration with **Anthropic Claude**.
+
+**Built by Najmul Hasan** — CEO, Navicore
+
+---
+
+## Features
+
+- **Train Search** — Find trains between any two stations with fares and schedules
+- **Live Updates** — Real-time delay, crowding, and platform change reports from the community
+- **Community Reports** — Submit and verify train status reports, earn trust badges
+- **Smart Alerts** — Get notified before departure and when delays are reported
+- **Bilingual** — Full support for English and Bengali (বাংলা)
+- **Offline Fallback** — Core station data available without internet
+
+---
 
 ## Tech Stack
 
-- **Framework:** Expo SDK 52 (React Native)
-- **Routing:** Expo Router v4
-- **Backend:** Supabase
-- **State Management:** Zustand
-- **Data Fetching:** TanStack Query v5
-- **Styling:** NativeWind v4 (Tailwind CSS)
-- **Icons:** Phosphor Icons
-- **Forms:** React Hook Form + Zod
+| Layer | Technology |
+|-------|-----------|
+| Framework | React Native + Expo (SDK 56) |
+| Navigation | Expo Router (file-based) |
+| Styling | NativeWind + custom theme |
+| State | Zustand + AsyncStorage |
+| Backend | Supabase (PostgreSQL + Auth + Storage + Realtime) |
+| Icons | Phosphor React Native |
+| Build | EAS Build (Expo Application Services) |
+| AI Partner | Anthropic Claude |
 
-## Prerequisites
+---
 
-- Node.js 18+
-- Expo CLI
-- Supabase CLI
+## Getting Started
 
-## Setup Instructions
+```bash
+# Install dependencies
+npm install
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Shaheenx/test.git
-   cd railmate-app
-   ```
+# Start the dev server
+npx expo start
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Configuration:**
-   - Copy `.env.example` to `.env`
-   - Fill in your `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` from your Supabase project settings.
-
-4. **Database Setup:**
-   - Create a new project at [supabase.com](https://supabase.com).
-   - Go to the SQL Editor in the Supabase Dashboard.
-   - Run the contents of `supabase/migrations/001_initial_schema.sql` to set up the tables and functions.
-   - Run the contents of `supabase/seed.sql` to populate initial data.
-
-5. **Run the application:**
-   ```bash
-   npx expo start
-   ```
-
-## Running on Android
-
-You can run the app on an Android emulator or a physical device using Expo Go:
-- Press `a` in the terminal after starting the app to open it in an Android emulator.
-- Scan the QR code with the Expo Go app on your physical device.
-
-## Project Structure
-
-```
-railmate-app/
-├── app/               # Expo Router pages
-├── components/        # Reusable UI components
-├── hooks/             # Custom React hooks
-├── stores/            # Zustand state stores
-├── lib/               # Third-party library configs (Supabase, QueryClient)
-├── api/               # API service functions
-├── constants/         # Design tokens and app config
-├── i18n/              # Internationalization files
-├── utils/             # Helper functions
-├── types/             # TypeScript type definitions
-└── supabase/          # Database migrations and seed data
+# Build for Android (preview)
+npx eas build --platform android --profile preview
 ```
 
-## Data Attribution
+### Environment
 
-Train schedule data sourced from Bangladesh Railway (railway.gov.bd).
+Copy `.env.example` to `.env` and fill in your Supabase credentials:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+---
+
+## Package
+
+`com.railmate.bd` — Android
+
+---
+
+## Credits
+
+Designed and built by **Najmul Hasan**, CEO of **Navicore**.
+
+This is the first app shipped by Navicore — built entirely with **Anthropic Claude** as the AI development partner.
+
+---
+
+*RailMate Bangladesh — Travel Smart. Travel RailMate.*

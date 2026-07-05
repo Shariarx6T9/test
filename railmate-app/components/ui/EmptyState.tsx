@@ -1,9 +1,15 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import * as PhosphorIcons from 'phosphor-react-native';
 import { AppText } from './AppText';
 import { Button } from './Button/Button';
 import { Colors } from '../../constants/colors';
+
+const EMPTY_IMAGES: Record<string, any> = {
+  'empty-search':       require('../../assets/images/empty-search.png'),
+  'empty-saved-routes': require('../../assets/images/empty-saved-routes.png'),
+  'empty-reports':      require('../../assets/images/empty-reports.png'),
+};
 
 interface EmptyStateProps {
   iconName: keyof typeof PhosphorIcons;
@@ -11,24 +17,26 @@ interface EmptyStateProps {
   description: string;
   ctaLabel?: string;
   onCta?: () => void;
+  imageKey?: keyof typeof EMPTY_IMAGES;
 }
 
-/**
- * EmptyState - Centered empty state display
- * Shows icon, title, description, and optional CTA button
- */
 export const EmptyState: React.FC<EmptyStateProps> = ({
   iconName,
   title,
   description,
   ctaLabel,
   onCta,
+  imageKey,
 }) => {
   const Icon = PhosphorIcons[iconName] as any;
+  const emptyImage = imageKey ? EMPTY_IMAGES[imageKey] : null;
 
   return (
     <View style={styles.container}>
-      {Icon && <Icon size={48} color={Colors.dark['text-tertiary']} weight="regular" />}
+      {emptyImage
+        ? <Image source={emptyImage} style={styles.image} resizeMode="contain" />
+        : Icon && <Icon size={48} color={Colors.dark['text-tertiary']} weight="regular" />
+      }
 
       <AppText variant="h3" align="center" style={styles.title}>
         {title}
@@ -57,11 +65,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 32,
     paddingHorizontal: 24,
+  },
+  image: {
+    width: 180,
+    height: 180,
+    marginBottom: 8,
+    opacity: 0.9,
   },
   title: {
     marginTop: 16,

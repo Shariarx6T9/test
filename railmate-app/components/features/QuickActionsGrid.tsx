@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
-  Activity,
+  ChartLineUp,
   Notebook,
   Bell,
   Info,
@@ -41,7 +41,7 @@ export const QuickActionsGrid: React.FC<QuickActionsGridProps> = ({
       {/* Row 1 */}
       <View style={styles.row}>
         <QuickActionCard
-          icon={<Activity size={iconSize} color={iconColor} weight="bold" />}
+          icon={<ChartLineUp size={iconSize} color={iconColor} weight="bold" />}
           label="Live Status"
           onPress={onLiveStatus}
           style={styles.card}

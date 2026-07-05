@@ -2,7 +2,7 @@
   "expo": {
     "name": "RailMate",
     "slug": "railmate",
-    "owner": "railmate-bd",
+    "owner": "najmulcodes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -60,13 +60,16 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
-          "imageWidth": 400,
-          "resizeMode": "contain",
           "backgroundColor": "#080D17",
-          "dark": {
-            "image": "./assets/images/splash.png",
-            "backgroundColor": "#080D17"
+          "ios": {
+            "backgroundColor": "#080D17",
+            "image": "./assets/images/splash_new.png",
+            "resizeMode": "cover"
+          },
+          "android": {
+            "backgroundColor": "#080D17",
+            "image": "./assets/images/splash_new.png",
+            "imageWidth": 200
           }
         }
       ],
@@ -77,12 +80,11 @@
         "origin": false
       },
       "eas": {
-        "projectId": "5755480b-490f-4d76-87ec-e88a8ccce89c"
+        "projectId": "89dafa4e-15e7-4360-bd67-2079f260288a"
       }
     },
     "experiments": {
       "typedRoutes": true
-    },
-    "newArchEnabled": true
+    }
   }
 }

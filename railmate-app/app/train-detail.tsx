@@ -7,6 +7,7 @@ import { ArrowLeft, ShareNetwork, Bell } from 'phosphor-react-native';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
 import { useTrainDetail } from '../hooks/useTrainDetail';
 import { useCommunityReports } from '../hooks/useCommunityReports';
+import { useTrainStopProgress } from '../hooks/useTrainStopProgress';
 import { useTranslation } from '../i18n';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -32,6 +33,9 @@ export default function TrainDetailScreen() {
   const todayReports = (reports ?? []).filter(
     r => r.train_id === train?.id && r.journey_date === new Date().toISOString().split('T')[0],
   );
+
+  const journeyDate = new Date().toISOString().split('T')[0];
+  const { data: liveStops } = useTrainStopProgress(train?.id ?? null, journeyDate);
 
   const handleShare = useCallback(async () => {
     if (!train) return;
@@ -167,7 +171,14 @@ export default function TrainDetailScreen() {
           {/* Journey Timeline */}
           <View style={s.card}>
             <View style={s.sectionHeader}>
-              <Text style={s.sectionTitle}>Journey Timeline</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={s.sectionTitle}>Journey Timeline</Text>
+                {liveStops && liveStops.length > 0 && (
+                  <View style={{ backgroundColor: 'rgba(0,168,89,0.15)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                    <Text style={{ color: '#00A859', fontSize: 10, fontWeight: '700' }}>LIVE</Text>
+                  </View>
+                )}
+              </View>
               <TouchableOpacity onPress={() => router.push({ pathname: '/route-map' as any, params: { id: train!.number } })}>
                 <Text style={s.linkText}>View full route</Text>
               </TouchableOpacity>
@@ -186,10 +197,12 @@ export default function TrainDetailScreen() {
                   : undefined;
                 const tag = isFirst ? 'Start' : isLast ? 'End' : undefined;
                 const active = isFirst || isLast;
+                const liveStop = liveStops?.find(ls => ls.station_name_en === stop.station.name_en);
+                const hasPassed = liveStop ? liveStop.has_passed : false;
                 return (
                   <View key={stop.id}>
                     <View style={s.stopRow}>
-                      <View style={[s.stopDot, { backgroundColor: active ? C.green : C.text3 }]} />
+                      <View style={[s.stopDot, { backgroundColor: active ? C.green : hasPassed ? C.green : C.text3 }]} />
                       <View style={{ flex: 1 }}>
                         <View style={s.stopTop}>
                           <Text style={s.stopTime}>{stopTime}</Text>

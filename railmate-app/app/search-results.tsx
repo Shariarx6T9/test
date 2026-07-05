@@ -3,14 +3,23 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
 import { useSearchTrains } from '../hooks/useTrains';
 import { useTrainDelayStatus } from '../hooks/useCommunityReports';
 import { TrainSearchResult } from '../types/database.types';
 import { useTranslation } from '../i18n';
+import { FALLBACK_STATIONS } from '../hooks/useStations';
+
+const POPULAR_ROUTES = [
+  { from: FALLBACK_STATIONS[0], to: FALLBACK_STATIONS[1] }, // Dhaka → Chattogram
+  { from: FALLBACK_STATIONS[0], to: FALLBACK_STATIONS[2] }, // Dhaka → Sylhet
+  { from: FALLBACK_STATIONS[0], to: FALLBACK_STATIONS[3] }, // Dhaka → Rajshahi
+  { from: FALLBACK_STATIONS[0], to: FALLBACK_STATIONS[4] }, // Dhaka → Khulna
+];
 
 function SkeletonCard() {
   return (
@@ -133,7 +142,7 @@ export default function SearchResultsScreen() {
   const onRefresh = async () => { setRefreshing(true); await refetch(); setRefreshing(false); };
 
   return (
-    <SafeAreaView style={s.root}>
+    <SafeAreaView style={s.root} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
@@ -196,12 +205,37 @@ export default function SearchResultsScreen() {
 
         {/* Empty state */}
         {!isLoading && !error && trains?.length === 0 && (
-          <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
-            <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
-            <Text style={{ color: C.text2, fontSize: T.sm }}>{t('results.none_hint')}</Text>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
-            </TouchableOpacity>
+          <View style={{ gap: S.md, paddingVertical: S.xl }}>
+            <View style={{ alignItems: 'center', gap: S.md }}>
+              <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
+              <Text style={{ color: C.text2, fontSize: T.sm, textAlign: 'center' }}>{t('results.none_hint')}</Text>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={s.suggestedSection}>
+              <Text style={s.suggestedTitle}>You might also try</Text>
+              {POPULAR_ROUTES.map((route, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={s.suggestedRoute}
+                  onPress={() => router.replace({
+                    pathname: '/search-results',
+                    params: {
+                      from_station_id: route.from.id,
+                      to_station_id: route.to.id,
+                      date: params.date ?? new Date().toISOString().split('T')[0],
+                      from_name: route.from.name_en,
+                      to_name: route.to.name_en,
+                    },
+                  })}
+                >
+                  <Text style={s.suggestedRouteText}>{route.from.name_en}</Text>
+                  <Text style={s.suggestedArrow}>→</Text>
+                  <Text style={s.suggestedRouteText}>{route.to.name_en}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
 
@@ -281,4 +315,9 @@ const s = StyleSheet.create({
   communityTitle: { fontSize: T.sm, fontWeight: '600', color: C.green },
   communitySub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
   reportersStack: { width: 40, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
+  suggestedSection: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.sm },
+  suggestedTitle: { fontSize: T.sm, fontWeight: '600', color: C.text2, marginBottom: S.xs },
+  suggestedRoute: { flexDirection: 'row', alignItems: 'center', gap: S.sm, paddingVertical: S.sm, borderTopWidth: 1, borderTopColor: C.border },
+  suggestedRouteText: { fontSize: T.sm, color: C.white, flex: 1 },
+  suggestedArrow: { fontSize: T.sm, color: C.text2 },
 });

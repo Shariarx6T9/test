@@ -196,6 +196,33 @@ export function useAuth() {
     [setUser]
   );
 
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    const trimmed = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: trimmed,
+      password,
+    });
+    if (error) return { error: error.message, data: null };
+    return { error: null, data };
+  }, []);
+
+  const signUpWithPassword = useCallback(async (email: string, password: string) => {
+    const trimmed = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signUp({
+      email: trimmed,
+      password,
+      options: { data: {} },
+    });
+    if (error) return { error: error.message, data: null };
+    return { error: null, data };
+  }, []);
+
+  const resetPassword = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    if (error) return { error: error.message };
+    return { error: null };
+  }, []);
+
   const signOut = useCallback(async () => {
     subscriptionRef.current?.unsubscribe();
     subscriptionRef.current = null;
@@ -249,6 +276,9 @@ export function useAuth() {
     initialize,
     signInWithPhone,
     signInWithEmail,
+    signInWithPassword,
+    signUpWithPassword,
+    resetPassword,
     verifyOTP,
     register,
     signOut,

@@ -1,8 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, Text } from 'react-native';
+import {
+  View, ScrollView, Pressable, StyleSheet, Text, ImageBackground,
+  KeyboardAvoidingView, Platform, Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Train, Phone, EnvelopeSimple, ArrowRight } from 'phosphor-react-native';
+import { Eye, EyeSlash, EnvelopeSimple, ArrowRight, Globe, Lock } from 'phosphor-react-native';
+
+const logoImg = require('../../assets/images/logo.png');
+import { Image } from 'react-native';
 import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Input } from '../../components/ui/Input/Input';
 import { Button } from '../../components/ui/Button/Button';
@@ -12,218 +18,301 @@ import { usePrefsStore } from '../../stores/prefsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 
-type Mode = 'phone' | 'email';
+const authBg = require('../../assets/images/auth-background.png');
+
+type AuthMode = 'login' | 'signup';
 
 export default function LoginScreen() {
-  const { t, locale } = useTranslation();
+  const { t, locale, setLocale } = useTranslation();
   const isBengali = locale === 'bn';
   const router = useRouter();
-  const { signInWithPhone, signInWithEmail } = useAuth();
+  const { signInWithPassword, signUpWithPassword } = useAuth();
   const { setGuest } = useAuthStore();
   const { finishOnboarding } = usePrefsStore();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const s = useMemo(() => createStyles(colors), [colors]);
 
-  const [mode, setMode]               = useState<Mode>('phone');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [authMode, setAuthMode]       = useState<AuthMode>('login');
   const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [confirmPw, setConfirmPw]     = useState('');
+  const [showPw, setShowPw]           = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [submitting, setSubmitting]   = useState(false);
 
-  const handlePhoneChange = (val: string) =>
-    setPhoneNumber(val.replace(/[^0-9]/g, '').slice(0, 10));
+  const toggleLanguage = () => setLocale(isBengali ? 'en' : 'bn');
+
+  const validate = () => {
+    if (!email.includes('@')) {
+      return isBengali ? 'বৈধ ইমেইল দিন' : 'Enter a valid email address';
+    }
+    if (password.length < 6) {
+      return isBengali ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর' : 'Password must be at least 6 characters';
+    }
+    if (authMode === 'signup' && password !== confirmPw) {
+      return isBengali ? 'পাসওয়ার্ড মিলছে না' : 'Passwords do not match';
+    }
+    return null;
+  };
 
   const handleContinue = async () => {
+    const valErr = validate();
+    if (valErr) { setError(valErr); return; }
     setError(null);
     setSubmitting(true);
     try {
-      if (mode === 'phone') {
-        if (phoneNumber.length < 9) { setError(t('auth.invalid_phone') || 'Invalid phone'); setSubmitting(false); return; }
-        const full = `+880${phoneNumber}`;
-        const { error: e } = await signInWithPhone(full);
+      if (authMode === 'login') {
+        const { error: e } = await signInWithPassword(email, password);
         if (e) {
-          const rawError = e || '';
-          const msg = typeof rawError === 'string' ? rawError.toLowerCase() : '';
-          if (msg.includes('unverified') || msg.includes('twilio') || msg.includes('21608') || msg.includes('trial')) {
-            setError('OTP পাঠানো যায়নি। অনুগ্রহ করে ইমেইল দিয়ে চেষ্টা করুন।');
+          const msg = e.toLowerCase();
+          if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('password')) {
+            setError(isBengali ? 'ইমেইল বা পাসওয়ার্ড ভুল' : 'Invalid email or password');
           } else if (msg.includes('network') || msg.includes('fetch')) {
-            setError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
-          } else if (msg.includes('invalid') || msg.includes('not found')) {
-            setError('ভুল তথ্য। আবার চেষ্টা করুন।');
+            setError(isBengali ? 'ইন্টারনেট সংযোগ নেই' : 'No internet connection');
           } else {
-            setError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+            setError(isBengali ? 'একটি সমস্যা হয়েছে' : 'Something went wrong');
           }
-          setSubmitting(false); return;
+          return;
         }
-        router.push({ pathname: '/auth/otp' as any, params: { contact: full, type: 'phone' } });
+        finishOnboarding();
+        router.replace('/(tabs)');
       } else {
-        if (!email.includes('@')) { setError(t('auth.invalid_email') || 'Invalid email'); setSubmitting(false); return; }
-        const { error: e } = await signInWithEmail(email);
+        const { error: e, data } = await signUpWithPassword(email, password);
         if (e) {
-          const rawError = e || '';
-          const msg = typeof rawError === 'string' ? rawError.toLowerCase() : '';
-          if (msg.includes('unverified') || msg.includes('twilio') || msg.includes('21608') || msg.includes('trial')) {
-            setError('OTP পাঠানো যায়নি। অনুগ্রহ করে ইমেইল দিয়ে চেষ্টা করুন।');
-          } else if (msg.includes('network') || msg.includes('fetch')) {
-            setError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
-          } else if (msg.includes('invalid') || msg.includes('not found')) {
-            setError('ভুল তথ্য। আবার চেষ্টা করুন।');
+          const msg = e.toLowerCase();
+          if (msg.includes('already') || msg.includes('registered')) {
+            setError(isBengali ? 'এই ইমেইল ইতিমধ্যে নিবন্ধিত' : 'Email already registered — try logging in');
           } else {
-            setError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+            setError(isBengali ? 'একটি সমস্যা হয়েছে' : e);
           }
-          setSubmitting(false); return;
+          return;
         }
-        router.push({ pathname: '/auth/otp' as any, params: { contact: email, type: 'email' } });
-      }
-    } catch (ex) {
-      const msg = (ex instanceof Error ? ex.message : String(ex)).toLowerCase();
-      if (msg.includes('unverified') || msg.includes('twilio') || msg.includes('21608')) {
-        setError('OTP পাঠানো যায়নি। অনুগ্রহ করে ইমেইল দিয়ে চেষ্টা করুন।');
-      } else if (msg.includes('network') || msg.includes('fetch')) {
-        setError('ইন্টারনেট সংযোগ নেই। আবার চেষ্টা করুন।');
-      } else {
-        setError('একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        // Supabase may require email confirmation — if session exists, go straight in
+        if (data?.session) {
+          finishOnboarding();
+          router.replace('/auth/register' as any);
+        } else {
+          Alert.alert(
+            isBengali ? 'ইমেইল যাচাই করুন' : 'Check your email',
+            isBengali
+              ? 'একটি যাচাইকরণ লিংক পাঠানো হয়েছে। যাচাই করার পর লগইন করুন।'
+              : 'A verification link has been sent. Please verify then log in.',
+            [{ text: 'OK' }]
+          );
+        }
       }
     } finally {
       setSubmitting(false);
     }
   };
 
-  // finishOnboarding() is required here — without it the root layout guard
-  // sees hasFinishedOnboarding still false and immediately redirects the
-  // guest back to /onboarding/welcome instead of letting them land on (tabs).
-  const handleGuest = () => { setGuest(true); finishOnboarding(); router.replace('/(tabs)'); };
+  const handleForgotPassword = () => {
+    router.push('/onboarding/forgot-password' as any);
+  };
 
-  const fontFamily = isBengali
-    ? { regular: 'NotoSansBengali_400Regular', semi: 'NotoSansBengali_600SemiBold' }
-    : { regular: 'Inter_400Regular', semi: 'Inter_600SemiBold' };
-
+  const handleGuest = () => {
+    setGuest(true);
+    finishOnboarding();
+    router.replace('/(tabs)');
+  };
 
   return (
     <ScreenWrapper withPadding={false}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={[s.page, { paddingTop: insets.top + 32 }]}>
+      <ImageBackground source={authBg} style={{ flex: 1 }} resizeMode="cover">
+        <View style={s.overlay} />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={[s.page, { paddingTop: insets.top + 16 }]}>
 
-          {/* Logo */}
-          <View style={s.logoWrap}>
-            <View style={s.logoBox}>
-              <Train size={40} color={colors.primary} weight="fill" />
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 10 }}>
-              <Text style={[s.brand, { color: colors['text-primary'] }]}>Rail</Text>
-              <Text style={[s.brand, { color: colors.primary }]}>Mate</Text>
-            </View>
-            <Text style={[s.brandSub, { fontFamily: fontFamily.regular }]}>Bangladesh</Text>
-          </View>
-
-          {/* Headline */}
-          <View style={{ marginBottom: 28 }}>
-            <Text style={[s.h1, { fontFamily: 'PlusJakartaSans_700Bold', color: colors['text-primary'] }]}>
-              {t('auth.welcome')}
-            </Text>
-            <Text style={[s.sub, { fontFamily: fontFamily.regular, color: colors['text-secondary'] }]}>
-              {t('auth.welcome_sub')}
-            </Text>
-          </View>
-
-          {/* Mode toggle */}
-          <View style={s.tabRow}>
-            {(['phone', 'email'] as Mode[]).map((m) => {
-              const active = mode === m;
-              const iconColor = active ? colors['text-inverse'] : colors['text-secondary'];
-              return (
-                <Pressable key={m} onPress={() => setMode(m)} style={[s.tab, active && s.tabActive]}>
-                  {m === 'phone'
-                    ? <Phone size={16} color={iconColor} weight={active ? 'fill' : 'regular'} />
-                    : <EnvelopeSimple size={16} color={iconColor} weight={active ? 'fill' : 'regular'} />}
-                  <Text style={[s.tabLabel, { color: iconColor }]}>
-                    {m === 'phone' ? t('auth.phone_tab') : t('auth.email_tab')}
+              {/* Language toggle */}
+              <View style={s.topRow}>
+                <Pressable onPress={toggleLanguage} style={s.langBtn}>
+                  <Globe size={16} color={colors.primary} />
+                  <Text style={[s.langText, { color: colors.primary }]}>
+                    {isBengali ? 'English' : 'বাংলা'}
                   </Text>
                 </Pressable>
-              );
-            })}
-          </View>
+              </View>
 
-          {/* Input */}
-          {mode === 'phone' ? (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={s.inputLabel}>{t('auth.phone_label')}</Text>
-              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                <View style={s.countryCode}>
-                  <Text style={[s.countryText, { color: colors['text-primary'] }]}>🇧🇩 +880</Text>
+              {/* Logo */}
+              <View style={s.logoWrap}>
+                <Image source={logoImg} style={s.logoImg} resizeMode="contain" />
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 8 }}>
+                  <Text style={[s.brand, { color: '#FFFFFF' }]}>Rail</Text>
+                  <Text style={[s.brand, { color: colors.primary }]}>Mate</Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Input value={phoneNumber} onChangeText={handlePhoneChange} placeholder={t('auth.phone_placeholder')} keyboardType="number-pad" maxLength={10} isBengali={isBengali} />
+                <Text style={s.brandSub}>Bangladesh</Text>
+              </View>
+
+              {/* Login / Sign Up tabs */}
+              <View style={s.authTabRow}>
+                <Pressable
+                  style={[s.authTab, authMode === 'login' && s.authTabActive]}
+                  onPress={() => { setAuthMode('login'); setError(null); }}
+                >
+                  <Text style={[s.authTabText, authMode === 'login' && s.authTabTextActive]}>
+                    {isBengali ? 'লগইন' : 'Login'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[s.authTab, authMode === 'signup' && s.authTabActive]}
+                  onPress={() => { setAuthMode('signup'); setError(null); }}
+                >
+                  <Text style={[s.authTabText, authMode === 'signup' && s.authTabTextActive]}>
+                    {isBengali ? 'নতুন অ্যাকাউন্ট' : 'Sign Up'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {/* Email */}
+              <View style={s.inputGroup}>
+                <Text style={s.inputLabel}>{isBengali ? 'ইমেইল ঠিকানা' : 'Email Address'}</Text>
+                <View style={s.inputRow}>
+                  <EnvelopeSimple size={18} color={colors['text-secondary']} style={s.inputIcon} />
+                  <Input
+                    value={email}
+                    onChangeText={(v) => { setEmail(v); setError(null); }}
+                    placeholder={isBengali ? 'আপনার@ইমেইল.কম' : 'your@email.com'}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    isBengali={isBengali}
+                    style={s.inputFlex}
+                  />
                 </View>
               </View>
-            </View>
-          ) : (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={s.inputLabel}>{t('auth.email_optional')}</Text>
-              <Input value={email} onChangeText={setEmail} placeholder={t('auth.email_placeholder')} keyboardType="email-address" autoCapitalize="none" isBengali={isBengali} />
-            </View>
-          )}
 
-          {!!error && (
-            <View style={{ marginTop: 8 }}>
-              <Text style={s.errorText}>{error}</Text>
+              {/* Password */}
+              <View style={s.inputGroup}>
+                <Text style={s.inputLabel}>{isBengali ? 'পাসওয়ার্ড' : 'Password'}</Text>
+                <View style={s.inputRow}>
+                  <Lock size={18} color={colors['text-secondary']} style={s.inputIcon} />
+                  <Input
+                    value={password}
+                    onChangeText={(v) => { setPassword(v); setError(null); }}
+                    placeholder={isBengali ? 'কমপক্ষে ৬ অক্ষর' : 'At least 6 characters'}
+                    secureTextEntry={!showPw}
+                    isBengali={isBengali}
+                    style={s.inputFlex}
+                  />
+                  <Pressable onPress={() => setShowPw(!showPw)} style={s.eyeBtn}>
+                    {showPw
+                      ? <EyeSlash size={18} color={colors['text-secondary']} />
+                      : <Eye size={18} color={colors['text-secondary']} />
+                    }
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Confirm password (signup only) */}
+              {authMode === 'signup' && (
+                <View style={s.inputGroup}>
+                  <Text style={s.inputLabel}>{isBengali ? 'পাসওয়ার্ড নিশ্চিত করুন' : 'Confirm Password'}</Text>
+                  <View style={s.inputRow}>
+                    <Lock size={18} color={colors['text-secondary']} style={s.inputIcon} />
+                    <Input
+                      value={confirmPw}
+                      onChangeText={(v) => { setConfirmPw(v); setError(null); }}
+                      placeholder={isBengali ? 'আবার পাসওয়ার্ড দিন' : 'Re-enter password'}
+                      secureTextEntry={!showConfirm}
+                      isBengali={isBengali}
+                      style={s.inputFlex}
+                    />
+                    <Pressable onPress={() => setShowConfirm(!showConfirm)} style={s.eyeBtn}>
+                      {showConfirm
+                        ? <EyeSlash size={18} color={colors['text-secondary']} />
+                        : <Eye size={18} color={colors['text-secondary']} />
+                      }
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+
+              {!!error && <Text style={s.errorText}>{error}</Text>}
+
+              {/* Forgot password (login mode only) */}
+              {authMode === 'login' && (
+                <Pressable onPress={handleForgotPassword} style={s.forgotBtn}>
+                  <Text style={[s.forgotText, { color: colors.primary }]}>
+                    {isBengali ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot password?'}
+                  </Text>
+                </Pressable>
+              )}
+
+              {/* CTA */}
+              <View style={s.actions}>
+                <Button
+                  label={authMode === 'login'
+                    ? (isBengali ? 'লগইন করুন' : 'Log In')
+                    : (isBengali ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account')}
+                  onPress={handleContinue}
+                  isLoading={submitting}
+                  icon={ArrowRight}
+                  iconPosition="right"
+                  size="lg"
+                  isBengali={isBengali}
+                  style={{ width: '100%' }}
+                />
+
+                <View style={s.divider}>
+                  <View style={s.dividerLine} />
+                  <Text style={s.orText}>{isBengali ? 'অথবা' : 'or'}</Text>
+                  <View style={s.dividerLine} />
+                </View>
+
+                <Button
+                  label={isBengali ? 'অতিথি হিসেবে চালিয়ে যান' : 'Continue as Guest'}
+                  onPress={handleGuest}
+                  variant="ghost"
+                  size="lg"
+                  isBengali={isBengali}
+                  style={{ width: '100%' }}
+                />
+              </View>
+
             </View>
-          )}
-          {mode === 'phone' && (
-            <Text style={{ fontSize: 11, color: '#94A0AB', marginTop: 6, marginLeft: 2 }}>
-              বেটা চলাকালীন, ইমেইল দিয়ে সাইন ইন করুন।
-            </Text>
-          )}
-
-          {/* Actions */}
-          <View style={s.actions}>
-            <Button label={t('auth.continue')} onPress={handleContinue} isLoading={submitting} icon={ArrowRight} iconPosition="right" size="lg" isBengali={isBengali} style={{ width: '100%' }} />
-
-            <View style={s.divider}>
-              <View style={s.dividerLine} />
-              <Text style={s.orText}>{t('common.or')}</Text>
-              <View style={s.dividerLine} />
-            </View>
-
-            <Button label={t('auth.guest')} onPress={handleGuest} variant="ghost" size="lg" isBengali={isBengali} style={{ width: '100%' }} />
-
-            <View style={s.signupRow}>
-              <Text style={s.signupText}>{t('auth.new_here')}</Text>
-              <Pressable onPress={() => router.push('/auth/register' as any)}>
-                <Text style={s.signupLink}>{t('auth.create_account')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
     </ScreenWrapper>
   );
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  page:            { flex: 1, paddingHorizontal: 24, paddingBottom: 40 },
-  logoWrap:        { alignItems: 'center', marginBottom: 36 },
-  logoBox:         { width: 72, height: 72, borderRadius: 20, backgroundColor: colors['bg-card'], borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  brand:           { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 28, lineHeight: 36 },
-  brandSub:        { fontSize: 13, color: colors['text-tertiary'], marginTop: 2 },
-  h1:              { fontSize: 26, lineHeight: 34, textAlign: 'center' },
-  sub:             { fontSize: 14, lineHeight: 22, textAlign: 'center', marginTop: 8 },
-  tabRow:          { flexDirection: 'row', backgroundColor: colors['bg-card'], borderRadius: 12, padding: 4, marginBottom: 20, borderWidth: 1, borderColor: colors.border },
-  tab:             { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, gap: 6 },
-  tabActive:       { backgroundColor: colors.primary },
-  tabLabel:        { fontFamily: 'Inter_500Medium', fontSize: 13 },
-  inputLabel:      { fontFamily: 'Inter_500Medium', fontSize: 12, color: colors['text-secondary'], marginBottom: 8, marginLeft: 2 },
-  countryCode:     { height: 48, paddingHorizontal: 14, borderRadius: 10, backgroundColor: colors['bg-card'], borderWidth: 1.5, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  countryText:     { fontFamily: 'Inter_400Regular', fontSize: 14 },
-  errorText:       { color: colors.danger, fontFamily: 'Inter_400Regular', fontSize: 12, marginTop: 6, marginLeft: 2 },
-  guestFallbackBtn:{ marginTop: 12, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  guestFallbackText:{ fontFamily: 'Inter_600SemiBold', fontSize: 15, color: colors['text-inverse'] },
-  actions:         { marginTop: 28 },
-  divider:         { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
-  dividerLine:     { flex: 1, height: 1, backgroundColor: colors.border },
-  orText:          { fontFamily: 'Inter_400Regular', color: colors['text-tertiary'], fontSize: 12, paddingHorizontal: 12 },
-  signupRow:       { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 24, gap: 4 },
-  signupText:      { fontFamily: 'Inter_400Regular', fontSize: 13, color: colors['text-secondary'] },
-  signupLink:      { fontFamily: 'Inter_500Medium', fontSize: 13, color: colors.primary },
+  overlay:          { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,13,23,0.85)' },
+  page:             { flex: 1, paddingHorizontal: 24, paddingBottom: 40 },
+  topRow:           { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 },
+  langBtn:          { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1, borderColor: colors.primary },
+  langText:         { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  logoWrap:         { alignItems: 'center', marginBottom: 28 },
+  logoImg:          { width: 80, height: 80 },
+  brand:            { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 26, lineHeight: 34 },
+  brandSub:         { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  authTabRow:       { flexDirection: 'row', backgroundColor: colors['bg-card'], borderRadius: 12, padding: 4, marginBottom: 20, borderWidth: 1, borderColor: colors.border },
+  authTab:          { flex: 1, paddingVertical: 11, alignItems: 'center', borderRadius: 9 },
+  authTabActive:    { backgroundColor: colors.primary },
+  authTabText:      { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-secondary'] },
+  authTabTextActive:{ color: '#FFFFFF' },
+  inputGroup:       { marginBottom: 14 },
+  inputLabel:       { fontFamily: 'Inter_500Medium', fontSize: 12, color: colors['text-secondary'], marginBottom: 8 },
+  inputRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: 10, borderWidth: 1.5, borderColor: colors.border, paddingHorizontal: 12, gap: 8 },
+  inputIcon:        { flexShrink: 0 },
+  inputFlex:        { flex: 1, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0 },
+  eyeBtn:           { padding: 4 },
+  errorText:        { color: colors.danger, fontFamily: 'Inter_400Regular', fontSize: 12, marginBottom: 8 },
+  forgotBtn:        { alignSelf: 'flex-end', marginBottom: 8, paddingVertical: 4 },
+  forgotText:       { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  actions:          { marginTop: 8 },
+  divider:          { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
+  dividerLine:      { flex: 1, height: 1, backgroundColor: colors.border },
+  orText:           { fontFamily: 'Inter_400Regular', color: colors['text-tertiary'], fontSize: 12, paddingHorizontal: 12 },
 });

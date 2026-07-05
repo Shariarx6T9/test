@@ -1,13 +1,11 @@
 import React, { useMemo } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, ImageBackground, StatusBar, Dimensions,
+  View, Text, StyleSheet, Pressable, ImageBackground, StatusBar,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePrefsStore } from '../../stores/prefsStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
-
-const { width } = Dimensions.get('window');
 
 // On-image text — always white since it sits on a dark gradient overlay.
 const OI = { headline: '#FFFFFF', sub: '#B0C4D8' };
@@ -41,32 +39,6 @@ export default function WelcomeScreen() {
       >
         {/* Dark gradient overlay for text legibility */}
         <View style={s.overlay} />
-
-        {/* Logo — green map pin with train icon */}
-        <View style={[s.logoWrap, { paddingTop: insets.top + 32 }]}>
-          <View style={s.pin}>
-            {/* Pin shape */}
-            <View style={s.pinCircle}>
-              {/* Train icon inside pin */}
-              <View style={s.trainIconWrap}>
-                {/* Simple train SVG-style via Views */}
-                <View style={s.trainBody} />
-                <View style={s.trainFront} />
-                <View style={s.trainWindowRow}>
-                  <View style={s.trainWindow} />
-                  <View style={s.trainWindow} />
-                </View>
-                <View style={s.trainWheelRow}>
-                  <View style={s.trainWheel} />
-                  <View style={s.trainWheel} />
-                </View>
-              </View>
-              {/* Red dot */}
-              <View style={s.redDot} />
-            </View>
-            <View style={s.pinTail} />
-          </View>
-        </View>
 
         {/* Hero text */}
         <View style={s.hero}>
@@ -103,38 +75,11 @@ export default function WelcomeScreen() {
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     root:    { flex: 1, backgroundColor: '#080D17' },
-    bg:      { flex: 1, justifyContent: 'space-between' },
-    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(8,13,23,0.72)' },
-
-    // Logo
-    logoWrap:     { alignItems: 'center' },
-    pin:          { alignItems: 'center' },
-    pinCircle:    {
-      width: 80, height: 80, borderRadius: 40,
-      backgroundColor: PRIMARY,
-      alignItems: 'center', justifyContent: 'center',
-      shadowColor: PRIMARY, shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.6, shadowRadius: 16, elevation: 10,
-    },
-    pinTail: {
-      width: 0, height: 0,
-      borderLeftWidth: 14, borderRightWidth: 14, borderTopWidth: 22,
-      borderLeftColor: 'transparent', borderRightColor: 'transparent',
-      borderTopColor: PRIMARY,
-      marginTop: -2,
-    },
-    // Simple train icon inside pin
-    trainIconWrap: { alignItems: 'center', justifyContent: 'center' },
-    trainBody:    { width: 30, height: 22, backgroundColor: '#fff', borderRadius: 5, marginBottom: 2 },
-    trainFront:   { width: 30, height: 6, backgroundColor: '#fff', borderRadius: 3, marginBottom: 1 },
-    trainWindowRow:{ flexDirection: 'row', gap: 6, position: 'absolute', top: 4 },
-    trainWindow:  { width: 8, height: 8, backgroundColor: '#00A859', borderRadius: 2 },
-    trainWheelRow:{ flexDirection: 'row', gap: 12, position: 'absolute', bottom: 6 },
-    trainWheel:   { width: 10, height: 10, borderRadius: 5, backgroundColor: '#333' },
-    redDot:       { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E8394B', position: 'absolute', top: 18, right: 18 },
+    bg:      { flex: 1, justifyContent: 'flex-end' },
+    overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,13,23,0.72)' },
 
     // Hero
-    hero:      { paddingHorizontal: 28 },
+    hero:      { paddingHorizontal: 28, marginBottom: 32 },
     headline:  {
       fontFamily: 'PlusJakartaSans_700Bold',
       fontSize: 36, lineHeight: 46, color: OI.headline,

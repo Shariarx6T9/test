@@ -51,19 +51,19 @@ export async function getCommunityReports(
       dispute_count,
       helpful_count,
       comment_count,
-      user:users!community_reports_user_id_fkey (
+      user:users (
         id,
         display_name,
         avatar_url,
         is_trusted,
         trust_score
       ),
-      train:trains!community_reports_train_id_fkey (
+      train:trains (
         name_en,
         name_bn,
         number
       ),
-      station:stations!community_reports_station_id_fkey (
+      station:stations (
         name_en,
         name_bn
       )
@@ -291,7 +291,7 @@ export async function getReportComments(
       user_id,
       body,
       created_at,
-      user:users!report_comments_user_id_fkey (
+      user:users (
         id,
         display_name,
         avatar_url,
@@ -336,7 +336,7 @@ export async function getReportVerifiers(
       `
       user_id,
       voted_at:created_at,
-      user:users!report_votes_user_id_fkey (
+      user:users (
         id,
         display_name,
         avatar_url,
@@ -390,23 +390,43 @@ export async function getDelayStatusForTrains(
   if (!trainNumbers.length) return result;
 
   try {
-    const { data, error } = await supabase
+    // Step 1: get delay reports for this date (no cross-table join — avoids schema
+    // cache issues when the FK name isn't indexed by PostgREST yet)
+    const { data: reports, error: repErr } = await supabase
       .from('community_reports')
-      .select('delay_minutes, created_at, train:trains!community_reports_train_id_fkey(number)')
+      .select('train_id, delay_minutes, created_at')
       .eq('report_type', 'DELAY')
       .eq('journey_date', journeyDate)
       .not('delay_minutes', 'is', null)
+      .not('train_id', 'is', null)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('[getDelayStatusForTrains]', error.message);
+    if (repErr) {
+      console.error('[getDelayStatusForTrains]', repErr.message);
       return result;
     }
 
-    for (const row of (data ?? []) as any[]) {
-      const num = row.train?.number as string | undefined;
+    const trainIds = [...new Set((reports ?? []).map((r: any) => r.train_id as string))];
+    if (!trainIds.length) return result;
+
+    // Step 2: resolve train_id → train number
+    const { data: trains, error: trainErr } = await supabase
+      .from('trains')
+      .select('id, number')
+      .in('id', trainIds)
+      .in('number', trainNumbers);
+
+    if (trainErr) {
+      console.error('[getDelayStatusForTrains] trains lookup:', trainErr.message);
+      return result;
+    }
+
+    const idToNumber = new Map((trains ?? []).map((t: any) => [t.id as string, t.number as string]));
+
+    for (const row of (reports ?? []) as any[]) {
+      const num = idToNumber.get(row.train_id);
       if (!num || !trainNumbers.includes(num)) continue;
-      if (result.has(num)) continue; // already have the most recent (sorted desc)
+      if (result.has(num)) continue; // keep only the most-recent (sorted desc)
       result.set(num, { delayMinutes: row.delay_minutes, reportedAt: row.created_at });
     }
   } catch (err) {

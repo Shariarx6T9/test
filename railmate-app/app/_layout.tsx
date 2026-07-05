@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+// app/_layout.tsx
+import React, { useEffect, useState } from 'react';
 import '../global.css';
 import { View } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
@@ -26,13 +27,17 @@ import {
 } from '@expo-google-fonts/jetbrains-mono';
 import { queryClient } from '../lib/queryClient';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { AppSplash } from '../components/AppSplash';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../stores/authStore';
 import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
 
-// Keep the native splash visible until fonts + auth are ready.
+// Native splash stays up only until fonts are ready. Android's native
+// SplashScreen API is icon-only by OS design (see app.json comment) — it
+// cannot show full-bleed art, so we hand off to our own AppSplash the
+// moment fonts are loaded, and keep AppSplash up during auth init instead.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
@@ -45,12 +50,11 @@ export default function RootLayout() {
   const resolvedTheme = useResolvedTheme();
   const colors = useThemeColors();
 
-  // Safely compute NativeWind CSS vars — fall back to empty object on error
   let themeVars: object = {};
   try {
     themeVars = getThemeVars(resolvedTheme);
   } catch {
-    // vars() not yet available — safe fallback
+    themeVars = {};
   }
 
   const [fontsLoaded, fontError] = useFonts({
@@ -66,24 +70,22 @@ export default function RootLayout() {
     JetBrainsMono_500Medium,
   });
 
-  // Sync NativeWind color scheme with user preference.
   useEffect(() => {
     nativewindColorScheme.set(themePref === 'system' ? 'system' : resolvedTheme);
   }, [themePref, resolvedTheme]);
 
-  // Init auth then hide the native splash.
+  // Hide native splash the instant fonts are ready — do NOT wait for auth.
+  // AppSplash (full-bleed, your real art) takes over immediately below.
+  const [authInitStarted, setAuthInitStarted] = useState(false);
   useEffect(() => {
     if (!fontsLoaded && !fontError) return;
-
-    (async () => {
-      try {
-        await initialize();
-      } catch {
-        // Auth init failed — proceed anyway; nav guard will redirect
-      }
-      // Hide native splash now that fonts + auth are ready
-      await SplashScreen.hideAsync().catch(() => {});
-    })();
+    SplashScreen.hideAsync().catch(() => {});
+    if (!authInitStarted) {
+      setAuthInitStarted(true);
+      initialize().catch(() => {
+        // Auth init failed — proceed anyway; nav guard below will redirect
+      });
+    }
   }, [fontsLoaded, fontError]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Navigation guard — runs after auth is settled.
@@ -108,8 +110,12 @@ export default function RootLayout() {
     }
   }, [isLoading, isAuthenticated, isGuest, hasFinishedOnboarding, segments, router]);
 
-  // Don't render anything until fonts are ready — native splash is still showing
+  // Still loading fonts — the OS-controlled native splash is still visible.
   if (!fontsLoaded && !fontError) return null;
+
+  // Fonts ready, native splash just hid — bridge with our full-bleed splash
+  // while auth initializes, instead of jumping straight to a bare screen.
+  if (isLoading) return <AppSplash />;
 
   return (
     <ErrorBoundary>

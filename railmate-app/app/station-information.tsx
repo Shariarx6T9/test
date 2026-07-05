@@ -1,7 +1,8 @@
 // app/station-information.tsx
 import React, { useCallback } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
 import { supabase } from '../lib/supabase';
@@ -57,7 +58,7 @@ export default function StationInformationScreen() {
   // Loading state
   if (stationLoading) {
     return (
-      <SafeAreaView style={si.root}>
+      <SafeAreaView style={si.root} edges={['top']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg, padding: S.xl }}>
           {[0, 1, 2].map(i => (
             <View key={i} style={{ width: '100%', height: 120, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
@@ -70,7 +71,7 @@ export default function StationInformationScreen() {
   // Error state
   if (stationError) {
     return (
-      <SafeAreaView style={si.root}>
+      <SafeAreaView style={si.root} edges={['top']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg }}>
           <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
           <TouchableOpacity onPress={() => refetch()} style={{ backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md }}>
@@ -84,7 +85,7 @@ export default function StationInformationScreen() {
   // Not found state
   if (!station && !stationLoading) {
     return (
-      <SafeAreaView style={si.root}>
+      <SafeAreaView style={si.root} edges={['top']}>
         <View style={si.header}>
           <TouchableOpacity style={si.backBtn} onPress={() => router.back()}>
             <ArrowLeft size={18} color={C.white} />
@@ -112,7 +113,7 @@ export default function StationInformationScreen() {
   }
 
   return (
-    <SafeAreaView style={si.root}>
+    <SafeAreaView style={si.root} edges={['top']}>
       <View style={si.header}>
         <TouchableOpacity style={si.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
         <View style={si.headerTitle}>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
@@ -214,10 +214,11 @@ export default function SearchResultsScreen() {
           </View>
         )}
 
-        {/* Empty state with alternate suggestions (BUG 4 FIX) */}
+        {/* Empty state with alternate suggestions */}
         {!isLoading && !error && trains?.length === 0 && (
           <>
             <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
+              <Image source={require('../../assets/images/empty-search.png')} style={{ width: 140, height: 140 }} resizeMode="contain" />
               <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
               <Text style={{ color: C.text2, fontSize: T.sm }}>{t('results.none_hint')}</Text>
               <TouchableOpacity onPress={() => router.back()}>
