@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { CommunityReport } from '../types/database.types';
@@ -13,6 +13,7 @@ import type { CommunityReport } from '../types/database.types';
  */
 export function useRealtimeReports() {
   const queryClient = useQueryClient();
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
@@ -95,7 +96,13 @@ export function useRealtimeReports() {
           queryClient.invalidateQueries({ queryKey: ['live-updates'] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsSubscribed(true);
+        } else {
+          setIsSubscribed(false);
+        }
+      });
 
     channelRef.current = channel;
 
@@ -104,11 +111,10 @@ export function useRealtimeReports() {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
+        setIsSubscribed(false);
       }
     };
   }, [queryClient]);
 
-  return {
-    isSubscribed: !!channelRef.current,
-  };
+  return { isSubscribed };
 }

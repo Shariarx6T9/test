@@ -66,6 +66,8 @@ export interface CommunityReport {
     name_en: string;
     name_bn: string;
     number: string;
+    origin?: { name_en: string; name_bn: string } | null;
+    destination?: { name_en: string; name_bn: string } | null;
   } | null;
   station: {
     name_en: string;

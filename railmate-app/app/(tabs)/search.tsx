@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { X } from 'phosphor-react-native';
-import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
+import { Colors, Radius, Spacing, Typography } from '../../constants';
 import { useSearchStore } from '../../stores/searchStore';
 import { useRecentSearches } from '../../hooks/useRecentSearches';
 import { useTranslation } from '../../i18n';
@@ -173,7 +173,7 @@ export default function SearchTabScreen() {
 
           {/* From */}
           <TouchableOpacity style={s.fieldRow} onPress={() => setShowFromSelector(true)}>
-            <View style={[s.fieldDot, { backgroundColor: C.green }]} />
+            <View style={[s.fieldDot, { backgroundColor: Colors.dark.primary }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>{t('search.from')}</Text>
               <Text style={s.fieldValue}>
@@ -189,7 +189,7 @@ export default function SearchTabScreen() {
               style={s.clearBtn}
               onPress={() => setFromStation(null)}
             >
-              <X size={12} color={C.text2} />
+              <X size={12} color={Colors.dark['text-secondary']} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -203,7 +203,7 @@ export default function SearchTabScreen() {
 
           {/* To */}
           <TouchableOpacity style={s.fieldRow} onPress={() => setShowToSelector(true)}>
-            <View style={[s.fieldDot, { backgroundColor: C.text2 }]} />
+            <View style={[s.fieldDot, { backgroundColor: Colors.dark['text-secondary'] }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>{t('search.to')}</Text>
               <Text style={s.fieldValue}>
@@ -219,7 +219,7 @@ export default function SearchTabScreen() {
               style={s.clearBtn}
               onPress={() => setToStation(null)}
             >
-              <X size={12} color={C.text2} />
+              <X size={12} color={Colors.dark['text-secondary']} />
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -227,7 +227,7 @@ export default function SearchTabScreen() {
 
           {/* Date */}
           <TouchableOpacity style={s.fieldRow} onPress={() => setShowDatePicker(true)}>
-            <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
+            <View style={[s.fieldIcon, { backgroundColor: Colors.dark['bg-overlay'] }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>{t('search.date_of_journey')}</Text>
               <Text style={s.fieldValue}>{formattedDate}</Text>
@@ -239,7 +239,7 @@ export default function SearchTabScreen() {
 
           {/* Class — static display (no real class-picker modal yet) */}
           <TouchableOpacity style={s.fieldRow}>
-            <View style={[s.fieldIcon, { backgroundColor: C.surface2 }]} />
+            <View style={[s.fieldIcon, { backgroundColor: Colors.dark['bg-overlay'] }]} />
             <View style={s.fieldContent}>
               <Text style={s.fieldLabel}>Class (Optional)</Text>
               <Text style={s.fieldValue}>All Classes</Text>
@@ -352,45 +352,45 @@ export default function SearchTabScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.xl, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
-  title: { fontSize: 18, fontWeight: '700', color: C.white },
-  recentBtn: { backgroundColor: C.greenTint, borderRadius: 16, paddingHorizontal: S.md, paddingVertical: 6, borderWidth: 1, borderColor: C.green },
-  recentBtnText: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  formCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', padding: S.xl, gap: S.md },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-5'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
+  title: { fontSize: 18, fontWeight: '700', color: Colors.dark['text-primary'] },
+  recentBtn: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 16, paddingHorizontal: Spacing['space-3'], paddingVertical: 6, borderWidth: 1, borderColor: Colors.dark.primary },
+  recentBtnText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  formCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', padding: Spacing['space-5'], gap: Spacing['space-3'] },
   fieldDot: { width: 20, height: 20, borderRadius: 10 },
   fieldIcon: { width: 20, height: 20, borderRadius: 6 },
   fieldContent: { flex: 1, gap: 2 },
-  fieldLabel: { fontSize: T.xs, color: C.text2 },
-  fieldValue: { fontSize: T.md, fontWeight: '600', color: C.white },
-  fieldSub: { fontSize: T.sm, color: C.green },
-  clearBtn: { width: 24, height: 24, backgroundColor: C.surface2, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  clearDot: { width: 8, height: 8, backgroundColor: C.text2, borderRadius: 4 },
-  swapWrapper: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.xl },
-  swapLine: { flex: 1, height: 1, backgroundColor: C.border },
-  swapBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
-  swapIcon: { fontSize: 16, color: C.green },
-  divider: { height: 1, backgroundColor: C.border, marginHorizontal: S.xl },
-  chevron: { width: 20, height: 20, backgroundColor: C.surface2, borderRadius: 4 },
-  searchBtn: { backgroundColor: C.green, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  searchBtnText: { fontSize: T.md, fontWeight: '700', color: C.bg },
-  errorText: { fontSize: T.sm, color: C.red, textAlign: 'center', marginTop: -S.md },
-  recentSection: { gap: S.md },
+  fieldLabel: { ...Typography.caption, color: Colors.dark['text-secondary'] },
+  fieldValue: { ...Typography.h4, fontWeight: '600', color: Colors.dark['text-primary'] },
+  fieldSub: { ...Typography['body-sm'], color: Colors.dark.primary },
+  clearBtn: { width: 24, height: 24, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  clearDot: { width: 8, height: 8, backgroundColor: Colors.dark['text-secondary'], borderRadius: 4 },
+  swapWrapper: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing['space-5'] },
+  swapLine: { flex: 1, height: 1, backgroundColor: Colors.dark.border },
+  swapBtn: { width: 36, height: 36, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.dark.border },
+  swapIcon: { fontSize: 16, color: Colors.dark.primary },
+  divider: { height: 1, backgroundColor: Colors.dark.border, marginHorizontal: Spacing['space-5'] },
+  chevron: { width: 20, height: 20, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  searchBtn: { backgroundColor: Colors.dark.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  searchBtnText: { ...Typography.h4, fontWeight: '700', color: Colors.dark['bg-base'] },
+  errorText: { ...Typography['body-sm'], color: Colors.dark.danger, textAlign: 'center', marginTop: -Spacing['space-3'] },
+  recentSection: { gap: Spacing['space-3'] },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  recentTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
-  clearAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  recentItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
-  recentIcon: { width: 20, height: 20, backgroundColor: C.surface2, borderRadius: 10 },
-  recentRoute: { fontSize: T.base, fontWeight: '600', color: C.white },
-  recentMeta: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  bookmarkIcon: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 4 },
-  exploreBanner: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
-  exploreImg: { width: 56, height: 56, backgroundColor: C.surface2, borderRadius: 10 },
-  exploreTitleBn: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  exploreSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  exploreBtn: { backgroundColor: C.greenTint, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: S.sm, borderWidth: 1, borderColor: C.green },
-  exploreBtnText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  recentTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  clearAll: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  recentItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
+  recentIcon: { width: 20, height: 20, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 10 },
+  recentRoute: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-primary'] },
+  recentMeta: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  bookmarkIcon: { width: 20, height: 20, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 4 },
+  exploreBanner: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'] },
+  exploreImg: { width: 56, height: 56, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 10 },
+  exploreTitleBn: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  exploreSub: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  exploreBtn: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10, paddingHorizontal: Spacing['space-3'], paddingVertical: Spacing['space-2'], borderWidth: 1, borderColor: Colors.dark.primary },
+  exploreBtnText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
 });

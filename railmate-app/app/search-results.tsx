@@ -1,13 +1,13 @@
 // app/search-results.tsx — Search Results Screen
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { useSearchTrains } from '../hooks/useTrains';
 import { useTrainDelayStatus } from '../hooks/useCommunityReports';
 import { TrainSearchResult } from '../types/database.types';
@@ -24,34 +24,36 @@ const POPULAR_ROUTES = [
 function SkeletonCard() {
   return (
     <View style={[s.trainCard, { height: 160, opacity: 0.6 }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.md }}>
-        <View style={{ width: 56, height: 20, backgroundColor: C.surface2, borderRadius: 4 }} />
-        <View style={{ width: 120, height: 16, backgroundColor: C.surface2, borderRadius: 4 }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], marginBottom: Spacing['space-3'] }}>
+        <View style={{ width: 56, height: 20, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
+        <View style={{ width: 120, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
       </View>
-      <View style={{ width: '80%', height: 12, backgroundColor: C.surface2, borderRadius: 4, marginBottom: S.sm }} />
+      <View style={{ width: '80%', height: 12, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4, marginBottom: Spacing['space-2'] }} />
       <View style={s.divider} />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: S.sm }}>
-        <View style={{ width: 60, height: 28, backgroundColor: C.surface2, borderRadius: 4 }} />
-        <View style={{ width: 60, height: 8, backgroundColor: C.surface2, borderRadius: 4, alignSelf: 'center' }} />
-        <View style={{ width: 60, height: 28, backgroundColor: C.surface2, borderRadius: 4 }} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing['space-2'] }}>
+        <View style={{ width: 60, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
+        <View style={{ width: 60, height: 8, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4, alignSelf: 'center' }} />
+        <View style={{ width: 60, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
       </View>
     </View>
   );
 }
 
-function TrainCard({ train, delayStatus, onPress }: {
+const TrainCard = React.memo(function TrainCard({ train, delayStatus, onPress }: {
   train: TrainSearchResult;
   delayStatus?: { delayMinutes: number; reportedAt: string };
-  onPress: () => void;
+  onPress: (trainNumber: string) => void;
 }) {
   const { t } = useTranslation();
-
+  const handlePress = useCallback(() => {
+    onPress(train.train_number);
+  }, [onPress, train.train_number]);
   const delayBadgeBg = delayStatus
-    ? (delayStatus.delayMinutes >= 15 ? C.redTint : C.orangeTint)
-    : C.greenTint;
+    ? (delayStatus.delayMinutes >= 15 ? Colors.dark['danger-subtle'] : Colors.dark['accent-subtle'])
+    : Colors.dark['primary-subtle'];
   const delayBadgeColor = delayStatus
-    ? (delayStatus.delayMinutes >= 15 ? C.red : C.orange)
-    : C.green;
+    ? (delayStatus.delayMinutes >= 15 ? Colors.dark.danger : Colors.dark.accent)
+    : Colors.dark.primary;
   const delayBadgeText = delayStatus
     ? `${delayStatus.delayMinutes} min delay`
     : t('results.on_time');
@@ -63,15 +65,15 @@ function TrainCard({ train, delayStatus, onPress }: {
   };
 
   return (
-    <TouchableOpacity style={s.trainCard} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={s.trainCard} onPress={handlePress} activeOpacity={0.8}>
       {/* Top row */}
       <View style={s.trainTop}>
         <View style={s.trainLeft}>
           <View style={s.numBadge}>
             <Text style={s.numBadgeText}>#{train.train_number}</Text>
           </View>
-          <View>
-            <Text style={s.trainName}>{train.train_name_en}</Text>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={s.trainName} numberOfLines={1} ellipsizeMode="tail">{train.train_name_en}</Text>
             <Text style={s.trainNameBn}>{train.train_type}</Text>
           </View>
         </View>
@@ -80,7 +82,6 @@ function TrainCard({ train, delayStatus, onPress }: {
         </View>
       </View>
 
-      <Text style={s.trainRoute}>{train.train_name_en}</Text>
       <View style={s.divider} />
 
       {/* Timing */}
@@ -102,7 +103,7 @@ function TrainCard({ train, delayStatus, onPress }: {
         </View>
       ) : (
         <View style={s.timingRow}>
-          <Text style={[s.trainRoute, { color: C.text3 }]}>{t('results.schedule_being_verified')}</Text>
+          <Text style={[s.trainRoute, { color: Colors.dark['text-tertiary'] }]}>{t('results.schedule_being_verified')}</Text>
         </View>
       )}
 
@@ -115,14 +116,14 @@ function TrainCard({ train, delayStatus, onPress }: {
         </View>
         <View>
           <Text style={s.seatsLabel}>{t('results.verified_schedule')}</Text>
-          <Text style={[s.seatsValue, { color: train.verified ? C.green : C.text3 }]}>
+          <Text style={[s.seatsValue, { color: train.verified ? Colors.dark.primary : Colors.dark['text-tertiary'] }]}>
             {train.verified ? '✓' : '—'}
           </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 export default function SearchResultsScreen() {
   const router = useRouter();
@@ -141,11 +142,15 @@ export default function SearchResultsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await refetch(); setRefreshing(false); };
 
+  const handleTrainPress = useCallback((trainNumber: string) => {
+    router.push({ pathname: '/train/[id]', params: { id: trainNumber } });
+  }, [router]);
+
   return (
     <SafeAreaView style={s.root} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View>
           <Text style={s.title}>{t('results.title')}</Text>
           <Text style={s.subtitle}>
@@ -161,20 +166,20 @@ export default function SearchResultsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.dark.primary} />}
       >
 
         {/* Summary card */}
         <View style={s.summaryCard}>
           <View style={s.summaryRow}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={s.summaryLabel}>From</Text>
-              <Text style={s.summaryValue}>{params.from_name ?? 'Origin'}</Text>
+              <Text style={s.summaryValue} numberOfLines={1} ellipsizeMode="tail">{params.from_name ?? 'Origin'}</Text>
             </View>
             <View style={s.swapIcon} />
-            <View style={{ alignItems: 'flex-end' }}>
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
               <Text style={s.summaryLabel}>To</Text>
-              <Text style={s.summaryValue}>{params.to_name ?? 'Destination'}</Text>
+              <Text style={s.summaryValue} numberOfLines={1} ellipsizeMode="tail">{params.to_name ?? 'Destination'}</Text>
             </View>
           </View>
           <View style={s.divider} />
@@ -195,22 +200,22 @@ export default function SearchResultsScreen() {
 
         {/* Error state */}
         {!isLoading && !!error && (
-          <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
-            <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
+          <View style={{ alignItems: 'center', paddingVertical: Spacing['space-5'], gap: Spacing['space-3'] }}>
+            <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>{t('common.error')}</Text>
             <TouchableOpacity onPress={() => refetch()}>
-              <Text style={{ color: C.green, fontSize: T.base }}>{t('common.retry')}</Text>
+              <Text style={{ color: Colors.dark.primary, ...Typography.body }}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* Empty state */}
         {!isLoading && !error && trains?.length === 0 && (
-          <View style={{ gap: S.md, paddingVertical: S.xl }}>
-            <View style={{ alignItems: 'center', gap: S.md }}>
-              <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
-              <Text style={{ color: C.text2, fontSize: T.sm, textAlign: 'center' }}>{t('results.none_hint')}</Text>
+          <View style={{ gap: Spacing['space-3'], paddingVertical: Spacing['space-5'] }}>
+            <View style={{ alignItems: 'center', gap: Spacing['space-3'] }}>
+              <Text style={{ color: Colors.dark['text-primary'], ...Typography.h4, fontWeight: '600' }}>{t('results.none')}</Text>
+              <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'], textAlign: 'center' }}>{t('results.none_hint')}</Text>
               <TouchableOpacity onPress={() => router.back()}>
-                <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
+                <Text style={{ color: Colors.dark.primary, ...Typography.body }}>{t('results.search_again')}</Text>
               </TouchableOpacity>
             </View>
             <View style={s.suggestedSection}>
@@ -245,7 +250,7 @@ export default function SearchResultsScreen() {
             key={train.train_id}
             train={train}
             delayStatus={delayMap?.get(train.train_number)}
-            onPress={() => router.push({ pathname: '/train/[id]', params: { id: train.train_number } })}
+            onPress={handleTrainPress}
           />
         ))}
 
@@ -267,57 +272,57 @@ export default function SearchResultsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 16, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  headerRight: { flexDirection: 'row', gap: S.sm },
-  headerBtn: { backgroundColor: C.surface2, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: 8 },
-  headerBtnText: { fontSize: T.sm, fontWeight: '600', color: C.white },
-  summaryCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 16, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  headerRight: { flexDirection: 'row', gap: Spacing['space-2'] },
+  headerBtn: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 10, paddingHorizontal: Spacing['space-3'], paddingVertical: 8 },
+  headerBtnText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-primary'] },
+  summaryCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'] },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryLabel: { fontSize: T.xs, color: C.text2 },
-  summaryValue: { fontSize: T.md, fontWeight: '600', color: C.white, marginTop: 2 },
-  swapIcon: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
-  divider: { height: 1, backgroundColor: C.border, marginVertical: S.md },
-  summaryMeta: { flexDirection: 'row', gap: S.xl },
-  summaryMetaText: { fontSize: T.sm, fontWeight: '600', color: C.text2 },
-  trainCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
-  trainTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  trainLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  numBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
-  numBadgeText: { fontSize: T.sm, fontWeight: '700', color: C.green },
-  trainName: { fontSize: 14, fontWeight: '700', color: C.white },
-  trainNameBn: { fontSize: T.sm, color: C.text2, marginTop: 1 },
-  delayBadge: { borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
-  delayText: { fontSize: T.xs, fontWeight: '700' },
-  trainRoute: { fontSize: T.sm, color: C.text2 },
+  summaryLabel: { ...Typography.caption, color: Colors.dark['text-secondary'] },
+  summaryValue: { ...Typography.h4, fontWeight: '600', color: Colors.dark['text-primary'], marginTop: 2 },
+  swapIcon: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
+  divider: { height: 1, backgroundColor: Colors.dark.border, marginVertical: Spacing['space-3'] },
+  summaryMeta: { flexDirection: 'row', gap: Spacing['space-5'] },
+  summaryMetaText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-secondary'] },
+  trainCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
+  trainTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing['space-3'] },
+  trainLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], flex: 1, minWidth: 0 },
+  numBadge: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 8, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  numBadgeText: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.primary },
+  trainName: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'] },
+  trainNameBn: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 1 },
+  delayBadge: { borderRadius: 8, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  delayText: { ...Typography.caption, fontWeight: '700' },
+  trainRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
   timingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  timeMain: { fontSize: 20, fontWeight: '700', color: C.white },
-  timeLabel: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  timeStation: { fontSize: T.xs, fontWeight: '600', color: C.green, marginTop: 1 },
+  timeMain: { fontSize: 20, fontWeight: '700', color: Colors.dark['text-primary'] },
+  timeLabel: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  timeStation: { ...Typography.caption, fontWeight: '600', color: Colors.dark.primary, marginTop: 1 },
   durationCol: { alignItems: 'center', gap: 4 },
-  durationText: { fontSize: T.sm, color: C.text2 },
-  durationLine: { width: 60, height: 2, backgroundColor: C.green, borderRadius: 1 },
-  arrowText: { fontSize: T.sm, color: C.text2 },
+  durationText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  durationLine: { width: 60, height: 2, backgroundColor: Colors.dark.primary, borderRadius: 1 },
+  arrowText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
   trainBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   classPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  classPill: { backgroundColor: C.surface2, borderRadius: 6, paddingHorizontal: S.sm, paddingVertical: 4 },
-  classPillActive: { backgroundColor: C.greenTint, borderWidth: 1, borderColor: C.green },
-  classPillText: { fontSize: 9, color: C.text2 },
-  classPillTextActive: { color: C.green },
-  seatsLabel: { fontSize: 9, color: C.text2, textAlign: 'right' },
-  seatsValue: { fontSize: 14, fontWeight: '700', color: C.green, textAlign: 'right' },
-  communityBadge: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
-  communityIcon: { width: 40, height: 40, backgroundColor: C.greenDark, borderRadius: 20 },
-  communityTitle: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  communitySub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  reportersStack: { width: 40, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
-  suggestedSection: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.sm },
-  suggestedTitle: { fontSize: T.sm, fontWeight: '600', color: C.text2, marginBottom: S.xs },
-  suggestedRoute: { flexDirection: 'row', alignItems: 'center', gap: S.sm, paddingVertical: S.sm, borderTopWidth: 1, borderTopColor: C.border },
-  suggestedRouteText: { fontSize: T.sm, color: C.white, flex: 1 },
-  suggestedArrow: { fontSize: T.sm, color: C.text2 },
+  classPill: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 6, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  classPillActive: { backgroundColor: Colors.dark['primary-subtle'], borderWidth: 1, borderColor: Colors.dark.primary },
+  classPillText: { fontSize: 9, color: Colors.dark['text-secondary'] },
+  classPillTextActive: { color: Colors.dark.primary },
+  seatsLabel: { fontSize: 9, color: Colors.dark['text-secondary'], textAlign: 'right' },
+  seatsValue: { fontSize: 14, fontWeight: '700', color: Colors.dark.primary, textAlign: 'right' },
+  communityBadge: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark['primary-dim'], padding: Spacing['space-4'], flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'] },
+  communityIcon: { width: 40, height: 40, backgroundColor: Colors.dark['primary-dim'], borderRadius: 20 },
+  communityTitle: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  communitySub: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  reportersStack: { width: 40, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 14 },
+  suggestedSection: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-2'] },
+  suggestedTitle: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-secondary'], marginBottom: Spacing['space-1'] },
+  suggestedRoute: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], paddingVertical: Spacing['space-2'], borderTopWidth: 1, borderTopColor: Colors.dark.border },
+  suggestedRouteText: { ...Typography['body-sm'], color: Colors.dark['text-primary'], flex: 1 },
+  suggestedArrow: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
 });

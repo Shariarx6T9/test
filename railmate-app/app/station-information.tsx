@@ -4,7 +4,7 @@ import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { supabase } from '../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { Station } from '../types/station.types';
@@ -59,9 +59,9 @@ export default function StationInformationScreen() {
   if (stationLoading) {
     return (
       <SafeAreaView style={si.root} edges={['top']}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg, padding: S.xl }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing['space-4'], padding: Spacing['space-5'] }}>
           {[0, 1, 2].map(i => (
-            <View key={i} style={{ width: '100%', height: 120, backgroundColor: C.surface, borderRadius: R.lg, opacity: 0.6 }} />
+            <View key={i} style={{ width: '100%', height: 120, backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], opacity: 0.6 }} />
           ))}
         </View>
       </SafeAreaView>
@@ -72,10 +72,10 @@ export default function StationInformationScreen() {
   if (stationError) {
     return (
       <SafeAreaView style={si.root} edges={['top']}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg }}>
-          <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
-          <TouchableOpacity onPress={() => refetch()} style={{ backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md }}>
-            <Text style={{ color: C.bg, fontWeight: '700', fontSize: T.base }}>{t('common.retry')}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing['space-4'] }}>
+          <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>{t('common.error')}</Text>
+          <TouchableOpacity onPress={() => refetch()} style={{ backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] }}>
+            <Text style={{ color: Colors.dark['bg-base'], fontWeight: '700', ...Typography.body }}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -88,24 +88,24 @@ export default function StationInformationScreen() {
       <SafeAreaView style={si.root} edges={['top']}>
         <View style={si.header}>
           <TouchableOpacity style={si.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={18} color={C.white} />
+            <ArrowLeft size={18} color={Colors.dark['text-primary']} />
           </TouchableOpacity>
           <Text style={si.title}>Station Information</Text>
           <View style={{ width: 32 }} />
         </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: S.lg, padding: S.xl }}>
-          <View style={{ width: 80, height: 80, backgroundColor: C.surface2, borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 40, color: C.text3 }}>🚉</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing['space-4'], padding: Spacing['space-5'] }}>
+          <View style={{ width: 80, height: 80, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 40, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 40, color: Colors.dark['text-tertiary'] }}>🚉</Text>
           </View>
-          <Text style={{ color: C.white, fontSize: T.lg, fontWeight: '700', textAlign: 'center' }}>Station Not Found</Text>
-          <Text style={{ color: C.text2, fontSize: T.base, textAlign: 'center' }}>
-            The station you're looking for doesn't exist or has been removed.
+          <Text style={{ color: Colors.dark['text-primary'], ...Typography.h3, fontWeight: '700', textAlign: 'center' }}>Station Not Found</Text>
+          <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body, textAlign: 'center' }}>
+            The station you&#39;re looking for doesn&#39;t exist or has been removed.
           </Text>
           <TouchableOpacity
-            style={{ backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md }}
+            style={{ backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] }}
             onPress={() => router.back()}
           >
-            <Text style={{ color: C.bg, fontWeight: '700', fontSize: T.base }}>Go Back</Text>
+            <Text style={{ color: Colors.dark['bg-base'], fontWeight: '700', ...Typography.body }}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -115,7 +115,7 @@ export default function StationInformationScreen() {
   return (
     <SafeAreaView style={si.root} edges={['top']}>
       <View style={si.header}>
-        <TouchableOpacity style={si.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={si.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View style={si.headerTitle}>
           <View style={si.headerIcon} />
           <Text style={si.title}>Station Information</Text>
@@ -126,23 +126,23 @@ export default function StationInformationScreen() {
         {/* Station name */}
         <View style={si.nameRow}>
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, flexWrap: 'wrap' }}>
-              <Text style={si.stationName}>{station!.name_en}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] }}>
+              <Text style={si.stationName} numberOfLines={1} ellipsizeMode="tail">{station!.name_en}</Text>
               {station!.is_major && (
-                <View style={{ backgroundColor: C.greenTint, borderRadius: 6, paddingHorizontal: S.sm, paddingVertical: 2, borderWidth: 1, borderColor: C.green }}>
-                  <Text style={{ fontSize: T.xs, fontWeight: '700', color: C.green }}>Major Station</Text>
+                <View style={{ backgroundColor: Colors.dark['primary-subtle'], borderRadius: 6, paddingHorizontal: Spacing['space-2'], paddingVertical: 2, borderWidth: 1, borderColor: Colors.dark.primary }}>
+                  <Text style={{ ...Typography.caption, fontWeight: '700', color: Colors.dark.primary }}>Major Station</Text>
                 </View>
               )}
             </View>
-            <Text style={si.stationBn}>{station!.name_bn}</Text>
+            <Text style={si.stationBn} numberOfLines={1} ellipsizeMode="tail">{station!.name_bn}</Text>
             {station!.code ? (
-              <Text style={{ fontSize: T.xs, color: C.text3, marginTop: 2 }}>Code: {station!.code}</Text>
+              <Text style={{ ...Typography.caption, color: Colors.dark['text-tertiary'], marginTop: 2 }}>Code: {station!.code}</Text>
             ) : null}
           </View>
           <View style={si.ratingBox}>
             {station!.division ? (
               <>
-                <Text style={si.ratingNum}>{station!.division}</Text>
+                <Text style={si.ratingNum} numberOfLines={1} ellipsizeMode="tail">{station!.division}</Text>
                 <Text style={si.ratingCount}>Division</Text>
               </>
             ) : null}
@@ -189,11 +189,11 @@ export default function StationInformationScreen() {
         {/* Popular trains */}
         <View style={si.card}>
           <View style={si.sectionHeader}>
-            <Text style={si.sectionTitle}>Popular Trains from {station!.name_en}</Text>
+            <Text style={[si.sectionTitle, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">Popular Trains from {station!.name_en}</Text>
             <TouchableOpacity><Text style={si.viewAll}>View All</Text></TouchableOpacity>
           </View>
           {(popularTrains ?? []).length === 0 ? (
-            <Text style={{ color: C.text2, fontSize: T.sm, textAlign: 'center', paddingVertical: S.md }}>No trains found</Text>
+            <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'], textAlign: 'center', paddingVertical: Spacing['space-3'] }}>No trains found</Text>
           ) : (
             (popularTrains ?? []).map((train, i) => (
               <View key={train.id}>
@@ -205,7 +205,7 @@ export default function StationInformationScreen() {
                     <Text style={si.trainNumText}>#{train.number}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={si.trainName}>{train.name_en}</Text>
+                    <Text style={si.trainName} numberOfLines={1} ellipsizeMode="tail">{train.name_en}</Text>
                     <Text style={si.trainRoute}>{train.name_bn}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
@@ -245,52 +245,52 @@ export default function StationInformationScreen() {
 }
 
 const si = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  headerIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 8 },
-  title: { fontSize: 17, fontWeight: '700', color: C.white },
-  shareBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  headerIcon: { width: 32, height: 32, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 8 },
+  title: { fontSize: 17, fontWeight: '700', color: Colors.dark['text-primary'] },
+  shareBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
   nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  stationName: { fontSize: 17, fontWeight: '700', color: C.white },
-  stationBn: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  ratingBox: { alignItems: 'center' },
+  stationName: { fontSize: 17, fontWeight: '700', color: Colors.dark['text-primary'], flexShrink: 1 },
+  stationBn: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  ratingBox: { alignItems: 'center', flexShrink: 0, marginLeft: Spacing['space-3'] },
   ratingStar: { fontSize: 16 },
-  ratingNum: { fontSize: 14, fontWeight: '700', color: C.white },
-  ratingCount: { fontSize: T.xs, color: C.text2 },
-  stationPhoto: { width: '100%', height: 180, backgroundColor: C.surface2, borderRadius: R.lg },
-  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  ratingNum: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'], maxWidth: 100 },
+  ratingCount: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  stationPhoto: { width: '100%', height: 180, backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-lg'] },
+  card: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
-  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  facilitiesRow: { flexDirection: 'row', gap: S.sm },
-  facilityItem: { alignItems: 'center', gap: S.xs, width: 70 },
-  facilityIcon: { width: 48, height: 48, backgroundColor: C.surface2, borderRadius: R.md },
-  facilityLabel: { fontSize: T.xs, color: C.text2, textAlign: 'center' },
-  dirRow: { flexDirection: 'row', gap: S.md },
-  dirTitleRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.sm },
-  dirIcon: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 10 },
-  dirTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
-  dirAddress: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
-  mapPreview: { width: 80, height: 72, backgroundColor: C.blueTint, borderRadius: 10 },
-  openMapBtn: { backgroundColor: C.surface2, borderRadius: 10, paddingVertical: S.md, alignItems: 'center', borderWidth: 1, borderColor: C.border },
-  openMapText: { fontSize: T.sm, fontWeight: '600', color: C.white },
-  trainRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
-  trainNumBadge: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  trainNumText: { fontSize: T.sm, fontWeight: '700', color: C.green },
-  trainName: { fontSize: T.base, fontWeight: '600', color: C.white },
-  trainRoute: { fontSize: T.sm, color: C.text2, marginTop: 1 },
-  trainTime: { fontSize: T.sm, fontWeight: '600', color: C.white },
-  trainFreq: { fontSize: T.xs, color: C.text2, marginTop: 1 },
-  chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  divider: { height: 1, backgroundColor: C.border },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
-  contactIcon: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14 },
-  contactLabel: { fontSize: T.base, fontWeight: '600', color: C.white },
-  contactVal: { fontSize: T.sm, fontWeight: '600', color: C.green, marginTop: 2 },
-  extIcon: { width: 20, height: 20, backgroundColor: C.greenTint, borderRadius: 10 },
-  noteCard: { backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md },
-  noteText: { fontSize: T.sm, color: C.text2, textAlign: 'center' },
+  sectionTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  viewAll: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  facilitiesRow: { flexDirection: 'row', gap: Spacing['space-2'] },
+  facilityItem: { alignItems: 'center', gap: Spacing['space-1'], width: 70 },
+  facilityIcon: { width: 48, height: 48, backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'] },
+  facilityLabel: { ...Typography.caption, color: Colors.dark['text-secondary'], textAlign: 'center' },
+  dirRow: { flexDirection: 'row', gap: Spacing['space-3'] },
+  dirTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], marginBottom: Spacing['space-2'] },
+  dirIcon: { width: 20, height: 20, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10 },
+  dirTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  dirAddress: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], lineHeight: 20 },
+  mapPreview: { width: 80, height: 72, backgroundColor: Colors.dark['info-subtle'], borderRadius: 10 },
+  openMapBtn: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 10, paddingVertical: Spacing['space-3'], alignItems: 'center', borderWidth: 1, borderColor: Colors.dark.border },
+  openMapText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-primary'] },
+  trainRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], paddingVertical: Spacing['space-2'] },
+  trainNumBadge: { width: 28, height: 28, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  trainNumText: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.primary },
+  trainName: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-primary'] },
+  trainRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 1 },
+  trainTime: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-primary'] },
+  trainFreq: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 1 },
+  chevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  divider: { height: 1, backgroundColor: Colors.dark.border },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], paddingVertical: Spacing['space-2'] },
+  contactIcon: { width: 28, height: 28, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 14 },
+  contactLabel: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-primary'] },
+  contactVal: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary, marginTop: 2 },
+  extIcon: { width: 20, height: 20, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10 },
+  noteCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-3'] },
+  noteText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], textAlign: 'center' },
 });

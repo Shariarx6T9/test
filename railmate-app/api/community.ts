@@ -35,7 +35,7 @@ export async function getCommunityReports(
       user_id,
       train_id,
       station_id,
-      report_type,
+      report_type:category,
       description,
       delay_minutes,
       crowd_level,
@@ -47,8 +47,6 @@ export async function getCommunityReports(
       created_at,
       journey_date,
       status,
-      verification_count,
-      dispute_count,
       helpful_count,
       comment_count,
       user:users (
@@ -75,7 +73,7 @@ export async function getCommunityReports(
 
   // Apply discriminated filter
   if (filter && 'type' in filter) {
-    query = query.eq('report_type', filter.type);
+    query = query.eq('category', filter.type);
   } else if (filter && 'userId' in filter) {
     query = query.eq('user_id', filter.userId);
   } else if (filter && 'status' in filter) {
@@ -158,7 +156,7 @@ export async function submitReport(
     user_id: data.user_id,
     train_id: data.train_id ?? null,
     station_id: data.station_id ?? null,
-    report_type: data.report_type,
+    category: data.report_type,
     description: data.description ?? null,
     delay_minutes: data.delay_minutes ?? null,
     crowd_level: data.crowd_level ?? null,
@@ -167,12 +165,12 @@ export async function submitReport(
     status: 'ACTIVE',
   };
 
-  console.log('[submitReport] payload:', JSON.stringify(payload, null, 2));
+  console.warn('[submitReport] payload:', JSON.stringify(payload, null, 2));
 
   const { error } = await supabase.from('community_reports').insert(payload);
 
   if (error) {
-    console.log('[submitReport] error:', JSON.stringify(error, null, 2));
+    console.warn('[submitReport] error:', JSON.stringify(error, null, 2));
     throw new Error(`submitReport: ${error.message} (code: ${error.code})`);
   }
 }
@@ -395,7 +393,7 @@ export async function getDelayStatusForTrains(
     const { data: reports, error: repErr } = await supabase
       .from('community_reports')
       .select('train_id, delay_minutes, created_at')
-      .eq('report_type', 'DELAY')
+      .eq('category', 'DELAY')
       .eq('journey_date', journeyDate)
       .not('delay_minutes', 'is', null)
       .not('train_id', 'is', null)

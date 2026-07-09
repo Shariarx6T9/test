@@ -5,7 +5,8 @@ import { StatusPill } from '../ui/StatusPill';
 import { Colors } from '../../constants/colors';
 import { Radius } from '../../constants/radius';
 
-type StatusType = 'delay' | 'crowding' | 'on_time' | 'platform' | 'halted';
+type StatusType = 'delay' | 'crowding' | 'onTime' | 'platform' | 'halted' | 'warning';
+type StatusPillType = 'delay' | 'onTime' | 'warning' | 'crowding';
 
 interface LiveUpdate {
   train_name: string;
@@ -20,7 +21,7 @@ interface LiveUpdate {
   reported_at: string;
   reporter_count: number;
   reporter_avatars?: string[];
-  stops?: Array<{ name: string; passed: boolean }>;
+  stops?: { name: string; passed: boolean }[];
 }
 
 interface LiveUpdateCardProps {
@@ -34,6 +35,11 @@ interface LiveUpdateCardProps {
  */
 export const LiveUpdateCard: React.FC<LiveUpdateCardProps> = ({ update, onPress }) => {
   const borderColor = getBorderColorForStatus(update.status_type);
+
+  // Type guard to ensure we only pass valid types to StatusPill
+  const isPillType = (type: StatusType): type is StatusPillType => {
+    return ['delay', 'onTime', 'warning', 'crowding'].includes(type);
+  };
 
   return (
     <Pressable
@@ -75,7 +81,9 @@ export const LiveUpdateCard: React.FC<LiveUpdateCardProps> = ({ update, onPress 
           {update.route_from} → {update.route_to}
         </AppText>
 
-        <StatusPill type={update.status_type} label={update.status_label} style={styles.status} />
+        {isPillType(update.status_type) && (
+          <StatusPill type={update.status_type} label={update.status_label} style={styles.status} />
+        )}
 
         {update.description && (
           <AppText variant="caption" color={Colors.dark['text-secondary']} numberOfLines={1}>
@@ -106,13 +114,16 @@ export const LiveUpdateCard: React.FC<LiveUpdateCardProps> = ({ update, onPress 
         </AppText>
         {update.reporter_avatars && update.reporter_avatars.length > 0 && (
           <View style={styles.avatarStack}>
-            {update.reporter_avatars.slice(0, 3).map((avatar, idx) => (
-              <Image
-                key={idx}
-                source={{ uri: avatar }}
-                style={[styles.avatar, { marginLeft: idx > 0 ? -8 : 0 }]}
-              />
-            ))}
+            {update.reporter_avatars.slice(0, 3).map((avatar, idx) => {
+              if (typeof avatar !== 'string' || !avatar) return null;
+              return (
+                <Image
+                  key={idx}
+                  source={{ uri: avatar }}
+                  style={[styles.avatar, { marginLeft: idx > 0 ? -8 : 0 }]}
+                />
+              );
+            })}
             {update.reporter_count > 3 && (
               <View style={[styles.avatar, styles.avatarMore, { marginLeft: -8 }]}>
                 <AppText variant="labelSm" color="#FFF">
@@ -132,11 +143,10 @@ function getBorderColorForStatus(type: StatusType): string {
     case 'delay':
     case 'halted':
       return Colors.dark.danger;
-    case 'on_time':
+    case 'onTime':
       return Colors.dark.success;
     case 'crowding':
     case 'platform':
-    case 'warning':
       return Colors.dark.accent;
     default:
       return Colors.dark.border;

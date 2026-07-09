@@ -3,11 +3,11 @@
 // Shimmer skeleton shown while the community feed is loading.
 // Uses Animated to create a pulsing opacity effect.
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, View } from 'react-native';
 
 function SkeletonBlock({ className }: { className: string }) {
-  const opacity = useRef(new Animated.Value(0.4)).current;
+  const [opacity] = useState(() => new Animated.Value(0.4));
 
   useEffect(() => {
     const anim = Animated.loop(
@@ -26,7 +26,7 @@ function SkeletonBlock({ className }: { className: string }) {
     );
     anim.start();
     return () => anim.stop();
-  }, []);
+  }, [opacity]);
 
   return (
     <Animated.View

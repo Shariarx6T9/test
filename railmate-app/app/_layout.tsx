@@ -1,4 +1,3 @@
-// app/_layout.tsx
 import React, { useEffect, useState } from 'react';
 import '../global.css';
 import { View } from 'react-native';
@@ -6,7 +5,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { colorScheme as nativewindColorScheme } from 'nativewind';
 import * as SplashScreen from 'expo-splash-screen';
-import {
+import { 
   useFonts,
   Inter_400Regular,
   Inter_500Medium,
@@ -34,10 +33,7 @@ import { usePrefsStore } from '../stores/prefsStore';
 import { useThemeColors, useResolvedTheme } from '../hooks/useThemeColors';
 import { getThemeVars } from '../lib/themeVars';
 
-// Native splash stays up only until fonts are ready. Android's native
-// SplashScreen API is icon-only by OS design (see app.json comment) — it
-// cannot show full-bleed art, so we hand off to our own AppSplash the
-// moment fonts are loaded, and keep AppSplash up during auth init instead.
+// Keep the native splash visible until fonts + auth are ready.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
@@ -74,24 +70,29 @@ export default function RootLayout() {
     nativewindColorScheme.set(themePref === 'system' ? 'system' : resolvedTheme);
   }, [themePref, resolvedTheme]);
 
-  // Hide native splash the instant fonts are ready — do NOT wait for auth.
-  // AppSplash (full-bleed, your real art) takes over immediately below.
-  const [authInitStarted, setAuthInitStarted] = useState(false);
+  const authInitStarted = React.useRef(false);
+  // Guarantees AppSplash is visible for a minimum time regardless of how
+  // fast/slow the real auth check resolves — fixes the inconsistency
+  // between first-time users (instant, no session) and returning users
+  // (slower, validates a real session over the network).
+  const MIN_SPLASH_MS = 600;
+  const [minDurationElapsed, setMinDurationElapsed] = useState(false);
+
   useEffect(() => {
     if (!fontsLoaded && !fontError) return;
     SplashScreen.hideAsync().catch(() => {});
-    if (!authInitStarted) {
-      setAuthInitStarted(true);
+    if (!authInitStarted.current) {
+      authInitStarted.current = true;
       initialize().catch(() => {
-        // Auth init failed — proceed anyway; nav guard below will redirect
+        // Auth init failed — proceed anyway; nav guard will redirect
       });
+      const timer = setTimeout(() => setMinDurationElapsed(true), MIN_SPLASH_MS);
+      return () => clearTimeout(timer);
     }
-  }, [fontsLoaded, fontError]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Navigation guard — runs after auth is settled.
+  }, [fontsLoaded, fontError, initialize]);
+  
   useEffect(() => {
     if (isLoading) return;
-
     const seg0 = segments[0] as string | undefined;
     const inAuthGroup       = seg0 === 'auth';
     const inOnboardingGroup = seg0 === 'onboarding';
@@ -110,12 +111,12 @@ export default function RootLayout() {
     }
   }, [isLoading, isAuthenticated, isGuest, hasFinishedOnboarding, segments, router]);
 
-  // Still loading fonts — the OS-controlled native splash is still visible.
   if (!fontsLoaded && !fontError) return null;
 
-  // Fonts ready, native splash just hid — bridge with our full-bleed splash
-  // while auth initializes, instead of jumping straight to a bare screen.
-  if (isLoading) return <AppSplash />;
+  // Gated on both auth loading AND the minimum splash timer — whichever
+  // finishes last wins. Guarantees every user sees the same full-bleed
+  // splash duration, not a coin flip based on network speed.
+  if (isLoading || !minDurationElapsed) return <AppSplash />;
 
   return (
     <ErrorBoundary>

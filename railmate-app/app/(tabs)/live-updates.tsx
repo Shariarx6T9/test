@@ -200,11 +200,11 @@ export default function LiveUpdatesScreen() {
                     update={{
                       train_name: update.train?.name_en ?? 'Unknown Train',
                       train_number: update.train?.number ?? 'N/A',
-                      route_from: 'Dhaka',
-                      route_to: 'Destination',
+                      route_from: update.train?.origin?.name_en ?? '—',
+                      route_to: update.train?.destination?.name_en ?? '—',
                       status_type: update.report_type === 'DELAY' ? 'delay'
                         : update.report_type === 'CROWD' ? 'crowding'
-                        : update.report_type === 'PLATFORM' ? 'platform' : 'on_time',
+                        : update.report_type === 'PLATFORM' ? 'platform' : 'onTime',
                       status_label: update.report_type === 'DELAY'
                         ? `${update.delay_minutes || 0} min delay`
                         : st.label,

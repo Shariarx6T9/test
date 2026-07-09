@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { SavedRoute, Station } from '../types/database.types';
+import type { SavedRoute } from '../types/database.types';
 import { canPerformAction } from '../lib/featureGates';
 
 /**

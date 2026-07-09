@@ -3,7 +3,7 @@
 // Multi-step bottom sheet for submitting community reports.
 // Step machine: TYPE_SELECT → (DELAY | CROWDING | CONDITION) → SUCCESS
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -237,14 +237,14 @@ export default function ReportSubmitSheet({
   isBengali,
 }: ReportSubmitSheetProps) {
   const { t } = useTranslation();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const submitMutation = useSubmitReport();
   const { colorScheme } = useColorScheme();
   const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
 
   // ── Sheet slide animation ───────────────────────────────────────────────
-  const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-  const successScale = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(SHEET_HEIGHT));
+  const [successScale] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (visible) {
@@ -261,7 +261,7 @@ export default function ReportSubmitSheet({
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
 
   // ── Form state ──────────────────────────────────────────────────────────
   const [step, setStep] = useState<Step>('TYPE_SELECT');
@@ -299,7 +299,7 @@ export default function ReportSubmitSheet({
     setConditionNote('');
     setPhotoUri(null);
     successScale.setValue(0);
-  }, []);
+  }, [successScale]);
 
   const handleClose = () => {
     resetForm();
@@ -882,8 +882,6 @@ function SubmitButton({
   label: string;
   onPress: () => void;
 }) {
-  const { colorScheme } = useColorScheme();
-  const currentColors = Colors[colorScheme === 'light' ? 'light' : 'dark'];
   const disabled = !canSubmit || isUploading;
   return (
     <TouchableOpacity

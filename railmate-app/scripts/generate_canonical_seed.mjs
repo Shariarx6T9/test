@@ -235,7 +235,7 @@ ${buildFareRows().map((row) => `  (${row})`).join(',\n')};
 mkdirSync(supabaseDir, { recursive: true });
 writeFileSync(path.join(supabaseDir, 'seed.sql'), output);
 
-console.log(
+console.warn(
   JSON.stringify(
     {
       stations: stations.length,

@@ -11,7 +11,7 @@ import Animated, {
 import {
   House,
   MagnifyingGlass,
-  Activity,
+  Pulse,
   Users,
   User,
 } from 'phosphor-react-native';
@@ -49,8 +49,8 @@ const TABS: TabConfig[] = [
   {
     id: 'live',
     label: 'Live',
-    IconOutline: Activity,
-    IconFilled: Activity,
+    IconOutline: Pulse,
+    IconFilled: Pulse,
   },
   {
     id: 'community',
@@ -110,7 +110,7 @@ const TabButton: React.FC<TabButtonProps> = ({ tab, isActive, onPress }) => {
         withTiming(1, { duration: 80 })
       );
     }
-  }, [isActive]);
+  }, [isActive, scale]);
 
   // Pulse animation for Live Updates tab when active
   useEffect(() => {
@@ -126,7 +126,7 @@ const TabButton: React.FC<TabButtonProps> = ({ tab, isActive, onPress }) => {
     } else {
       pulseOpacity.value = 1;
     }
-  }, [isActive, tab.id]);
+  }, [isActive, tab.id, pulseOpacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

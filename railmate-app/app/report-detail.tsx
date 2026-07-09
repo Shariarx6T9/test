@@ -3,7 +3,7 @@ import React from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { supabase } from '../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { useReportVerifiers, useVoteReport, useReportComments } from '../hooks/useCommunityReports';
@@ -50,12 +50,12 @@ export default function ReportDetailScreen() {
     return (
       <SafeAreaView style={rd.root}>
         <View style={rd.header}>
-          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
           <Text style={rd.title}>Report Detail</Text>
           <View style={rd.shareBtn} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={C.green} />
+          <ActivityIndicator size="large" color={Colors.dark.primary} />
         </View>
       </SafeAreaView>
     );
@@ -65,12 +65,12 @@ export default function ReportDetailScreen() {
     return (
       <SafeAreaView style={rd.root}>
         <View style={rd.header}>
-          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
           <Text style={rd.title}>Report Detail</Text>
           <View style={rd.shareBtn} />
         </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.md }}>
-          <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing['space-3'] }}>
+          <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>{t('common.error')}</Text>
           <TouchableOpacity style={rd.retryBtn} onPress={() => refetch()}>
             <Text style={rd.retryBtnText}>{t('common.retry')}</Text>
           </TouchableOpacity>
@@ -83,12 +83,12 @@ export default function ReportDetailScreen() {
     return (
       <SafeAreaView style={rd.root}>
         <View style={rd.header}>
-          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+          <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
           <Text style={rd.title}>Report Detail</Text>
           <View style={rd.shareBtn} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: C.text2, fontSize: T.base }}>Report not found</Text>
+          <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>Report not found</Text>
         </View>
       </SafeAreaView>
     );
@@ -98,12 +98,12 @@ export default function ReportDetailScreen() {
     ? new Date(report.reported_at).toLocaleString('en', { dateStyle: 'medium', timeStyle: 'short' })
     : '';
 
-  const badgeColor = report.report_type === 'DELAY' ? C.red
-    : report.report_type === 'CROWD' ? C.orange
-    : C.blue;
-  const badgeBg = report.report_type === 'DELAY' ? C.redTint
-    : report.report_type === 'CROWD' ? C.orangeTint
-    : C.blueTint;
+  const badgeColor = report.report_type === 'DELAY' ? Colors.dark.danger
+    : report.report_type === 'CROWD' ? Colors.dark.accent
+    : Colors.dark.info;
+  const badgeBg = report.report_type === 'DELAY' ? Colors.dark['danger-subtle']
+    : report.report_type === 'CROWD' ? Colors.dark['accent-subtle']
+    : Colors.dark['info-subtle'];
 
   const badgeLabel = report.report_type === 'DELAY' ? 'Delay Report'
     : report.report_type === 'CROWD' ? 'Crowding Report'
@@ -116,7 +116,7 @@ export default function ReportDetailScreen() {
   return (
     <SafeAreaView style={rd.root}>
       <View style={rd.header}>
-        <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={rd.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <Text style={rd.title}>Report Detail</Text>
         <TouchableOpacity style={rd.shareBtn} />
       </View>
@@ -161,7 +161,7 @@ export default function ReportDetailScreen() {
             {report.report_type === 'DELAY' && report.delay_minutes != null && (
               <View>
                 <Text style={rd.metaLabel}>Delay{'\n'}
-                  <Text style={[rd.metaValue, { color: C.red }]}>{report.delay_minutes} min</Text>
+                  <Text style={[rd.metaValue, { color: Colors.dark.danger }]}>{report.delay_minutes} min</Text>
                 </Text>
               </View>
             )}
@@ -179,12 +179,12 @@ export default function ReportDetailScreen() {
                 <>
                   <View>
                     <Text style={rd.delayLabel}>Reported Delay</Text>
-                    <Text style={[rd.delayNum, { color: C.red }]}>{report.delay_minutes ?? '?'} min</Text>
+                    <Text style={[rd.delayNum, { color: Colors.dark.danger }]}>{report.delay_minutes ?? '?'} min</Text>
                   </View>
                   {report.coach_number && (
                     <View>
                       <Text style={rd.delayLabel}>Coach</Text>
-                      <Text style={[rd.delayNum, { color: C.orange }]}>{report.coach_number}</Text>
+                      <Text style={[rd.delayNum, { color: Colors.dark.accent }]}>{report.coach_number}</Text>
                     </View>
                   )}
                 </>
@@ -192,7 +192,7 @@ export default function ReportDetailScreen() {
               {report.report_type === 'CROWD' && (
                 <View>
                   <Text style={rd.delayLabel}>Crowd Level</Text>
-                  <Text style={[rd.delayNum, { color: C.orange }]}>{report.crowd_level ?? 'N/A'}</Text>
+                  <Text style={[rd.delayNum, { color: Colors.dark.accent }]}>{report.crowd_level ?? 'N/A'}</Text>
                 </View>
               )}
             </View>
@@ -215,23 +215,23 @@ export default function ReportDetailScreen() {
               <Text style={rd.verifyCount}>{report.verification_count}</Text>
               <Text style={rd.verifyLabel}>Total Verifications</Text>
             </View>
-            <View style={{ alignItems: 'flex-end', gap: S.sm }}>
+            <View style={{ alignItems: 'flex-end', gap: Spacing['space-2'] }}>
               <Text style={rd.verifiedByLabel}>Verified by</Text>
               <View style={{ flexDirection: 'row', gap: 4 }}>
                 {top3Verifiers.map((v, i) => (
                   <View key={v.user_id + i} style={rd.verifierAvatar} />
                 ))}
                 {(verifiers?.length ?? 0) > 3 && (
-                  <Text style={{ color: C.text2, fontSize: T.sm }}>+{(verifiers?.length ?? 0) - 3}</Text>
+                  <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>+{(verifiers?.length ?? 0) - 3}</Text>
                 )}
               </View>
               <View style={{ flexDirection: 'row', gap: 4 }}>
                 {[0, 1, 2, 3, 4].map(i => <View key={i} style={rd.checkCircle} />)}
-                <Text style={{ color: C.text2, fontSize: T.sm }}>
+                <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>
                   {report.dispute_count > 0 ? `${report.dispute_count} disputes` : ''}
                 </Text>
               </View>
-              <Text style={{ color: C.white, fontSize: T.sm }}>👍 {report.helpful_count} Helpful Votes</Text>
+              <Text style={{ color: Colors.dark['text-primary'], ...Typography['body-sm'] }}>👍 {report.helpful_count} Helpful Votes</Text>
             </View>
           </View>
         </View>
@@ -240,16 +240,16 @@ export default function ReportDetailScreen() {
         {user && (
           <View style={rd.voteRow}>
             <TouchableOpacity
-              style={[rd.voteBtn, { backgroundColor: C.greenTint, borderColor: C.green }]}
+              style={[rd.voteBtn, { backgroundColor: Colors.dark['primary-subtle'], borderColor: Colors.dark.primary }]}
               onPress={() => handleVote('CONFIRM')}
             >
-              <Text style={[rd.voteBtnText, { color: C.green }]}>✓ Confirm ({report.verification_count})</Text>
+              <Text style={[rd.voteBtnText, { color: Colors.dark.primary }]}>✓ Confirm ({report.verification_count})</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[rd.voteBtn, { backgroundColor: C.redTint, borderColor: C.red }]}
+              style={[rd.voteBtn, { backgroundColor: Colors.dark['danger-subtle'], borderColor: Colors.dark.danger }]}
               onPress={() => handleVote('DISPUTE')}
             >
-              <Text style={[rd.voteBtnText, { color: C.red }]}>✕ Dispute ({report.dispute_count})</Text>
+              <Text style={[rd.voteBtnText, { color: Colors.dark.danger }]}>✕ Dispute ({report.dispute_count})</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -265,23 +265,23 @@ export default function ReportDetailScreen() {
             </TouchableOpacity>
           </View>
           {top3Comments.length === 0 ? (
-            <Text style={{ color: C.text2, fontSize: T.sm }}>No comments yet.</Text>
+            <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>No comments yet.</Text>
           ) : (
             top3Comments.map((c: any, i: number) => (
               <View key={c.id ?? i}>
                 <View style={rd.commentRow}>
                   <View style={rd.commentAvatar} />
                   <View style={{ flex: 1, gap: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] }}>
                       <Text style={rd.commentUser}>{c.user?.display_name ?? 'Anonymous'}</Text>
                       {c.user?.is_trusted && (
-                        <View style={[rd.commentBadge, { backgroundColor: C.greenTint }]}>
-                          <Text style={[rd.commentBadgeText, { color: C.green }]}>Trusted Reporter</Text>
+                        <View style={[rd.commentBadge, { backgroundColor: Colors.dark['primary-subtle'] }]}>
+                          <Text style={[rd.commentBadgeText, { color: Colors.dark.primary }]}>Trusted Reporter</Text>
                         </View>
                       )}
                     </View>
                     <Text style={rd.commentText}>{c.body ?? c.comment ?? ''}</Text>
-                    <View style={{ flexDirection: 'row', gap: S.md }}>
+                    <View style={{ flexDirection: 'row', gap: Spacing['space-3'] }}>
                       <Text style={rd.commentTime}>
                         {c.created_at ? new Date(c.created_at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }) : ''}
                       </Text>
@@ -303,53 +303,53 @@ export default function ReportDetailScreen() {
 }
 
 const rd = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '700', color: C.white },
-  shareBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 17, fontWeight: '700', color: Colors.dark['text-primary'] },
+  shareBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  delayBadge: { backgroundColor: C.redTint, borderRadius: 20, paddingHorizontal: S.md, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: S.xs },
-  delayBadgeText: { fontSize: T.sm, fontWeight: '700', color: C.red },
-  refNum: { fontSize: T.sm, color: C.text3 },
-  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
-  trainRow: { flexDirection: 'row', alignItems: 'center', gap: S.md },
-  trainIcon: { width: 40, height: 40, backgroundColor: C.greenTint, borderRadius: 20 },
-  trainName: { fontSize: T.md, fontWeight: '700', color: C.white },
-  trainRoute: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  verifiedBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
-  verifiedText: { fontSize: T.xs, fontWeight: '700', color: C.green },
-  divider: { height: 1, backgroundColor: C.border },
+  delayBadge: { backgroundColor: Colors.dark['danger-subtle'], borderRadius: 20, paddingHorizontal: Spacing['space-3'], paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: Spacing['space-1'] },
+  delayBadgeText: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.danger },
+  refNum: { ...Typography['body-sm'], color: Colors.dark['text-tertiary'] },
+  card: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
+  trainRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'] },
+  trainIcon: { width: 40, height: 40, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 20 },
+  trainName: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  trainRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  verifiedBadge: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 8, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  verifiedText: { ...Typography.caption, fontWeight: '700', color: Colors.dark.primary },
+  divider: { height: 1, backgroundColor: Colors.dark.border },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  metaLabel: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
-  metaValue: { fontSize: T.base, fontWeight: '700', color: C.white },
-  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
-  delayRow: { flexDirection: 'row', gap: S.xxxl },
-  delayLabel: { fontSize: T.sm, color: C.text2 },
+  metaLabel: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], lineHeight: 20 },
+  metaValue: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  sectionTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  delayRow: { flexDirection: 'row', gap: Spacing['space-8'] },
+  delayLabel: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
   delayNum: { fontSize: 24, fontWeight: '800', marginTop: 4 },
   verifyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  verifyCount: { fontSize: 28, fontWeight: '800', color: C.white, marginTop: S.sm },
-  verifyLabel: { fontSize: T.sm, color: C.text2 },
-  verifiedByLabel: { fontSize: T.sm, color: C.text2 },
-  verifierAvatar: { width: 28, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
-  checkCircle: { width: 22, height: 22, backgroundColor: C.greenTint, borderRadius: 11, borderWidth: 1, borderColor: C.green },
-  description: { fontSize: T.sm, color: C.text2, lineHeight: 20 },
+  verifyCount: { fontSize: 28, fontWeight: '800', color: Colors.dark['text-primary'], marginTop: Spacing['space-2'] },
+  verifyLabel: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  verifiedByLabel: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  verifierAvatar: { width: 28, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 14 },
+  checkCircle: { width: 22, height: 22, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 11, borderWidth: 1, borderColor: Colors.dark.primary },
+  description: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], lineHeight: 20 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  commentRow: { flexDirection: 'row', gap: S.md, paddingVertical: S.sm },
-  commentAvatar: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
-  commentUser: { fontSize: T.sm, fontWeight: '700', color: C.white },
+  viewAll: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  commentRow: { flexDirection: 'row', gap: Spacing['space-3'], paddingVertical: Spacing['space-2'] },
+  commentAvatar: { width: 36, height: 36, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 18 },
+  commentUser: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-primary'] },
   commentBadge: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  commentBadgeText: { fontSize: T.xs, fontWeight: '600' },
-  commentText: { fontSize: T.sm, color: C.text2, lineHeight: 18 },
-  commentTime: { fontSize: T.xs, color: C.text3 },
-  commentLikes: { fontSize: T.xs, color: C.text2 },
-  footerNote: { backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.lg },
-  footerText: { fontSize: T.sm, color: C.text2 },
-  retryBtn: { backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md },
-  retryBtnText: { fontSize: T.base, fontWeight: '700', color: C.bg },
-  voteRow: { flexDirection: 'row', gap: S.md },
-  voteBtn: { flex: 1, borderRadius: R.md, borderWidth: 1, padding: S.md, alignItems: 'center' },
-  voteBtnText: { fontSize: T.base, fontWeight: '700' },
+  commentBadgeText: { ...Typography.caption, fontWeight: '600' },
+  commentText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], lineHeight: 18 },
+  commentTime: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
+  commentLikes: { ...Typography.caption, color: Colors.dark['text-secondary'] },
+  footerNote: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'] },
+  footerText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  retryBtn: { backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  retryBtnText: { ...Typography.body, fontWeight: '700', color: Colors.dark['bg-base'] },
+  voteRow: { flexDirection: 'row', gap: Spacing['space-3'] },
+  voteBtn: { flex: 1, borderRadius: Radius['radius-md'], borderWidth: 1, padding: Spacing['space-3'], alignItems: 'center' },
+  voteBtnText: { ...Typography.body, fontWeight: '700' },
 });

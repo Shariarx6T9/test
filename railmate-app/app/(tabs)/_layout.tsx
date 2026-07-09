@@ -36,7 +36,7 @@ export default function TabLayout() {
         options={{
           title: t('nav.home'),
           tabBarIcon: ({ color, focused }) => (
-            <House size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+            <House size={24} color={String(color)} weight={focused ? 'fill' : 'regular'} />
           ),
         }}
       />
@@ -45,7 +45,7 @@ export default function TabLayout() {
         options={{
           title: t('nav.search'),
           tabBarIcon: ({ color, focused }) => (
-            <MagnifyingGlass size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+            <MagnifyingGlass size={24} color={String(color)} weight={focused ? 'fill' : 'regular'} />
           ),
         }}
       />
@@ -54,7 +54,7 @@ export default function TabLayout() {
         options={{
           title: t('nav.live_updates'),
           tabBarIcon: ({ color, focused }) => (
-            <BellSimple size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+            <BellSimple size={24} color={String(color)} weight={focused ? 'fill' : 'regular'} />
           ),
         }}
       />
@@ -63,7 +63,7 @@ export default function TabLayout() {
         options={{
           title: t('nav.community'),
           tabBarIcon: ({ color, focused }) => (
-            <UsersThree size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+            <UsersThree size={24} color={String(color)} weight={focused ? 'fill' : 'regular'} />
           ),
         }}
       />
@@ -72,7 +72,7 @@ export default function TabLayout() {
         options={{
           title: t('nav.profile'),
           tabBarIcon: ({ color, focused }) => (
-            <User size={24} color={color} weight={focused ? 'fill' : 'regular'} />
+            <User size={24} color={String(color)} weight={focused ? 'fill' : 'regular'} />
           ),
         }}
       />

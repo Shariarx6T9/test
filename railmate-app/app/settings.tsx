@@ -8,7 +8,7 @@ import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, Alert, Mo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { usePrefsStore } from '../stores/prefsStore';
 import { useAuthStore } from '../stores/authStore';
 import { useAuth } from '../hooks/useAuth';
@@ -33,7 +33,7 @@ export default function SettingsScreen() {
   const updateUserPref = useCallback(async (key: string, value: string) => {
     if (!user?.id) return;
     await supabase.from('users').update({ [key]: value }).eq('id', user.id);
-  }, [user?.id]);
+  }, [user]);
 
   const handleLocationDetect = useCallback(async () => {
     setLocationLoading(true);
@@ -64,25 +64,25 @@ export default function SettingsScreen() {
 
   const SECTIONS: SettingSection[] = [
     { title: 'PREFERENCES', rows: [
-      { id: 'notif', label: t('settings.notifications'), sub: t('settings.notification_settings'), icon: <Bell size={22} color={C.green} weight="fill" /> },
-      { id: 'lang', label: t('settings.language'), sub: langLabel, icon: <Globe size={22} color={C.green} weight="fill" /> },
-      { id: 'location', label: 'Default Location', sub: locationLoading ? 'Detecting…' : locationLabel, icon: <MapPin size={22} color={C.green} weight="fill" /> },
-      { id: 'appearance', label: t('settings.theme'), sub: themeLabel, icon: <Moon size={22} color={C.green} weight="fill" /> },
+      { id: 'notif', label: t('settings.notifications'), sub: t('settings.notification_settings'), icon: <Bell size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'lang', label: t('settings.language'), sub: langLabel, icon: <Globe size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'location', label: 'Default Location', sub: locationLoading ? 'Detecting…' : locationLabel, icon: <MapPin size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'appearance', label: t('settings.theme'), sub: themeLabel, icon: <Moon size={22} color={Colors.dark.primary} weight="fill" /> },
     ]},
     { title: 'JOURNEY PREFERENCES', rows: [
-      { id: 'alt_routes', label: t('settings.show_alt_routes'), sub: t('settings.show_alt_routes_sub'), toggle: true, icon: <ArrowsLeftRight size={22} color={C.green} weight="fill" /> },
-      { id: 'delay_alerts', label: t('settings.delay_alerts'), sub: t('settings.delay_alerts_sub'), toggle: true, icon: <WarningCircle size={22} color={C.green} weight="fill" /> },
-      { id: 'crowding', label: t('settings.crowding_updates'), sub: t('settings.crowding_updates_sub'), toggle: true, icon: <Users size={22} color={C.green} weight="fill" /> },
-      { id: 'platform', label: t('settings.platform_alerts'), sub: t('settings.platform_alerts_sub'), toggle: false, icon: <Train size={22} color={C.green} weight="fill" /> },
+      { id: 'alt_routes', label: t('settings.show_alt_routes'), sub: t('settings.show_alt_routes_sub'), toggle: true, icon: <ArrowsLeftRight size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'delay_alerts', label: t('settings.delay_alerts'), sub: t('settings.delay_alerts_sub'), toggle: true, icon: <WarningCircle size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'crowding', label: t('settings.crowding_updates'), sub: t('settings.crowding_updates_sub'), toggle: true, icon: <Users size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'platform', label: t('settings.platform_alerts'), sub: t('settings.platform_alerts_sub'), toggle: false, icon: <Train size={22} color={Colors.dark.primary} weight="fill" /> },
     ]},
     { title: 'ACCOUNT & DATA', rows: [
-      { id: 'privacy', label: t('settings.privacy'), sub: t('settings.privacy_sub'), icon: <ShieldCheck size={22} color={C.green} weight="fill" /> },
-      { id: 'data', label: t('settings.data_usage'), sub: t('settings.data_usage_sub'), icon: <HardDrive size={22} color={C.green} weight="fill" /> },
-      { id: 'backup', label: 'Backup & Restore', sub: 'Backup your data to restore later', icon: <CloudArrowUp size={22} color={C.green} weight="fill" /> },
+      { id: 'privacy', label: t('settings.privacy'), sub: t('settings.privacy_sub'), icon: <ShieldCheck size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'data', label: t('settings.data_usage'), sub: t('settings.data_usage_sub'), icon: <HardDrive size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'backup', label: 'Backup & Restore', sub: 'Backup your data to restore later', icon: <CloudArrowUp size={22} color={Colors.dark.primary} weight="fill" /> },
     ]},
     { title: 'SUPPORT & ABOUT', rows: [
-      { id: 'help', label: t('settings.help'), sub: t('settings.help_sub'), icon: <Question size={22} color={C.green} weight="fill" /> },
-      { id: 'about', label: t('settings.about'), sub: t('settings.about_sub'), icon: <Info size={22} color={C.green} weight="fill" /> },
+      { id: 'help', label: t('settings.help'), sub: t('settings.help_sub'), icon: <Question size={22} color={Colors.dark.primary} weight="fill" /> },
+      { id: 'about', label: t('settings.about'), sub: t('settings.about_sub'), icon: <Info size={22} color={Colors.dark.primary} weight="fill" /> },
     ]},
   ];
 
@@ -138,7 +138,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={ss.root} edges={['top']}>
       <View style={ss.header}>
-        <TouchableOpacity style={ss.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={ss.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View>
           <Text style={ss.title}>{t('settings.title')}</Text>
           <Text style={ss.subtitle}>{t('settings.subtitle')}</Text>
@@ -167,8 +167,8 @@ export default function SettingsScreen() {
                       <Switch
                         value={getToggleValue(row.id)}
                         onValueChange={() => handleToggle(row.id)}
-                        trackColor={{ false: C.surface2, true: C.green }}
-                        thumbColor={C.white}
+                        trackColor={{ false: Colors.dark['bg-overlay'], true: Colors.dark.primary }}
+                        thumbColor={Colors.dark['text-primary']}
                       />
                     ) : (
                       <View style={ss.chevron} />
@@ -194,8 +194,8 @@ export default function SettingsScreen() {
             },
           ])}
         >
-          <View style={{ width: 32, height: 32, backgroundColor: C.redTint, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-            <SignOut size={22} color={C.red} weight="fill" />
+          <View style={{ width: 32, height: 32, backgroundColor: Colors.dark['danger-subtle'], borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+            <SignOut size={22} color={Colors.dark.danger} weight="fill" />
           </View>
           <Text style={ss.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -222,7 +222,7 @@ export default function SettingsScreen() {
                     <Text style={[ss.modalOptionText, language === opt.value && ss.modalOptionTextActive]}>
                       {opt.label}
                     </Text>
-                    {language === opt.value && <Text style={{ color: C.green, fontSize: 16 }}>✓</Text>}
+                    {language === opt.value && <Text style={{ color: Colors.dark.primary, fontSize: 16 }}>✓</Text>}
                   </TouchableOpacity>
                 ))}
               </>
@@ -239,10 +239,10 @@ export default function SettingsScreen() {
                     <Text style={[ss.modalOptionText, theme === opt.value && ss.modalOptionTextActive]}>
                       {opt.label}
                     </Text>
-                    {theme === opt.value && <Text style={{ color: C.green, fontSize: 16 }}>✓</Text>}
+                    {theme === opt.value && <Text style={{ color: Colors.dark.primary, fontSize: 16 }}>✓</Text>}
                   </TouchableOpacity>
                 ))}
-                <Text style={{ fontSize: T.sm, color: C.text3, textAlign: 'center', paddingVertical: S.sm }}>
+                <Text style={{ ...Typography['body-sm'], color: Colors.dark['text-tertiary'], textAlign: 'center', paddingVertical: Spacing['space-2'] }}>
                   (Light theme coming soon)
                 </Text>
               </>
@@ -257,31 +257,31 @@ export default function SettingsScreen() {
   );
 }
 const ss = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  section: { gap: S.sm },
-  sectionLabel: { fontSize: T.sm, fontWeight: '700', color: C.text3, letterSpacing: 0.5 },
-  sectionCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border },
-  row: { flexDirection: 'row', alignItems: 'center', gap: S.md, padding: S.lg },
-  rowIcon: { width: 32, height: 32, backgroundColor: C.greenTint, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  rowLabel: { fontSize: 14, fontWeight: '600', color: C.white },
-  rowSub: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  divider: { height: 1, backgroundColor: C.border, marginHorizontal: S.lg },
-  logoutBtn: { backgroundColor: C.redTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.red, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md, justifyContent: 'center' },
-  logoutText: { fontSize: T.md, fontWeight: '700', color: C.red },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 18, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  section: { gap: Spacing['space-2'] },
+  sectionLabel: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-tertiary'], letterSpacing: 0.5 },
+  sectionCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], padding: Spacing['space-4'] },
+  rowIcon: { width: 32, height: 32, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  rowLabel: { fontSize: 14, fontWeight: '600', color: Colors.dark['text-primary'] },
+  rowSub: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  chevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  divider: { height: 1, backgroundColor: Colors.dark.border, marginHorizontal: Spacing['space-4'] },
+  logoutBtn: { backgroundColor: Colors.dark['danger-subtle'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.danger, padding: Spacing['space-4'], flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], justifyContent: 'center' },
+  logoutText: { ...Typography.h4, fontWeight: '700', color: Colors.dark.danger },
   // In-app picker modal
   modalBackdrop:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalSheet:          { backgroundColor: C.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: S.xl, paddingTop: S.xl, paddingBottom: 32 },
-  modalTitle:          { fontSize: 16, fontWeight: '700', color: C.white, marginBottom: S.lg, textAlign: 'center' },
-  modalOption:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: S.md, borderBottomWidth: 1, borderBottomColor: C.border },
+  modalSheet:          { backgroundColor: Colors.dark['bg-card'], borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: Spacing['space-5'], paddingTop: Spacing['space-5'], paddingBottom: 32 },
+  modalTitle:          { fontSize: 16, fontWeight: '700', color: Colors.dark['text-primary'], marginBottom: Spacing['space-4'], textAlign: 'center' },
+  modalOption:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing['space-3'], borderBottomWidth: 1, borderBottomColor: Colors.dark.border },
   modalOptionActive:   { },
-  modalOptionText:     { fontSize: 15, color: C.text2 },
-  modalOptionTextActive:{ color: C.green, fontWeight: '600' },
-  modalCancel:         { marginTop: S.lg, alignItems: 'center', paddingVertical: S.md },
-  modalCancelText:     { fontSize: 15, color: C.text3 },
+  modalOptionText:     { fontSize: 15, color: Colors.dark['text-secondary'] },
+  modalOptionTextActive:{ color: Colors.dark.primary, fontWeight: '600' },
+  modalCancel:         { marginTop: Spacing['space-4'], alignItems: 'center', paddingVertical: Spacing['space-3'] },
+  modalCancelText:     { fontSize: 15, color: Colors.dark['text-tertiary'] },
 });

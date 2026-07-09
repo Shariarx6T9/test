@@ -4,7 +4,7 @@ import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from '../i18n';
@@ -29,14 +29,6 @@ export default function ProfileEditScreen() {
 
     setIsSaving(true);
     try {
-      console.log('[ProfileEdit] SAVE START - user.id:', user.id);
-      console.log('[ProfileEdit] Payload:', JSON.stringify({
-        display_name: displayName.trim(),
-        phone: phone.trim() || null,
-        avatar_url: avatarUrl || null,
-      }, null, 2));
-
-      // BUG 1 FIX: Use UPSERT instead of UPDATE to handle missing rows
       const { data, error } = await supabase
         .from('users')
         .upsert({
@@ -49,17 +41,13 @@ export default function ProfileEditScreen() {
         .select()
         .single();
 
-      console.log('[ProfileEdit] SAVE RESPONSE:', JSON.stringify({ data, error }, null, 2));
-
       if (error) throw error;
 
-      // Update local store
       setUser(data);
       Alert.alert('Success', 'Profile updated successfully', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (err: any) {
-      console.log('[ProfileEdit] SAVE ERROR:', JSON.stringify(err, null, 2));
       Alert.alert('Error', err?.message ?? 'Failed to update profile');
     } finally {
       setIsSaving(false);
@@ -86,28 +74,51 @@ export default function ProfileEditScreen() {
     setIsUploadingImage(true);
 
     try {
-      // Upload to Supabase Storage
-      // On React Native Android, fetch().blob() fails with "Creating blobs from
-      // ArrayBuffer not supported". The correct approach is to pass the file
-      // object directly — the React Native polyfill handles it.
-      const fileName = `avatar-${user?.id}-${Date.now()}.jpg`;
-      const fileObject = { uri: imageUri, type: 'image/jpeg', name: fileName } as any;
+      // FIX: path must be "{user.id}/avatar.jpg" — this is what every RLS
+      // policy on this bucket actually checks via storage.foldername(name).
+      // The previous flat filename ("avatar-{id}-{timestamp}.jpg") had no
+      // folder component at all, so every policy's ownership check silently
+      // evaluated to NULL and every upload was rejected.
+      //
+      // Fixed (non-timestamped) filename is intentional: each new photo
+      // overwrites the previous one via upsert:true instead of leaving old
+      // avatars orphaned in storage forever.
+      const filePath = `${user?.id}/avatar.jpg`;
+      const fileObject = { uri: imageUri, type: 'image/jpeg', name: 'avatar.jpg' } as any;
 
       const { data, error } = await supabase.storage
         .from('avatars')
-        .upload(fileName, fileObject, {
+        .upload(filePath, fileObject, {
           contentType: 'image/jpeg',
           upsert: true,
         });
 
       if (error) throw error;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(data.path);
 
-      setAvatarUrl(urlData.publicUrl);
+      // Cache-bust: since the path is now fixed (not timestamped), the
+      // public URL is identical on every upload. Without this, RN's Image
+      // cache (and any CDN in front of Supabase Storage) will keep showing
+      // the OLD photo after a successful re-upload, because from the
+      // client's perspective it's "the same URL it already has cached."
+      const freshUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(freshUrl);
+
+      // Persist immediately — don't make the photo's fate depend on the
+      // user also remembering to tap "Save Changes" afterward. The success
+      // message below promises the photo is saved; this makes that true.
+      const { data: savedUser, error: saveError } = await supabase
+        .from('users')
+        .upsert({ id: user?.id, avatar_url: freshUrl })
+        .select()
+        .single();
+
+      if (saveError) throw saveError;
+      if (savedUser) setUser(savedUser);
+
       Alert.alert('Success', 'Photo uploaded successfully');
     } catch (err: any) {
       Alert.alert('Error', err?.message ?? 'Failed to upload photo');
@@ -120,7 +131,7 @@ export default function ProfileEditScreen() {
     <SafeAreaView style={pe.root}>
       <View style={pe.header}>
         <TouchableOpacity style={pe.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={18} color={C.white} />
+          <ArrowLeft size={18} color={Colors.dark['text-primary']} />
         </TouchableOpacity>
         <View>
           <Text style={pe.title}>Edit Profile</Text>
@@ -130,7 +141,6 @@ export default function ProfileEditScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={pe.scroll}>
-        {/* Avatar */}
         <View style={pe.avatarSection}>
           <Avatar uri={avatarUrl} name={displayName || 'User'} size={100} />
           <TouchableOpacity
@@ -139,14 +149,13 @@ export default function ProfileEditScreen() {
             disabled={isUploadingImage}
           >
             {isUploadingImage ? (
-              <ActivityIndicator color={C.green} size="small" />
+              <ActivityIndicator color={Colors.dark.primary} size="small" />
             ) : (
               <Text style={pe.changePhotoText}>Change Photo</Text>
             )}
           </TouchableOpacity>
         </View>
 
-        {/* Display Name */}
         <View style={pe.card}>
           <Text style={pe.label}>Display Name *</Text>
           <TextInput
@@ -154,12 +163,11 @@ export default function ProfileEditScreen() {
             value={displayName}
             onChangeText={setDisplayName}
             placeholder="Enter your name"
-            placeholderTextColor={C.text3}
+            placeholderTextColor={Colors.dark['text-tertiary']}
             maxLength={50}
           />
         </View>
 
-        {/* Phone Number */}
         <View style={pe.card}>
           <Text style={pe.label}>Phone Number</Text>
           <View style={pe.phoneRow}>
@@ -172,28 +180,26 @@ export default function ProfileEditScreen() {
                 setPhone(cleaned ? `+880${cleaned}` : '');
               }}
               placeholder="1712345678"
-              placeholderTextColor={C.text3}
+              placeholderTextColor={Colors.dark['text-tertiary']}
               keyboardType="phone-pad"
               maxLength={10}
             />
           </View>
         </View>
 
-        {/* Email (read-only) */}
         <View style={pe.card}>
           <Text style={pe.label}>Email</Text>
           <Text style={pe.readonlyText}>{user?.email ?? 'Not set'}</Text>
           <Text style={pe.hint}>Email cannot be changed</Text>
         </View>
 
-        {/* Save Button */}
         <TouchableOpacity
           style={[pe.saveBtn, isSaving && { opacity: 0.6 }]}
           onPress={handleSave}
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator color={C.bg} />
+            <ActivityIndicator color={Colors.dark['bg-base']} />
           ) : (
             <Text style={pe.saveBtnText}>Save Changes</Text>
           )}
@@ -204,22 +210,22 @@ export default function ProfileEditScreen() {
 }
 
 const pe = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  avatarSection: { alignItems: 'center', gap: S.md, paddingVertical: S.lg },
-  changePhotoBtn: { backgroundColor: C.greenTint, borderRadius: R.md, paddingHorizontal: S.lg, paddingVertical: S.sm, borderWidth: 1, borderColor: C.green, minWidth: 120, alignItems: 'center' },
-  changePhotoText: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.sm },
-  label: { fontSize: T.sm, fontWeight: '600', color: C.text2 },
-  input: { backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md, fontSize: T.base, color: C.white },
-  phoneRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  phonePrefix: { fontSize: T.base, fontWeight: '600', color: C.white, paddingHorizontal: S.md },
-  readonlyText: { fontSize: T.base, color: C.text2, paddingVertical: S.sm },
-  hint: { fontSize: T.xs, color: C.text3, marginTop: 2 },
-  saveBtn: { backgroundColor: C.green, borderRadius: R.lg, paddingVertical: 16, alignItems: 'center' },
-  saveBtnText: { fontSize: T.md, fontWeight: '700', color: C.bg },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 18, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  avatarSection: { alignItems: 'center', gap: Spacing['space-3'], paddingVertical: Spacing['space-4'] },
+  changePhotoBtn: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-4'], paddingVertical: Spacing['space-2'], borderWidth: 1, borderColor: Colors.dark.primary, minWidth: 120, alignItems: 'center' },
+  changePhotoText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  card: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-2'] },
+  label: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-secondary'] },
+  input: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-3'], ...Typography.body, color: Colors.dark['text-primary'] },
+  phoneRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  phonePrefix: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-primary'], paddingHorizontal: Spacing['space-3'] },
+  readonlyText: { ...Typography.body, color: Colors.dark['text-secondary'], paddingVertical: Spacing['space-2'] },
+  hint: { ...Typography.caption, color: Colors.dark['text-tertiary'], marginTop: 2 },
+  saveBtn: { backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-lg'], paddingVertical: 16, alignItems: 'center' },
+  saveBtnText: { ...Typography.h4, fontWeight: '700', color: Colors.dark['bg-base'] },
 });

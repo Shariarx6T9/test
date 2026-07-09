@@ -102,7 +102,7 @@ export default function RegisterScreen() {
 
           <View style={{ flex: 1, minHeight: 40 }} />
           <View style={{ width: '100%', marginBottom: 16 }}>
-            <Button label={t('auth.create_account')} onPress={handleSubmit} isLoading={submitting || uploading} isBengali={isBengali} style={{ width: '100%' }} />
+            <Button label={t('auth.create_account')} onPress={handleSubmit} loading={submitting || uploading} isBengali={isBengali} style={{ width: '100%' }} />
           </View>
           <Pressable onPress={() => router.replace('/(tabs)')} style={{ alignSelf: 'center', padding: 8 }}>
             <Text style={[s.skip, { fontFamily: fontFamily.r }]}>{t('auth.skip')}</Text>

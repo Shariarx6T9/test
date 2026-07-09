@@ -6,7 +6,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../../theme';
+import { Colors, Radius, Spacing, Typography } from '../../constants';
 import { useSearchTrains } from '../../hooks/useTrains';
 import { useTrainDelayStatus } from '../../hooks/useCommunityReports';
 import { TrainSearchResult } from '../../types/database.types';
@@ -17,16 +17,16 @@ import { supabase } from '../../lib/supabase';
 function SkeletonCard() {
   return (
     <View style={[s.trainCard, { height: 160, opacity: 0.6 }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.sm, marginBottom: S.md }}>
-        <View style={{ width: 56, height: 20, backgroundColor: C.surface2, borderRadius: 4 }} />
-        <View style={{ width: 120, height: 16, backgroundColor: C.surface2, borderRadius: 4 }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], marginBottom: Spacing['space-3'] }}>
+        <View style={{ width: 56, height: 20, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
+        <View style={{ width: 120, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
       </View>
-      <View style={{ width: '80%', height: 12, backgroundColor: C.surface2, borderRadius: 4, marginBottom: S.sm }} />
+      <View style={{ width: '80%', height: 12, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4, marginBottom: Spacing['space-2'] }} />
       <View style={s.divider} />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: S.sm }}>
-        <View style={{ width: 60, height: 28, backgroundColor: C.surface2, borderRadius: 4 }} />
-        <View style={{ width: 60, height: 8, backgroundColor: C.surface2, borderRadius: 4, alignSelf: 'center' }} />
-        <View style={{ width: 60, height: 28, backgroundColor: C.surface2, borderRadius: 4 }} />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing['space-2'] }}>
+        <View style={{ width: 60, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
+        <View style={{ width: 60, height: 8, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4, alignSelf: 'center' }} />
+        <View style={{ width: 60, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 }} />
       </View>
     </View>
   );
@@ -40,11 +40,11 @@ function TrainCard({ train, delayStatus, onPress }: {
   const { t } = useTranslation();
 
   const delayBadgeBg = delayStatus
-    ? (delayStatus.delayMinutes >= 15 ? C.redTint : C.orangeTint)
-    : C.greenTint;
+    ? (delayStatus.delayMinutes >= 15 ? Colors.dark['danger-subtle'] : Colors.dark['accent-subtle'])
+    : Colors.dark['primary-subtle'];
   const delayBadgeColor = delayStatus
-    ? (delayStatus.delayMinutes >= 15 ? C.red : C.orange)
-    : C.green;
+    ? (delayStatus.delayMinutes >= 15 ? Colors.dark.danger : Colors.dark.accent)
+    : Colors.dark.primary;
   const delayBadgeText = delayStatus
     ? `${delayStatus.delayMinutes} min delay`
     : t('results.on_time');
@@ -95,7 +95,7 @@ function TrainCard({ train, delayStatus, onPress }: {
         </View>
       ) : (
         <View style={s.timingRow}>
-          <Text style={[s.trainRoute, { color: C.text3 }]}>{t('results.schedule_being_verified')}</Text>
+          <Text style={[s.trainRoute, { color: Colors.dark['text-tertiary'] }]}>{t('results.schedule_being_verified')}</Text>
         </View>
       )}
 
@@ -108,7 +108,7 @@ function TrainCard({ train, delayStatus, onPress }: {
         </View>
         <View>
           <Text style={s.seatsLabel}>{t('results.verified_schedule')}</Text>
-          <Text style={[s.seatsValue, { color: train.verified ? C.green : C.text3 }]}>
+          <Text style={[s.seatsValue, { color: train.verified ? Colors.dark.primary : Colors.dark['text-tertiary'] }]}>
             {train.verified ? '✓' : '—'}
           </Text>
         </View>
@@ -156,7 +156,7 @@ export default function SearchResultsScreen() {
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View>
           <Text style={s.title}>{t('results.title')}</Text>
           <Text style={s.subtitle}>
@@ -172,7 +172,7 @@ export default function SearchResultsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.dark.primary} />}
       >
 
         {/* Summary card */}
@@ -206,10 +206,10 @@ export default function SearchResultsScreen() {
 
         {/* Error state */}
         {!isLoading && !!error && (
-          <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
-            <Text style={{ color: C.text2, fontSize: T.base }}>{t('common.error')}</Text>
+          <View style={{ alignItems: 'center', paddingVertical: Spacing['space-5'], gap: Spacing['space-3'] }}>
+            <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>{t('common.error')}</Text>
             <TouchableOpacity onPress={() => refetch()}>
-              <Text style={{ color: C.green, fontSize: T.base }}>{t('common.retry')}</Text>
+              <Text style={{ color: Colors.dark.primary, ...Typography.body }}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -217,12 +217,12 @@ export default function SearchResultsScreen() {
         {/* Empty state with alternate suggestions */}
         {!isLoading && !error && trains?.length === 0 && (
           <>
-            <View style={{ alignItems: 'center', paddingVertical: S.xl, gap: S.md }}>
+            <View style={{ alignItems: 'center', paddingVertical: Spacing['space-5'], gap: Spacing['space-3'] }}>
               <Image source={require('../../assets/images/empty-search.png')} style={{ width: 140, height: 140 }} resizeMode="contain" />
-              <Text style={{ color: C.white, fontSize: T.md, fontWeight: '600' }}>{t('results.none')}</Text>
-              <Text style={{ color: C.text2, fontSize: T.sm }}>{t('results.none_hint')}</Text>
+              <Text style={{ color: Colors.dark['text-primary'], ...Typography.h4, fontWeight: '600' }}>{t('results.none')}</Text>
+              <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>{t('results.none_hint')}</Text>
               <TouchableOpacity onPress={() => router.back()}>
-                <Text style={{ color: C.green, fontSize: T.base }}>{t('results.search_again')}</Text>
+                <Text style={{ color: Colors.dark.primary, ...Typography.body }}>{t('results.search_again')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -230,11 +230,11 @@ export default function SearchResultsScreen() {
             {alternateTrains && alternateTrains.length > 0 && (
               <View style={s.card}>
                 <Text style={s.sectionTitle}>Other trains from {params.from_name}</Text>
-                <Text style={[s.trainRoute, { marginBottom: S.md }]}>These trains depart from the same station</Text>
+                <Text style={[s.trainRoute, { marginBottom: Spacing['space-3'] }]}>These trains depart from the same station</Text>
                 {alternateTrains.map((train) => (
                   <TouchableOpacity
                     key={train.id}
-                    style={[s.numberField, { marginBottom: S.sm }]}
+                    style={[s.numberField, { marginBottom: Spacing['space-2'] }]}
                     onPress={() => router.push({ pathname: '/train/[id]', params: { id: train.number } })}
                   >
                     <Text style={s.numBadgeText}>#{train.number}</Text>
@@ -275,55 +275,55 @@ export default function SearchResultsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 16, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  headerRight: { flexDirection: 'row', gap: S.sm },
-  headerBtn: { backgroundColor: C.surface2, borderRadius: 10, paddingHorizontal: S.md, paddingVertical: 8 },
-  headerBtnText: { fontSize: T.sm, fontWeight: '600', color: C.white },
-  summaryCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 16, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  headerRight: { flexDirection: 'row', gap: Spacing['space-2'] },
+  headerBtn: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 10, paddingHorizontal: Spacing['space-3'], paddingVertical: 8 },
+  headerBtnText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-primary'] },
+  summaryCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'] },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryLabel: { fontSize: T.xs, color: C.text2 },
-  summaryValue: { fontSize: T.md, fontWeight: '600', color: C.white, marginTop: 2 },
-  swapIcon: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
-  divider: { height: 1, backgroundColor: C.border, marginVertical: S.md },
-  summaryMeta: { flexDirection: 'row', gap: S.xl },
-  summaryMetaText: { fontSize: T.sm, fontWeight: '600', color: C.text2 },
-  trainCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  summaryLabel: { ...Typography.caption, color: Colors.dark['text-secondary'] },
+  summaryValue: { ...Typography.h4, fontWeight: '600', color: Colors.dark['text-primary'], marginTop: 2 },
+  swapIcon: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
+  divider: { height: 1, backgroundColor: Colors.dark.border, marginVertical: Spacing['space-3'] },
+  summaryMeta: { flexDirection: 'row', gap: Spacing['space-5'] },
+  summaryMetaText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-secondary'] },
+  trainCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
   trainTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  trainLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  numBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
-  numBadgeText: { fontSize: T.sm, fontWeight: '700', color: C.green },
-  trainName: { fontSize: 14, fontWeight: '700', color: C.white },
-  trainNameBn: { fontSize: T.sm, color: C.text2, marginTop: 1 },
-  delayBadge: { borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4 },
-  delayText: { fontSize: T.xs, fontWeight: '700' },
-  trainRoute: { fontSize: T.sm, color: C.text2 },
+  trainLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  numBadge: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 8, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  numBadgeText: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.primary },
+  trainName: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'] },
+  trainNameBn: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 1 },
+  delayBadge: { borderRadius: 8, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  delayText: { ...Typography.caption, fontWeight: '700' },
+  trainRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
   timingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  timeMain: { fontSize: 20, fontWeight: '700', color: C.white },
-  timeLabel: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  timeStation: { fontSize: T.xs, fontWeight: '600', color: C.green, marginTop: 1 },
+  timeMain: { fontSize: 20, fontWeight: '700', color: Colors.dark['text-primary'] },
+  timeLabel: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  timeStation: { ...Typography.caption, fontWeight: '600', color: Colors.dark.primary, marginTop: 1 },
   durationCol: { alignItems: 'center', gap: 4 },
-  durationText: { fontSize: T.sm, color: C.text2 },
-  durationLine: { width: 60, height: 2, backgroundColor: C.green, borderRadius: 1 },
-  arrowText: { fontSize: T.sm, color: C.text2 },
+  durationText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  durationLine: { width: 60, height: 2, backgroundColor: Colors.dark.primary, borderRadius: 1 },
+  arrowText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
   trainBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   classPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  classPill: { backgroundColor: C.surface2, borderRadius: 6, paddingHorizontal: S.sm, paddingVertical: 4 },
-  classPillActive: { backgroundColor: C.greenTint, borderWidth: 1, borderColor: C.green },
-  classPillText: { fontSize: 9, color: C.text2 },
-  classPillTextActive: { color: C.green },
-  seatsLabel: { fontSize: 9, color: C.text2, textAlign: 'right' },
-  seatsValue: { fontSize: 14, fontWeight: '700', color: C.green, textAlign: 'right' },
-  communityBadge: { backgroundColor: C.greenTint, borderRadius: R.lg, borderWidth: 1, borderColor: C.greenDark, padding: S.lg, flexDirection: 'row', alignItems: 'center', gap: S.md },
-  communityIcon: { width: 40, height: 40, backgroundColor: C.greenDark, borderRadius: 20 },
-  communityTitle: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  communitySub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  reportersStack: { width: 40, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
-  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg },
-  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white, marginBottom: S.sm },
-  numberField: { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: C.surface2, borderRadius: R.md, padding: S.md, borderWidth: 1, borderColor: C.border },
+  classPill: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 6, paddingHorizontal: Spacing['space-2'], paddingVertical: 4 },
+  classPillActive: { backgroundColor: Colors.dark['primary-subtle'], borderWidth: 1, borderColor: Colors.dark.primary },
+  classPillText: { fontSize: 9, color: Colors.dark['text-secondary'] },
+  classPillTextActive: { color: Colors.dark.primary },
+  seatsLabel: { fontSize: 9, color: Colors.dark['text-secondary'], textAlign: 'right' },
+  seatsValue: { fontSize: 14, fontWeight: '700', color: Colors.dark.primary, textAlign: 'right' },
+  communityBadge: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark['primary-dim'], padding: Spacing['space-4'], flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'] },
+  communityIcon: { width: 40, height: 40, backgroundColor: Colors.dark['primary-dim'], borderRadius: 20 },
+  communityTitle: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  communitySub: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  reportersStack: { width: 40, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 14 },
+  card: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'] },
+  sectionTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'], marginBottom: Spacing['space-2'] },
+  numberField: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], padding: Spacing['space-3'], borderWidth: 1, borderColor: Colors.dark.border },
 });

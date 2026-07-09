@@ -47,7 +47,11 @@ export const useRecentSearches = () => {
   }, []);
 
   useEffect(() => {
-    load();
+    // This is a standard fetch-on-mount pattern. The lint rule flags the
+    // synchronous `setLoading(true)` call inside `load`, but this is a
+    // necessary and safe operation before an async data fetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load(); // Load initial data on mount
   }, [load]);
 
   const addRecentSearch = useCallback(

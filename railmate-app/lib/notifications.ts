@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
@@ -8,9 +9,11 @@ import { supabase } from './supabase';
  */
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
+    shouldShowAlert: true, // Show the notification in the foreground
+    shouldPlaySound: true, // Play a sound
+    shouldSetBadge: true,  // Update the app icon badge number
+    shouldShowBanner: true, // (iOS) Show banner
+    shouldShowList: true,   // (iOS) Show in notification center
   }),
 });
 
@@ -94,19 +97,23 @@ export async function unregisterPushNotifications(userId: string): Promise<void>
 /**
  * Schedule a local notification (for testing)
  */
+type ScheduleTrigger = Parameters<typeof Notifications.scheduleNotificationAsync>[0]['trigger'];
+
 export async function scheduleLocalNotification(
   title: string,
   body: string,
   delaySeconds: number = 0
 ): Promise<string> {
-  const trigger = delaySeconds > 0 ? { seconds: delaySeconds } : null;
+  const trigger: ScheduleTrigger = delaySeconds > 0
+    ? { type: SchedulableTriggerInputTypes.DATE, date: new Date(Date.now() + delaySeconds * 1000) }
+    : null;
 
   return await Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
-      sound: true,
-      priority: Notifications.AndroidNotificationPriority.HIGH,
+      sound: 'default',
+      priority: Notifications.AndroidNotificationPriority.MAX,
     },
     trigger,
   });

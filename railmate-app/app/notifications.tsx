@@ -1,10 +1,10 @@
-// app/notifications.tsx
+// app/notifications.tsx — full file, only queryFn + error render changed
 import React, { useState } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { supabase } from '../lib/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
@@ -13,11 +13,11 @@ import { useTranslation } from '../i18n';
 type NotifFilter = 'All' | 'Alerts' | 'Community' | 'Updates' | 'System';
 
 const FILTERS: { label: NotifFilter; color: string; bg: string }[] = [
-  { label: 'All', color: C.green, bg: C.greenTint },
-  { label: 'Alerts', color: C.red, bg: C.redTint },
-  { label: 'Community', color: C.purple, bg: C.purpleTint },
-  { label: 'Updates', color: C.blue, bg: C.blueTint },
-  { label: 'System', color: C.orange, bg: C.orangeTint },
+  { label: 'All', color: Colors.dark.primary, bg: Colors.dark['primary-subtle'] },
+  { label: 'Alerts', color: Colors.dark.danger, bg: Colors.dark['danger-subtle'] },
+  { label: 'Community', color: Colors.dark.info, bg: Colors.dark['info-subtle'] },
+  { label: 'Updates', color: Colors.dark.info, bg: Colors.dark['info-subtle'] },
+  { label: 'System', color: Colors.dark.accent, bg: Colors.dark['accent-subtle'] },
 ];
 
 function formatAlertDate(isoString: string): string {
@@ -48,24 +48,23 @@ export default function NotificationsScreen() {
     queryKey: ['alerts', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      try {
-        const { data, error } = await supabase
-          .from('alerts')
-          .select('id, user_id, train_id, station_id, alert_type, is_active, created_at, read_at')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(30);
-        if (error) {
-          const msg = (error as any)?.message ?? '';
-          if (msg.includes('does not exist') || msg.includes('relation')) return [];
-          throw error;
-        }
-        return data ?? [];
-      } catch (err: any) {
-        const msg = err?.message ?? '';
-        if (msg.includes('does not exist') || msg.includes('relation')) return [];
-        throw err;
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('id, user_id, train_id, station_id, alert_type, is_active, created_at, read_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      if (error) {
+        // 42P01 = Postgres "undefined_table" — the alerts table genuinely
+        // doesn't exist yet. That specific case is fine, show empty state.
+        // Everything else (RLS denial, bad column, network, JWT) is a real
+        // problem and must surface — never swallow by guessing from message text.
+        if ((error as any).code === '42P01') return [];
+        console.error('[Notifications] alerts query failed:', (error as any).code, error.message, (error as any).details, (error as any).hint);
+        throw error;
       }
+      return data ?? [];
     },
     enabled: !!user?.id,
     staleTime: 30_000,
@@ -82,7 +81,7 @@ export default function NotificationsScreen() {
     if (isLoading) {
       return (
         <View style={ns.centerState}>
-          <ActivityIndicator color={C.green} size="large" />
+          <ActivityIndicator color={Colors.dark.primary} size="large" />
           <Text style={ns.stateText}>{t('common.loading')}</Text>
         </View>
       );
@@ -92,6 +91,15 @@ export default function NotificationsScreen() {
       return (
         <View style={ns.centerState}>
           <Text style={ns.stateText}>{t('common.error')}</Text>
+          {/* Dev-only: shows the actual Postgres/PostgREST error on-device.
+              This is temporary debugging visibility — strip this block (or
+              gate it more strictly) before a real production release. */}
+          {__DEV__ && (
+            <Text style={ns.debugText}>
+              {(error as any)?.code ? `[${(error as any).code}] ` : ''}
+              {(error as any)?.message ?? String(error)}
+            </Text>
+          )}
           <TouchableOpacity style={ns.retryBtn} onPress={() => refetch()}>
             <Text style={ns.retryText}>{t('common.retry')}</Text>
           </TouchableOpacity>
@@ -108,7 +116,7 @@ export default function NotificationsScreen() {
     }
 
     return (
-      <View style={{ gap: S.sm }}>
+      <View style={{ gap: Spacing['space-2'] }}>
         {alerts.map((alert) => {
           const isUnread = !alert.read_at;
           return (
@@ -118,13 +126,13 @@ export default function NotificationsScreen() {
               activeOpacity={0.8}
               onPress={() => markRead.mutate(alert.id)}
             >
-              <View style={[ns.notifIcon, { backgroundColor: isUnread ? C.greenTint : C.surface2 }]} />
+              <View style={[ns.notifIcon, { backgroundColor: isUnread ? Colors.dark['primary-subtle'] : Colors.dark['bg-overlay'] }]} />
               <View style={{ flex: 1, gap: 4 }}>
                 <View style={ns.notifTop}>
                   <Text style={ns.notifTitle}>{alert.alert_type ?? 'Alert'}</Text>
                   <View style={ns.notifMeta}>
                     <Text style={ns.notifTime}>{formatAlertDate(alert.created_at)}</Text>
-                    <View style={[ns.readDot, { backgroundColor: isUnread ? C.green : C.text3 }]} />
+                    <View style={[ns.readDot, { backgroundColor: isUnread ? Colors.dark.primary : Colors.dark['text-tertiary'] }]} />
                   </View>
                 </View>
                 {alert.train_id && (
@@ -145,7 +153,7 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView style={ns.root}>
       <View style={ns.header}>
-        <TouchableOpacity style={ns.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={ns.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View>
           <Text style={ns.title}>Notifications</Text>
           <Text style={ns.subtitle}>Stay informed, travel better</Text>
@@ -155,7 +163,7 @@ export default function NotificationsScreen() {
           <TouchableOpacity style={ns.iconBtn} />
         </View>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ns.filterRow} contentContainerStyle={{ flexDirection: 'row', gap: S.sm, paddingHorizontal: S.xl }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={ns.filterRow} contentContainerStyle={{ flexDirection: 'row', gap: Spacing['space-2'], paddingHorizontal: Spacing['space-5'] }}>
         {FILTERS.map(f => (
           <TouchableOpacity key={f.label} style={[ns.chip, active === f.label && { backgroundColor: f.bg, borderColor: f.color }]} onPress={() => setActive(f.label)}>
             <Text style={[ns.chipText, active === f.label && { color: f.color, fontWeight: '700' }]}>{f.label}</Text>
@@ -169,34 +177,35 @@ export default function NotificationsScreen() {
   );
 }
 const ns = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.sm, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, fontWeight: '600', color: C.green, marginTop: 2 },
-  headerRight: { flexDirection: 'row', gap: S.sm },
-  iconBtn: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
-  filterRow: { marginBottom: S.md },
-  chip: { backgroundColor: C.surface, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, height: 36, borderWidth: 1, borderColor: C.border, justifyContent: 'center' },
-  chipText: { fontSize: T.sm, color: C.text2 },
-  group: { gap: S.sm },
-  groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: S.sm },
-  groupLabel: { fontSize: T.base, fontWeight: '700', color: C.text2 },
-  markAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  notifCard: { backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: S.lg, flexDirection: 'row', alignItems: 'flex-start', gap: S.md },
-  notifCardUnread: { borderColor: C.green },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-2'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 18, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary, marginTop: 2 },
+  headerRight: { flexDirection: 'row', gap: Spacing['space-2'] },
+  iconBtn: { width: 36, height: 36, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 18 },
+  filterRow: { marginBottom: Spacing['space-3'] },
+  chip: { backgroundColor: Colors.dark['bg-card'], borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, height: 36, borderWidth: 1, borderColor: Colors.dark.border, justifyContent: 'center' },
+  chipText: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  group: { gap: Spacing['space-2'] },
+  groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing['space-2'] },
+  groupLabel: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-secondary'] },
+  markAll: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  notifCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: 14, borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], flexDirection: 'row', alignItems: 'flex-start', gap: Spacing['space-3'] },
+  notifCardUnread: { borderColor: Colors.dark.primary },
   notifIcon: { width: 44, height: 44, borderRadius: 22 },
   notifTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  notifTitle: { fontSize: T.base, fontWeight: '700', color: C.white },
-  notifMeta: { flexDirection: 'row', alignItems: 'center', gap: S.xs },
-  notifTime: { fontSize: T.xs, color: C.text3 },
+  notifTitle: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  notifMeta: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-1'] },
+  notifTime: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
   readDot: { width: 8, height: 8, borderRadius: 4 },
-  notifDesc: { fontSize: T.sm, color: C.text2, lineHeight: 18 },
-  notifSub: { fontSize: T.xs, color: C.text3 },
-  chevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: S.md },
-  stateText: { fontSize: T.base, color: C.text2, textAlign: 'center' },
-  retryBtn: { backgroundColor: C.greenTint, borderRadius: R.md, paddingHorizontal: S.lg, paddingVertical: S.sm, borderWidth: 1, borderColor: C.green },
-  retryText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  notifDesc: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], lineHeight: 18 },
+  notifSub: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
+  chevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: Spacing['space-3'] },
+  stateText: { ...Typography.body, color: Colors.dark['text-secondary'], textAlign: 'center' },
+  debugText: { ...Typography.caption, color: Colors.dark['text-tertiary'], textAlign: 'center', fontFamily: 'monospace', paddingHorizontal: Spacing['space-5'] },
+  retryBtn: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-4'], paddingVertical: Spacing['space-2'], borderWidth: 1, borderColor: Colors.dark.primary },
+  retryText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
 });

@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Train, Clock, Users } from 'phosphor-react-native';
 import {
   AppText,
   Button,
-  Card,
   Badge,
   Chip,
   StationInput,

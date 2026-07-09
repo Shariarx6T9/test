@@ -10,7 +10,7 @@ import Animated, {
 import { Colors } from '../../constants/colors';
 
 interface SkeletonProps {
-  width: number | string;
+  width: number | `${number}%`;
   height: number;
   radius?: number;
   style?: ViewStyle;
@@ -34,7 +34,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       -1,
       false
     );
-  }, []);
+  }, [shimmer]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const translateX = interpolate(

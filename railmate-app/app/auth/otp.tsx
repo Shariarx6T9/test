@@ -31,7 +31,7 @@ export default function OtpScreen() {
   const [error, setError]         = useState<string | null>(null);
   const [secondsLeft, setSecs]    = useState(RESEND_SECONDS);
   const [resending, setResending] = useState(false);
-  const inputRefs = useRef<Array<TextInput | null>>([]);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const fontFamily = isBengali ? 'NotoSansBengali_400Regular' : 'Inter_400Regular';
 
@@ -61,7 +61,7 @@ export default function OtpScreen() {
       finishOnboarding();
       router.replace(isNewUser ? '/auth/register' as any : '/(tabs)');
     } catch (ex) { setError(String(ex)); setVerifying(false); }
-  }, [digits, contact, contactType, verifyOTP, router]);
+  }, [digits, contact, contactType, verifyOTP, router, finishOnboarding]);
 
   const handleChange = (text: string, i: number) => {
     if (text.length > 1) {
@@ -110,7 +110,7 @@ export default function OtpScreen() {
           {digits.map((digit, i) => (
             <TextInput
               key={i}
-              ref={(r) => (inputRefs.current[i] = r)}
+              ref={(r) => { inputRefs.current[i] = r; }}
               value={digit}
               onChangeText={(t2) => handleChange(t2, i)}
               onKeyPress={(e) => handleKeyPress(e, i)}
@@ -130,7 +130,7 @@ export default function OtpScreen() {
           </Text>
         </Pressable>
         <View style={{ width: '100%' }}>
-          <Button label={t('auth.otp_verify')} onPress={() => handleVerify()} isLoading={verifying} disabled={digits.join('').length !== OTP_LENGTH} isBengali={isBengali} style={{ width: '100%' }} />
+          <Button label={t('auth.otp_verify')} onPress={() => handleVerify()} loading={verifying} disabled={digits.join('').length !== OTP_LENGTH} isBengali={isBengali} style={{ width: '100%' }} />
         </View>
       </View>
     </ScreenWrapper>

@@ -5,7 +5,7 @@ import {
   Dimensions, FlatList, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Spacing, Typography } from '../constants';
 
 const { width: W } = Dimensions.get('window');
 
@@ -54,13 +54,13 @@ const SLIDES: OnboardingSlide[] = [
 function SlideIllustration({ type }: { type: string }) {
   // In production: replace with actual Lottie animations or SVG illustrations
   const configs: Record<string, { bg: string; icon: string }> = {
-    hero:      { bg: C.greenTint, icon: '🚂' },
-    live:      { bg: C.blueTint,  icon: '📡' },
-    community: { bg: C.purpleTint, icon: '👥' },
-    features:  { bg: C.orangeTint, icon: '⚡' },
-    safe:      { bg: C.greenTint, icon: '🛡️' },
+    hero:      { bg: Colors.dark['primary-subtle'], icon: '🚂' },
+    live:      { bg: Colors.dark['info-subtle'],  icon: '📡' },
+    community: { bg: Colors.dark['info-subtle'], icon: '👥' },
+    features:  { bg: Colors.dark['accent-subtle'], icon: '⚡' },
+    safe:      { bg: Colors.dark['primary-subtle'], icon: '🛡️' },
   };
-  const cfg = configs[type] ?? { bg: C.surface2, icon: '🚆' };
+  const cfg = configs[type] ?? { bg: Colors.dark['bg-overlay'], icon: '🚆' };
   return (
     <View style={[il.container, { backgroundColor: cfg.bg }]}>
       <Text style={il.emoji}>{cfg.icon}</Text>
@@ -68,7 +68,7 @@ function SlideIllustration({ type }: { type: string }) {
   );
 }
 const il = StyleSheet.create({
-  container: { width: '100%', height: 280, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: S.xl },
+  container: { width: '100%', height: 280, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing['space-5'] },
   emoji: { fontSize: 80 },
 });
 
@@ -169,26 +169,26 @@ export default function OnboardingScreen() {
 
 const ob = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#070B12' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: S.xxl, paddingVertical: S.lg },
-  logoRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  logoIcon: { width: 44, height: 44, backgroundColor: C.green, borderRadius: 12 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing['space-6'], paddingVertical: Spacing['space-4'] },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  logoIcon: { width: 44, height: 44, backgroundColor: Colors.dark.primary, borderRadius: 12 },
   brandRow: { flexDirection: 'row' },
-  brandWhite: { fontSize: 20, fontWeight: '800', color: C.white },
-  brandGreen: { fontSize: 20, fontWeight: '800', color: C.green },
-  brandSub: { fontSize: T.sm, color: C.text2, marginTop: 1 },
-  skipText: { fontSize: T.base, fontWeight: '600', color: C.text2 },
-  slide: { width: W, paddingHorizontal: S.xxl, paddingTop: S.md },
-  textBlock: { gap: S.md, paddingTop: S.lg },
-  slideTitle: { fontSize: 26, fontWeight: '800', color: C.white, lineHeight: 34 },
-  highlight: { color: C.green },
-  slideSubtitle: { fontSize: T.base, color: C.text2, lineHeight: 22 },
-  footer: { paddingHorizontal: S.xxl, paddingBottom: S.xxxl, gap: S.xl },
-  dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: S.sm },
-  dot: { width: 8, height: 8, backgroundColor: C.surface2, borderRadius: 4 },
-  dotActive: { width: 24, backgroundColor: C.green, borderRadius: 4 },
-  nextBtn: { backgroundColor: C.green, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
-  nextBtnText: { fontSize: T.md, fontWeight: '700', color: C.bg },
+  brandWhite: { fontSize: 20, fontWeight: '800', color: Colors.dark['text-primary'] },
+  brandGreen: { fontSize: 20, fontWeight: '800', color: Colors.dark.primary },
+  brandSub: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 1 },
+  skipText: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-secondary'] },
+  slide: { width: W, paddingHorizontal: Spacing['space-6'], paddingTop: Spacing['space-3'] },
+  textBlock: { gap: Spacing['space-3'], paddingTop: Spacing['space-4'] },
+  slideTitle: { fontSize: 26, fontWeight: '800', color: Colors.dark['text-primary'], lineHeight: 34 },
+  highlight: { color: Colors.dark.primary },
+  slideSubtitle: { ...Typography.body, color: Colors.dark['text-secondary'], lineHeight: 22 },
+  footer: { paddingHorizontal: Spacing['space-6'], paddingBottom: Spacing['space-8'], gap: Spacing['space-5'] },
+  dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing['space-2'] },
+  dot: { width: 8, height: 8, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  dotActive: { width: 24, backgroundColor: Colors.dark.primary, borderRadius: 4 },
+  nextBtn: { backgroundColor: Colors.dark.primary, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
+  nextBtnText: { ...Typography.h4, fontWeight: '700', color: Colors.dark['bg-base'] },
   loginRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  loginText: { fontSize: T.base, color: C.text2 },
-  loginLink: { fontSize: T.base, fontWeight: '700', color: C.green },
+  loginText: { ...Typography.body, color: Colors.dark['text-secondary'] },
+  loginLink: { ...Typography.body, fontWeight: '700', color: Colors.dark.primary },
 });

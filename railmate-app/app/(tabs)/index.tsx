@@ -77,7 +77,7 @@ export default function HomeScreen() {
             <View style={s.heroTopBar}>
               <View style={s.brandRow}>
                 <View style={s.brandIconWrap}>
-                  <Image source={logoImg} style={{ width: 34, height: 34 }} resizeMode="contain" />
+                  <Image source={logoImg} style={{ width: 50, height: 50 }} resizeMode="contain" />
                 </View>
                 <View>
                   <Text style={s.brandLine}>

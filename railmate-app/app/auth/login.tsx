@@ -1,14 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import {
-  View, ScrollView, Pressable, StyleSheet, Text, ImageBackground,
-  KeyboardAvoidingView, Platform, Alert,
+  View, ScrollView, Pressable, StyleSheet, Text, ImageBackground, KeyboardAvoidingView, Platform, Alert, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Eye, EyeSlash, EnvelopeSimple, ArrowRight, Globe, Lock } from 'phosphor-react-native';
-
-const logoImg = require('../../assets/images/logo.png');
-import { Image } from 'react-native';
 import { ScreenWrapper } from '../../components/layout/ScreenWrapper';
 import { Input } from '../../components/ui/Input/Input';
 import { Button } from '../../components/ui/Button/Button';
@@ -18,6 +14,7 @@ import { usePrefsStore } from '../../stores/prefsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeColors, ThemeColors } from '../../hooks/useThemeColors';
 
+const logoImg = require('../../assets/images/logo.png');
 const authBg = require('../../assets/images/auth-background.png');
 
 type AuthMode = 'login' | 'signup';
@@ -46,13 +43,13 @@ export default function LoginScreen() {
 
   const validate = () => {
     if (!email.includes('@')) {
-      return isBengali ? 'বৈধ ইমেইল দিন' : 'Enter a valid email address';
+      return t('auth.invalid_email');
     }
     if (password.length < 6) {
-      return isBengali ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর' : 'Password must be at least 6 characters';
+      return t('passwordReset.errorPasswordLength');
     }
     if (authMode === 'signup' && password !== confirmPw) {
-      return isBengali ? 'পাসওয়ার্ড মিলছে না' : 'Passwords do not match';
+      return t('passwordReset.errorPasswordMismatch');
     }
     return null;
   };
@@ -68,11 +65,11 @@ export default function LoginScreen() {
         if (e) {
           const msg = e.toLowerCase();
           if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('password')) {
-            setError(isBengali ? 'ইমেইল বা পাসওয়ার্ড ভুল' : 'Invalid email or password');
+            setError(t('passwordReset.errorInvalidOtp'));
           } else if (msg.includes('network') || msg.includes('fetch')) {
-            setError(isBengali ? 'ইন্টারনেট সংযোগ নেই' : 'No internet connection');
+            setError(t('common.error'));
           } else {
-            setError(isBengali ? 'একটি সমস্যা হয়েছে' : 'Something went wrong');
+            setError(t('error.generic'));
           }
           return;
         }
@@ -83,9 +80,9 @@ export default function LoginScreen() {
         if (e) {
           const msg = e.toLowerCase();
           if (msg.includes('already') || msg.includes('registered')) {
-            setError(isBengali ? 'এই ইমেইল ইতিমধ্যে নিবন্ধিত' : 'Email already registered — try logging in');
+            setError(t('auth.email_exists'));
           } else {
-            setError(isBengali ? 'একটি সমস্যা হয়েছে' : e);
+            setError(e);
           }
           return;
         }
@@ -95,10 +92,8 @@ export default function LoginScreen() {
           router.replace('/auth/register' as any);
         } else {
           Alert.alert(
-            isBengali ? 'ইমেইল যাচাই করুন' : 'Check your email',
-            isBengali
-              ? 'একটি যাচাইকরণ লিংক পাঠানো হয়েছে। যাচাই করার পর লগইন করুন।'
-              : 'A verification link has been sent. Please verify then log in.',
+            t('auth.verify_email_title'),
+            t('auth.verify_email_body'),
             [{ text: 'OK' }]
           );
         }
@@ -138,7 +133,7 @@ export default function LoginScreen() {
               <View style={s.topRow}>
                 <Pressable onPress={toggleLanguage} style={s.langBtn}>
                   <Globe size={16} color={colors.primary} />
-                  <Text style={[s.langText, { color: colors.primary }]}>
+                  <Text style={[s.langText, { color: colors.primary, fontFamily: 'Inter_500Medium' }]}>
                     {isBengali ? 'English' : 'বাংলা'}
                   </Text>
                 </Pressable>
@@ -148,7 +143,7 @@ export default function LoginScreen() {
               <View style={s.logoWrap}>
                 <Image source={logoImg} style={s.logoImg} resizeMode="contain" />
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 8 }}>
-                  <Text style={[s.brand, { color: '#FFFFFF' }]}>Rail</Text>
+                  <Text style={[s.brand, { color: '#FFFFFF', fontFamily: 'PlusJakartaSans_700Bold' }]}>Rail</Text>
                   <Text style={[s.brand, { color: colors.primary }]}>Mate</Text>
                 </View>
                 <Text style={s.brandSub}>Bangladesh</Text>
@@ -160,23 +155,23 @@ export default function LoginScreen() {
                   style={[s.authTab, authMode === 'login' && s.authTabActive]}
                   onPress={() => { setAuthMode('login'); setError(null); }}
                 >
-                  <Text style={[s.authTabText, authMode === 'login' && s.authTabTextActive]}>
-                    {isBengali ? 'লগইন' : 'Login'}
+                  <Text style={[s.authTabText, authMode === 'login' && s.authTabTextActive, { fontFamily: 'Inter_600SemiBold' }]}>
+                    {t('auth.login_tab')}
                   </Text>
                 </Pressable>
                 <Pressable
                   style={[s.authTab, authMode === 'signup' && s.authTabActive]}
                   onPress={() => { setAuthMode('signup'); setError(null); }}
                 >
-                  <Text style={[s.authTabText, authMode === 'signup' && s.authTabTextActive]}>
-                    {isBengali ? 'নতুন অ্যাকাউন্ট' : 'Sign Up'}
+                  <Text style={[s.authTabText, authMode === 'signup' && s.authTabTextActive, { fontFamily: 'Inter_600SemiBold' }]}>
+                    {t('auth.signup_tab')}
                   </Text>
                 </Pressable>
               </View>
 
               {/* Email */}
               <View style={s.inputGroup}>
-                <Text style={s.inputLabel}>{isBengali ? 'ইমেইল ঠিকানা' : 'Email Address'}</Text>
+                <Text style={[s.inputLabel, { fontFamily: 'Inter_500Medium' }]}>{t('auth.email_label')}</Text>
                 <View style={s.inputRow}>
                   <EnvelopeSimple size={18} color={colors['text-secondary']} style={s.inputIcon} />
                   <Input
@@ -193,13 +188,13 @@ export default function LoginScreen() {
 
               {/* Password */}
               <View style={s.inputGroup}>
-                <Text style={s.inputLabel}>{isBengali ? 'পাসওয়ার্ড' : 'Password'}</Text>
+                <Text style={[s.inputLabel, { fontFamily: 'Inter_500Medium' }]}>{t('auth.password_label')}</Text>
                 <View style={s.inputRow}>
                   <Lock size={18} color={colors['text-secondary']} style={s.inputIcon} />
                   <Input
                     value={password}
                     onChangeText={(v) => { setPassword(v); setError(null); }}
-                    placeholder={isBengali ? 'কমপক্ষে ৬ অক্ষর' : 'At least 6 characters'}
+                    placeholder={t('auth.password_placeholder')}
                     secureTextEntry={!showPw}
                     isBengali={isBengali}
                     style={s.inputFlex}
@@ -216,13 +211,13 @@ export default function LoginScreen() {
               {/* Confirm password (signup only) */}
               {authMode === 'signup' && (
                 <View style={s.inputGroup}>
-                  <Text style={s.inputLabel}>{isBengali ? 'পাসওয়ার্ড নিশ্চিত করুন' : 'Confirm Password'}</Text>
+                  <Text style={[s.inputLabel, { fontFamily: 'Inter_500Medium' }]}>{t('auth.confirm_password_label')}</Text>
                   <View style={s.inputRow}>
                     <Lock size={18} color={colors['text-secondary']} style={s.inputIcon} />
                     <Input
                       value={confirmPw}
                       onChangeText={(v) => { setConfirmPw(v); setError(null); }}
-                      placeholder={isBengali ? 'আবার পাসওয়ার্ড দিন' : 'Re-enter password'}
+                      placeholder={t('auth.confirm_password_placeholder')}
                       secureTextEntry={!showConfirm}
                       isBengali={isBengali}
                       style={s.inputFlex}
@@ -237,13 +232,13 @@ export default function LoginScreen() {
                 </View>
               )}
 
-              {!!error && <Text style={s.errorText}>{error}</Text>}
+              {!!error && <Text style={[s.errorText, { fontFamily: 'Inter_400Regular' }]}>{error}</Text>}
 
               {/* Forgot password (login mode only) */}
               {authMode === 'login' && (
                 <Pressable onPress={handleForgotPassword} style={s.forgotBtn}>
-                  <Text style={[s.forgotText, { color: colors.primary }]}>
-                    {isBengali ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot password?'}
+                  <Text style={[s.forgotText, { color: colors.primary, fontFamily: 'Inter_500Medium' }]}>
+                    {t('passwordReset.forgotPassword')}
                   </Text>
                 </Pressable>
               )}
@@ -251,11 +246,9 @@ export default function LoginScreen() {
               {/* CTA */}
               <View style={s.actions}>
                 <Button
-                  label={authMode === 'login'
-                    ? (isBengali ? 'লগইন করুন' : 'Log In')
-                    : (isBengali ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account')}
+                  label={authMode === 'login' ? t('auth.login_btn') : t('auth.signup_btn')}
                   onPress={handleContinue}
-                  isLoading={submitting}
+                  loading={submitting}
                   icon={ArrowRight}
                   iconPosition="right"
                   size="lg"
@@ -265,12 +258,12 @@ export default function LoginScreen() {
 
                 <View style={s.divider}>
                   <View style={s.dividerLine} />
-                  <Text style={s.orText}>{isBengali ? 'অথবা' : 'or'}</Text>
+                  <Text style={[s.orText, { fontFamily: 'Inter_400Regular' }]}>{t('common.or')}</Text>
                   <View style={s.dividerLine} />
                 </View>
 
                 <Button
-                  label={isBengali ? 'অতিথি হিসেবে চালিয়ে যান' : 'Continue as Guest'}
+                  label={t('auth.guest')}
                   onPress={handleGuest}
                   variant="ghost"
                   size="lg"
@@ -288,29 +281,29 @@ export default function LoginScreen() {
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  overlay:          { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,13,23,0.85)' },
+  overlay:          { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(8,13,23,0.95)' },
   page:             { flex: 1, paddingHorizontal: 24, paddingBottom: 40 },
   topRow:           { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 },
   langBtn:          { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1, borderColor: colors.primary },
-  langText:         { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  langText:         { fontSize: 13 },
   logoWrap:         { alignItems: 'center', marginBottom: 28 },
   logoImg:          { width: 80, height: 80 },
-  brand:            { fontFamily: 'PlusJakartaSans_700Bold', fontSize: 26, lineHeight: 34 },
+  brand:            { fontSize: 26, lineHeight: 34 },
   brandSub:         { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   authTabRow:       { flexDirection: 'row', backgroundColor: colors['bg-card'], borderRadius: 12, padding: 4, marginBottom: 20, borderWidth: 1, borderColor: colors.border },
   authTab:          { flex: 1, paddingVertical: 11, alignItems: 'center', borderRadius: 9 },
   authTabActive:    { backgroundColor: colors.primary },
-  authTabText:      { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: colors['text-secondary'] },
+  authTabText:      { fontSize: 14, color: colors['text-secondary'] },
   authTabTextActive:{ color: '#FFFFFF' },
   inputGroup:       { marginBottom: 14 },
-  inputLabel:       { fontFamily: 'Inter_500Medium', fontSize: 12, color: colors['text-secondary'], marginBottom: 8 },
+  inputLabel:       { fontSize: 12, color: colors['text-secondary'], marginBottom: 8 },
   inputRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: colors['bg-card'], borderRadius: 10, borderWidth: 1.5, borderColor: colors.border, paddingHorizontal: 12, gap: 8 },
   inputIcon:        { flexShrink: 0 },
   inputFlex:        { flex: 1, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0 },
   eyeBtn:           { padding: 4 },
-  errorText:        { color: colors.danger, fontFamily: 'Inter_400Regular', fontSize: 12, marginBottom: 8 },
+  errorText:        { color: colors.danger, fontSize: 12, marginBottom: 8 },
   forgotBtn:        { alignSelf: 'flex-end', marginBottom: 8, paddingVertical: 4 },
-  forgotText:       { fontFamily: 'Inter_500Medium', fontSize: 13 },
+  forgotText:       { fontSize: 13 },
   actions:          { marginTop: 8 },
   divider:          { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
   dividerLine:      { flex: 1, height: 1, backgroundColor: colors.border },

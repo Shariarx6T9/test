@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Station } from '../types/database.types';
-import { TrainClass } from '../types/database.types';
+import { Station , TrainClass } from '../types/database.types';
+
 
 interface SearchStore {
   fromStation: Station | null;

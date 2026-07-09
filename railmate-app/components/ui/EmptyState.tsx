@@ -28,7 +28,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onCta,
   imageKey,
 }) => {
-  const Icon = PhosphorIcons[iconName] as any;
+   
+  const Icon = (PhosphorIcons as any)[iconName];
   const emptyImage = imageKey ? EMPTY_IMAGES[imageKey] : null;
 
   return (

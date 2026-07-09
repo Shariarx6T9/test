@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 import { ButtonProps } from './Button.types';
+import { Colors } from '../../../constants/colors';
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
@@ -8,7 +9,8 @@ export const Button: React.FC<ButtonProps> = ({
   label,
   icon: Icon,
   iconPosition = 'left',
-  isLoading = false,
+  loading: isLoading = false,
+  fullWidth,
   isBengali = false,
   disabled,
   onPress,
@@ -17,9 +19,21 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const isDisabled = disabled || isLoading;
   const fontFamily = isBengali ? 'NotoSansBengali_600SemiBold' : 'Inter_600SemiBold';
-  const bg       = variant === 'primary' ? '#00A859' : 'transparent';
-  const bdr      = variant === 'secondary' ? { borderWidth: 1.5, borderColor: '#00A859' } : {};
-  const txtColor = variant === 'primary' ? '#FFFFFF' : variant === 'secondary' ? '#00A859' : '#8FA3C0';
+  
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'primary':
+        return { bg: '#00A859', txtColor: '#FFFFFF', bdr: {} };
+      case 'secondary':
+        return { bg: 'transparent', txtColor: '#00A859', bdr: { borderWidth: 1.5, borderColor: '#00A859' } };
+      case 'danger':
+        return { bg: Colors.dark.danger, txtColor: '#FFFFFF', bdr: {} };
+      case 'ghost':
+      default:
+        return { bg: 'transparent', txtColor: '#8FA3C0', bdr: {} };
+    }
+  };
+  const { bg, txtColor, bdr } = getVariantStyles();
   const height   = size === 'lg' ? 56 : size === 'sm' ? 38 : 52;
   const px       = size === 'lg' ? 32 : size === 'sm' ? 16 : 24;
 
@@ -30,6 +44,7 @@ export const Button: React.FC<ButtonProps> = ({
       style={({ pressed }) => [
         s.base,
         { backgroundColor: bg, height, paddingHorizontal: px, ...bdr },
+        fullWidth && { width: '100%' },
         isDisabled && s.disabled,
         pressed && s.pressed,
         style,

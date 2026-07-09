@@ -6,10 +6,9 @@ import {
   StyleSheet, SafeAreaView, ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { useTrainDetail } from '../hooks/useTrainDetail';
 import { useSavedRoutes } from '../hooks/useSavedRoutes';
-import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n';
 
 type MapView = 'Route Map' | 'Timeline';
@@ -17,7 +16,6 @@ type MapView = 'Route Map' | 'Timeline';
 export default function RouteMapScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
-  const { user } = useAuthStore();
   const router = useRouter();
   const [view, setView] = useState<MapView>('Route Map');
   const { data: train, isLoading, error } = useTrainDetail(id ?? '');
@@ -39,7 +37,7 @@ export default function RouteMapScreen() {
     return (
       <SafeAreaView style={rm.root}>
         <View style={rm.header}>
-          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
           <View style={rm.headerCenter}>
             <View style={rm.trainIcon} />
             <View>
@@ -52,7 +50,7 @@ export default function RouteMapScreen() {
           </View>
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={C.green} />
+          <ActivityIndicator size="large" color={Colors.dark.primary} />
         </View>
       </SafeAreaView>
     );
@@ -62,7 +60,7 @@ export default function RouteMapScreen() {
     return (
       <SafeAreaView style={rm.root}>
         <View style={rm.header}>
-          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+          <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
           <View style={rm.headerCenter}>
             <View style={rm.trainIcon} />
             <View><Text style={rm.title}>Route Map</Text></View>
@@ -72,8 +70,8 @@ export default function RouteMapScreen() {
             <View style={rm.shareBtn} />
           </View>
         </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.md }}>
-          <Text style={{ color: C.text2, fontSize: T.base }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing['space-3'] }}>
+          <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>
             {error ? t('common.error') : t('train.not_found')}
           </Text>
           <TouchableOpacity style={rm.retryBtn} onPress={() => router.back()}>
@@ -93,7 +91,7 @@ export default function RouteMapScreen() {
     <SafeAreaView style={rm.root}>
       {/* Header */}
       <View style={rm.header}>
-        <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={rm.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View style={rm.headerCenter}>
           <View style={rm.trainIcon} />
           <View>
@@ -136,7 +134,7 @@ export default function RouteMapScreen() {
             <View style={rm.mapContainer}>
               {/* TODO: Install react-native-maps for interactive map. Currently showing timeline view only. */}
               <View style={rm.mapPlaceholder}>
-                <Text style={{ color: C.text2, textAlign: 'center' }}>Map view requires react-native-maps</Text>
+                <Text style={{ color: Colors.dark['text-secondary'], textAlign: 'center' }}>Map view requires react-native-maps</Text>
               </View>
               {/* Map controls */}
               <View style={rm.mapControls}>
@@ -155,7 +153,7 @@ export default function RouteMapScreen() {
                 </View>
               </View>
               {stops.length === 0 ? (
-                <Text style={{ color: C.text2, fontSize: T.sm }}>No verified stop data available.</Text>
+                <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>No verified stop data available.</Text>
               ) : (
                 stops.map((stop, i) => {
                   const isFirst = i === 0;
@@ -165,7 +163,7 @@ export default function RouteMapScreen() {
                     <View key={stop.id}>
                       <View style={rm.stopRow}>
                         <View style={rm.stopIndicator}>
-                          <View style={[rm.stopDot, { backgroundColor: (isFirst || isLast) ? C.green : C.text3 }]} />
+                          <View style={[rm.stopDot, { backgroundColor: (isFirst || isLast) ? Colors.dark.primary : Colors.dark['text-tertiary'] }]} />
                           {i < stops.length - 1 && <View style={rm.stopLine} />}
                         </View>
                         <View style={rm.stopContent}>
@@ -200,8 +198,8 @@ export default function RouteMapScreen() {
           /* ── TIMELINE VIEW ── */
           <View style={rm.timelineSection}>
             {stops.length === 0 ? (
-              <View style={{ alignItems: 'center', paddingVertical: S.xl }}>
-                <Text style={{ color: C.text2, fontSize: T.sm }}>No verified timeline data available.</Text>
+              <View style={{ alignItems: 'center', paddingVertical: Spacing['space-5'] }}>
+                <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>No verified timeline data available.</Text>
               </View>
             ) : (
               stops.map((stop, i) => {
@@ -214,11 +212,11 @@ export default function RouteMapScreen() {
                       <Text style={rm.timelineTime}>{time}</Text>
                     </View>
                     <View style={rm.timelineIndicator}>
-                      <View style={[rm.timelineDot, { backgroundColor: (isFirst || isLast) ? C.green : C.text3 }]} />
+                      <View style={[rm.timelineDot, { backgroundColor: (isFirst || isLast) ? Colors.dark.primary : Colors.dark['text-tertiary'] }]} />
                       {i < stops.length - 1 && <View style={rm.timelineLine} />}
                     </View>
                     <View style={rm.timelineContent}>
-                      <Text style={[rm.timelineStation, (isFirst || isLast) && { color: C.green }]}>
+                      <Text style={[rm.timelineStation, (isFirst || isLast) && { color: Colors.dark.primary }]}>
                         {stop.station?.name_en ?? 'Unknown'}
                       </Text>
                       {stop.halt_minutes > 0 && (
@@ -341,106 +339,106 @@ export default function RouteMapScreen() {
 }
 
 const rm = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  trainIcon: { width: 40, height: 40, backgroundColor: C.greenTint, borderRadius: 10 },
-  title: { fontSize: 17, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2 },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  trainIcon: { width: 40, height: 40, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10 },
+  title: { fontSize: 17, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
   trainSelector: { marginTop: 2 },
-  trainSelectorText: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  headerActions: { flexDirection: 'row', gap: S.sm },
-  starBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  starBtnText: { fontSize: T.base },
-  shareBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
-  viewToggle: { flexDirection: 'row', marginHorizontal: S.xl, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: 4, gap: 4 },
-  viewTab: { flex: 1, paddingVertical: S.sm, alignItems: 'center', borderRadius: 10 },
-  viewTabActive: { backgroundColor: C.green },
-  viewTabText: { fontSize: T.sm, fontWeight: '500', color: C.text2 },
-  viewTabTextActive: { fontWeight: '700', color: C.bg },
-  mapSection: { flexDirection: 'row', gap: S.md },
+  trainSelectorText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  headerActions: { flexDirection: 'row', gap: Spacing['space-2'] },
+  starBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  starBtnText: { ...Typography.body },
+  shareBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
+  viewToggle: { flexDirection: 'row', marginHorizontal: Spacing['space-5'], backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: 4, gap: 4 },
+  viewTab: { flex: 1, paddingVertical: Spacing['space-2'], alignItems: 'center', borderRadius: 10 },
+  viewTabActive: { backgroundColor: Colors.dark.primary },
+  viewTabText: { ...Typography['body-sm'], fontWeight: '500', color: Colors.dark['text-secondary'] },
+  viewTabTextActive: { fontWeight: '700', color: Colors.dark['bg-base'] },
+  mapSection: { flexDirection: 'row', gap: Spacing['space-3'] },
   mapContainer: { flex: 1, position: 'relative' },
-  mapPlaceholder: { height: 320, backgroundColor: C.blueTint, borderRadius: R.lg, alignItems: 'center', justifyContent: 'center', gap: S.sm, borderWidth: 1, borderColor: C.blue },
+  mapPlaceholder: { height: 320, backgroundColor: Colors.dark['info-subtle'], borderRadius: Radius['radius-lg'], alignItems: 'center', justifyContent: 'center', gap: Spacing['space-2'], borderWidth: 1, borderColor: Colors.dark.info },
   mapEmoji: { fontSize: 40 },
-  mapLabel: { fontSize: T.md, fontWeight: '700', color: C.white },
-  mapSub: { fontSize: T.sm, color: C.text2 },
-  mapControls: { position: 'absolute', left: S.md, bottom: S.md, gap: S.sm },
-  mapBtn: { width: 32, height: 32, backgroundColor: C.bg, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
-  mapBtnText: { fontSize: 16, color: C.white },
-  stopsPanel: { flex: 1, gap: S.xs },
-  stopsPanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: S.xs },
-  stopsPanelTitle: { fontSize: T.sm, fontWeight: '700', color: C.white },
-  stopsBadge: { backgroundColor: C.greenTint, borderRadius: 8, paddingHorizontal: S.xs, paddingVertical: 2 },
-  stopsBadgeText: { fontSize: T.xs, fontWeight: '600', color: C.green },
-  stopRow: { flexDirection: 'row', alignItems: 'flex-start', gap: S.xs },
+  mapLabel: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  mapSub: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  mapControls: { position: 'absolute', left: Spacing['space-3'], bottom: Spacing['space-3'], gap: Spacing['space-2'] },
+  mapBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-base'], borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.dark.border },
+  mapBtnText: { fontSize: 16, color: Colors.dark['text-primary'] },
+  stopsPanel: { flex: 1, gap: Spacing['space-1'] },
+  stopsPanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing['space-1'] },
+  stopsPanelTitle: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-primary'] },
+  stopsBadge: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 8, paddingHorizontal: Spacing['space-1'], paddingVertical: 2 },
+  stopsBadgeText: { ...Typography.caption, fontWeight: '600', color: Colors.dark.primary },
+  stopRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing['space-1'] },
   stopIndicator: { alignItems: 'center', width: 14 },
   stopDot: { width: 10, height: 10, borderRadius: 5 },
-  stopLine: { width: 2, flex: 1, minHeight: 20, backgroundColor: C.border, marginTop: 2 },
-  stopContent: { flex: 1, paddingBottom: S.sm },
-  stopTimeRow: { flexDirection: 'row', alignItems: 'center', gap: S.xs, flexWrap: 'wrap' },
-  stopTime: { fontSize: T.sm, fontWeight: '700', color: C.white },
-  stopStation: { fontSize: T.sm, fontWeight: '600', color: C.white },
-  stopTag: { backgroundColor: C.greenTint, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
-  stopTagEnd: { backgroundColor: C.surface2 },
-  stopTagText: { fontSize: 8, fontWeight: '700', color: C.green },
-  stopTagTextEnd: { color: C.text2 },
-  stopExtra: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  locationBtn: { width: 16, height: 16, backgroundColor: C.blueTint, borderRadius: 8 },
-  stopChevron: { width: 12, height: 12, backgroundColor: C.surface2, borderRadius: 3 },
-  timelineSection: { gap: S.sm },
-  timelineRow: { flexDirection: 'row', gap: S.md },
+  stopLine: { width: 2, flex: 1, minHeight: 20, backgroundColor: Colors.dark.border, marginTop: 2 },
+  stopContent: { flex: 1, paddingBottom: Spacing['space-2'] },
+  stopTimeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-1'], flexWrap: 'wrap' },
+  stopTime: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-primary'] },
+  stopStation: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-primary'] },
+  stopTag: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
+  stopTagEnd: { backgroundColor: Colors.dark['bg-overlay'] },
+  stopTagText: { fontSize: 8, fontWeight: '700', color: Colors.dark.primary },
+  stopTagTextEnd: { color: Colors.dark['text-secondary'] },
+  stopExtra: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  locationBtn: { width: 16, height: 16, backgroundColor: Colors.dark['info-subtle'], borderRadius: 8 },
+  stopChevron: { width: 12, height: 12, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 3 },
+  timelineSection: { gap: Spacing['space-2'] },
+  timelineRow: { flexDirection: 'row', gap: Spacing['space-3'] },
   timelineLeft: { width: 48, alignItems: 'flex-end' },
-  timelineTime: { fontSize: T.sm, fontWeight: '700', color: C.white },
+  timelineTime: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-primary'] },
   timelineIndicator: { alignItems: 'center', width: 16 },
   timelineDot: { width: 12, height: 12, borderRadius: 6 },
-  timelineLine: { width: 2, flex: 1, minHeight: 28, backgroundColor: C.border, marginTop: 4 },
-  timelineContent: { flex: 1, paddingBottom: S.md, gap: 4 },
-  timelineStation: { fontSize: T.base, fontWeight: '600', color: C.white },
-  timelineExtra: { fontSize: T.sm, color: C.text2 },
-  statsCard: { flexDirection: 'row', backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, justifyContent: 'space-between' },
+  timelineLine: { width: 2, flex: 1, minHeight: 28, backgroundColor: Colors.dark.border, marginTop: 4 },
+  timelineContent: { flex: 1, paddingBottom: Spacing['space-3'], gap: 4 },
+  timelineStation: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-primary'] },
+  timelineExtra: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  statsCard: { flexDirection: 'row', backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], justifyContent: 'space-between' },
   statItem: { alignItems: 'center', gap: 4 },
   statIcon: { fontSize: 18 },
-  statLabel: { fontSize: T.xs, color: C.text2, textAlign: 'center' },
-  statVal: { fontSize: 14, fontWeight: '700', color: C.white },
-  statSub: { fontSize: T.xs, color: C.text3 },
-  trainInfoCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
-  trainInfoLeft: { flex: 1, flexDirection: 'row', gap: S.md, alignItems: 'center' },
-  trainInfoIcon: { width: 40, height: 40, backgroundColor: C.greenTint, borderRadius: 20 },
-  trainInfoName: { fontSize: T.base, fontWeight: '700', color: C.white },
-  trainInfoRoute: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  dailyBadge: { backgroundColor: C.surface2, borderRadius: 6, paddingHorizontal: S.xs, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
-  dailyBadgeText: { fontSize: T.xs, color: C.text2 },
+  statLabel: { ...Typography.caption, color: Colors.dark['text-secondary'], textAlign: 'center' },
+  statVal: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'] },
+  statSub: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
+  trainInfoCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
+  trainInfoLeft: { flex: 1, flexDirection: 'row', gap: Spacing['space-3'], alignItems: 'center' },
+  trainInfoIcon: { width: 40, height: 40, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 20 },
+  trainInfoName: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  trainInfoRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  dailyBadge: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 6, paddingHorizontal: Spacing['space-1'], paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
+  dailyBadgeText: { ...Typography.caption, color: Colors.dark['text-secondary'] },
   trainInfoRight: { gap: 2 },
-  trainInfoLabel: { fontSize: T.xs, color: C.text2 },
-  trainInfoDep: { fontSize: T.base, fontWeight: '700', color: C.green },
-  trainInfoArr: { fontSize: T.base, fontWeight: '700', color: C.blue },
-  trainInfoChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  actionRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.lg },
-  actionIcon: { width: 28, height: 28, backgroundColor: C.surface2, borderRadius: 14 },
-  actionLabel: { fontSize: T.sm, fontWeight: '600', color: C.white },
-  actionValue: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  savedCheck: { width: 24, height: 24, backgroundColor: C.green, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  savedCheckText: { fontSize: T.sm, color: C.bg, fontWeight: '700' },
-  toggleOn: { width: 44, height: 26, backgroundColor: C.green, borderRadius: 13 },
-  actionChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  overviewCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
-  overviewLeft: { flex: 1, flexDirection: 'row', gap: S.md, alignItems: 'center' },
-  overviewIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 18 },
-  overviewStats: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
+  trainInfoLabel: { ...Typography.caption, color: Colors.dark['text-secondary'] },
+  trainInfoDep: { ...Typography.body, fontWeight: '700', color: Colors.dark.primary },
+  trainInfoArr: { ...Typography.body, fontWeight: '700', color: Colors.dark.info },
+  trainInfoChevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'] },
+  actionIcon: { width: 28, height: 28, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 14 },
+  actionLabel: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-primary'] },
+  actionValue: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  savedCheck: { width: 24, height: 24, backgroundColor: Colors.dark.primary, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  savedCheckText: { ...Typography['body-sm'], color: Colors.dark['bg-base'], fontWeight: '700' },
+  toggleOn: { width: 44, height: 26, backgroundColor: Colors.dark.primary, borderRadius: 13 },
+  actionChevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  overviewCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
+  overviewLeft: { flex: 1, flexDirection: 'row', gap: Spacing['space-3'], alignItems: 'center' },
+  overviewIcon: { width: 36, height: 36, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 18 },
+  overviewStats: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing['space-2'] },
   overviewItem: { minWidth: 56 },
-  overviewLabel: { fontSize: T.xs, color: C.text2 },
-  overviewVal: { fontSize: T.sm, fontWeight: '700', color: C.white },
+  overviewLabel: { ...Typography.caption, color: Colors.dark['text-secondary'] },
+  overviewVal: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-primary'] },
   crowdBox: { alignItems: 'center', gap: 4 },
-  crowdLabel: { fontSize: T.xs, color: C.text2 },
+  crowdLabel: { ...Typography.caption, color: Colors.dark['text-secondary'] },
   crowdIcons: { flexDirection: 'row', gap: 2 },
   crowdIcon: { fontSize: 12 },
-  crowdVal: { fontSize: T.sm, fontWeight: '700', color: C.orange },
-  overviewChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  tapHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md, gap: S.sm },
-  tapHintText: { flex: 1, fontSize: T.sm, color: C.text2, lineHeight: 18 },
-  tapHintChevron: { width: 16, height: 16, backgroundColor: C.surface2, borderRadius: 4 },
-  retryBtn: { backgroundColor: C.green, borderRadius: R.md, paddingHorizontal: S.xl, paddingVertical: S.md },
-  retryBtnText: { fontSize: T.base, fontWeight: '700', color: C.bg },
+  crowdVal: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.accent },
+  overviewChevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  tapHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-3'], gap: Spacing['space-2'] },
+  tapHintText: { flex: 1, ...Typography['body-sm'], color: Colors.dark['text-secondary'], lineHeight: 18 },
+  tapHintChevron: { width: 16, height: 16, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 4 },
+  retryBtn: { backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-md'], paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  retryBtnText: { ...Typography.body, fontWeight: '700', color: Colors.dark['bg-base'] },
 });

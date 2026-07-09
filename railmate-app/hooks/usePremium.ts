@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../lib/supabase';
@@ -46,7 +46,7 @@ async function checkPremiumStatus(userId: string): Promise<boolean> {
  * Syncs with authStore
  */
 export function usePremiumStatus() {
-  const { user, refreshPremiumStatus } = useAuth();
+  const { user } = useAuth();
   const { setPremium } = useAuthStore();
 
   return useQuery({
@@ -113,17 +113,17 @@ async function purchasePremium(userId: string): Promise<PurchaseResult> {
  * Hook to purchase premium
  */
 export function usePurchase() {
-  const { user, refreshPremiumStatus } = useAuth();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('No user logged in');
       return purchasePremium(user.id);
     },
-    onSuccess: async (result) => {
+    onSuccess: (result) => {
       if (result.success) {
-        // Refresh premium status from database
-        await refreshPremiumStatus();
+        queryClient.invalidateQueries({ queryKey: ['premium', user?.id] });
       }
     },
   });
@@ -134,7 +134,8 @@ export function usePurchase() {
  * TODO: Implement with RevenueCat.restorePurchases()
  */
 export function useRestorePurchases() {
-  const { user, refreshPremiumStatus } = useAuth();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
@@ -144,7 +145,7 @@ export function useRestorePurchases() {
       console.warn('RevenueCat restore not implemented yet');
 
       // For now, just refresh from database
-      await refreshPremiumStatus();
+      queryClient.invalidateQueries({ queryKey: ['premium', user?.id] });
 
       return { success: true };
     },

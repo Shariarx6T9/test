@@ -54,7 +54,7 @@ export default function VerifyScreen() {
           }
         }
       }
-    } catch (e) {
+    } catch {
       setError('Invalid verification code');
     } finally {
       setLoading(false);
@@ -135,17 +135,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: Spacing['2xl'],
+    paddingHorizontal: Spacing['space-6'],
     justifyContent: 'center',
   },
   header: {
-    marginBottom: Spacing['3xl'],
+    marginBottom: Spacing['space-8'],
   },
   title: {
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing['space-2'],
   },
   subtitle: {
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing['space-1'],
   },
   form: {
     width: '100%',
@@ -155,19 +155,19 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.dark.border,
     borderRadius: 10,
-    padding: Spacing.lg,
+    padding: Spacing['space-5'],
     color: Colors.dark['text-primary'],
     fontSize: 32,
     fontFamily: 'JetBrainsMono_500Medium',
     textAlign: 'center',
     letterSpacing: 8,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing['space-4'],
   },
   error: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing['space-4'],
     textAlign: 'center',
   },
   button: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing['space-4'],
   },
 });

@@ -81,10 +81,14 @@ export const useSavedRoutes = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
-    loadRoutes();
+    // This is a standard fetch-on-mount pattern. The lint rule flags the
+    // synchronous `setLoading(true)` call inside `loadRoutes`, but this is a
+    // necessary and safe operation before an async data fetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadRoutes(); // Load initial data on mount
   }, [loadRoutes]);
 
   // ─── Save ─────────────────────────────────────────────────────────────────────
@@ -130,7 +134,7 @@ export const useSavedRoutes = () => {
         return false;
       }
     },
-    [savedRoutes, user?.id]
+    [savedRoutes, user]
   );
 
   // ─── Delete ───────────────────────────────────────────────────────────────────
@@ -153,7 +157,7 @@ export const useSavedRoutes = () => {
         console.error('deleteRoute error:', err);
       }
     },
-    [savedRoutes, user?.id]
+    [savedRoutes, user]
   );
 
   const isRouteSaved = useCallback(

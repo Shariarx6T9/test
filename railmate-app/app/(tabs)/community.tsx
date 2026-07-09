@@ -10,8 +10,8 @@ import {
   ChatCircle, ShareNetwork, Clock, DotsThreeVertical,
 } from 'phosphor-react-native';
 import { useAuth } from '../../hooks/useAuth';
-import { useCommunityReports } from '../../hooks/useCommunityReports';
-import { useVoteReport } from '../../hooks/useCommunityReports';
+import { useCommunityReports , useVoteReport } from '../../hooks/useCommunityReports';
+
 import { useTranslation } from '../../i18n';
 import { timeAgo } from '../../utils/timeAgo';
 import { Colors } from '../../constants/colors';

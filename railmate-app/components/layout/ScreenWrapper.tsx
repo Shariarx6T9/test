@@ -24,7 +24,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: resolvedBg }]} edges={['top', 'left', 'right']}>
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} backgroundColor={resolvedBg} />
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <View
         style={[
           styles.inner,

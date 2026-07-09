@@ -9,7 +9,7 @@ export { QuickActionCard } from './QuickActionCard';
 export { QuickActionsGrid } from './QuickActionsGrid';
 export { LiveUpdateCard } from './LiveUpdateCard';
 export { SavedRouteCard } from './SavedRouteCard';
-export { ReportCard } from './ReportCard/ReportCard';
+export { default as ReportCard } from './ReportCard/ReportCard';
 export { StationSelector } from './StationSelector/StationSelector';
 export { SavedRouteChip } from './SavedRouteChip/SavedRouteChip';
 export { SignInPrompt } from './SignInPrompt';

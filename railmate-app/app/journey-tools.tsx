@@ -1,8 +1,7 @@
 // app/journey-tools.tsx
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, SafeAreaView, RefreshControl, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { useSavedRoutes } from '../hooks/useSavedRoutes';
 import { useAuthStore } from '../stores/authStore';
 import { useCommunityReports } from '../hooks/useCommunityReports';
@@ -11,10 +10,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '../i18n';
 
 export default function JourneyToolsScreen() {
-  const router = useRouter();
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { savedRoutes, loading: routesLoading, deleteRoute, refresh: refreshRoutes } = useSavedRoutes();
+  const { savedRoutes, deleteRoute, refresh: refreshRoutes } = useSavedRoutes();
   const { data: myReports } = useCommunityReports(user?.id ? { userId: user.id } : null);
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
@@ -55,10 +53,10 @@ export default function JourneyToolsScreen() {
   }, [t, deleteRoute]);
 
   const statsData = [
-    { icon: C.greenTint, val: String(savedRoutes.length), label: t('journey.saved_routes'), sub: 'Total' },
-    { icon: C.blueTint, val: String(myReports?.length ?? 0), label: t('journey.stat_journeys'), sub: t('journey.stat_journeys') },
-    { icon: C.purpleTint, val: '—', label: t('journey.stat_distance'), sub: 'N/A' },
-    { icon: C.orangeTint, val: '—', label: t('journey.stat_saved_time'), sub: 'N/A' },
+    { icon: Colors.dark['primary-subtle'], val: String(savedRoutes.length), label: t('journey.saved_routes'), sub: 'Total' },
+    { icon: Colors.dark['info-subtle'], val: String(myReports?.length ?? 0), label: t('journey.stat_journeys'), sub: t('journey.stat_journeys') },
+    { icon: Colors.dark['info-subtle'], val: '—', label: t('journey.stat_distance'), sub: 'N/A' },
+    { icon: Colors.dark['accent-subtle'], val: '—', label: t('journey.stat_saved_time'), sub: 'N/A' },
   ];
 
   return (
@@ -77,7 +75,7 @@ export default function JourneyToolsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={jt.scroll}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.green} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.dark.primary} />
         }
       >
         {/* My Trips — Coming Soon */}
@@ -88,9 +86,9 @@ export default function JourneyToolsScreen() {
             {/* <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity> */}
           </View>
           <View style={jt.tripCard}>
-            <View style={{ padding: S.xl, alignItems: 'center', gap: S.sm }}>
-              <Text style={{ color: C.text2, fontSize: T.base }}>{t('home.coming_soon_title')}</Text>
-              <Text style={{ color: C.text3, fontSize: T.sm, textAlign: 'center' }}>{t('home.coming_soon_body')}</Text>
+            <View style={{ padding: Spacing['space-5'], alignItems: 'center', gap: Spacing['space-2'] }}>
+              <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>{t('home.coming_soon_title')}</Text>
+              <Text style={{ color: Colors.dark['text-tertiary'], ...Typography['body-sm'], textAlign: 'center' }}>{t('home.coming_soon_body')}</Text>
             </View>
           </View>
         </View>
@@ -102,13 +100,13 @@ export default function JourneyToolsScreen() {
             <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
           </View>
           {savedRoutes.length === 0 ? (
-            <View style={{ paddingVertical: S.lg, alignItems: 'center', gap: S.sm }}>
-              <Text style={{ color: C.text2, fontSize: T.base }}>{t('journey.no_saved_routes')}</Text>
-              <Text style={{ color: C.text3, fontSize: T.sm, textAlign: 'center' }}>{t('journey.no_saved_routes_sub')}</Text>
+            <View style={{ paddingVertical: Spacing['space-4'], alignItems: 'center', gap: Spacing['space-2'] }}>
+              <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>{t('journey.no_saved_routes')}</Text>
+              <Text style={{ color: Colors.dark['text-tertiary'], ...Typography['body-sm'], textAlign: 'center' }}>{t('journey.no_saved_routes_sub')}</Text>
             </View>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{ flexDirection: 'row', gap: S.sm }}>
+              <View style={{ flexDirection: 'row', gap: Spacing['space-2'] }}>
                 {savedRoutes.map((route) => {
                   const fromInitial = (route.fromStation.name_en ?? '?')[0].toUpperCase();
                   const toInitial = (route.toStation.name_en ?? '?')[0].toUpperCase();
@@ -125,11 +123,11 @@ export default function JourneyToolsScreen() {
                       activeOpacity={0.8}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <View style={[jt.initCircle, { backgroundColor: C.green }]}>
+                        <View style={[jt.initCircle, { backgroundColor: Colors.dark.primary }]}>
                           <Text style={jt.initText}>{fromInitial}</Text>
                         </View>
-                        <Text style={{ color: C.text2 }}>→</Text>
-                        <View style={[jt.initCircle, { backgroundColor: C.purple }]}>
+                        <Text style={{ color: Colors.dark['text-secondary'] }}>→</Text>
+                        <View style={[jt.initCircle, { backgroundColor: Colors.dark.info }]}>
                           <Text style={jt.initText}>{toInitial}</Text>
                         </View>
                       </View>
@@ -150,8 +148,8 @@ export default function JourneyToolsScreen() {
             <TouchableOpacity><Text style={jt.viewAll}>View All</Text></TouchableOpacity>
           </View>
           {(reminders ?? []).length === 0 ? (
-            <View style={{ paddingVertical: S.lg, alignItems: 'center' }}>
-              <Text style={{ color: C.text2, fontSize: T.base }}>No reminders set</Text>
+            <View style={{ paddingVertical: Spacing['space-4'], alignItems: 'center' }}>
+              <Text style={{ color: Colors.dark['text-secondary'], ...Typography.body }}>No reminders set</Text>
             </View>
           ) : (
             (reminders ?? []).map((rem, i) => (
@@ -166,8 +164,8 @@ export default function JourneyToolsScreen() {
                   <Switch
                     value={!!rem.is_active}
                     onValueChange={() => toggleAlert.mutate({ id: rem.id, is_active: !rem.is_active })}
-                    trackColor={{ false: C.surface2, true: C.green }}
-                    thumbColor={C.white}
+                    trackColor={{ false: Colors.dark['bg-overlay'], true: Colors.dark.primary }}
+                    thumbColor={Colors.dark['text-primary']}
                   />
                 </View>
                 {i < (reminders ?? []).length - 1 && <View style={jt.divider} />}
@@ -197,44 +195,44 @@ export default function JourneyToolsScreen() {
   );
 }
 const jt = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: S.xl, paddingVertical: S.md },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  headerIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 10 },
-  title: { fontSize: T.lg, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 1 },
-  addBtn: { backgroundColor: C.surface2, borderRadius: 20, padding: S.sm, paddingHorizontal: S.md },
-  addBtnText: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.lg, gap: S.md },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  headerIcon: { width: 36, height: 36, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10 },
+  title: { ...Typography.h3, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 1 },
+  addBtn: { backgroundColor: Colors.dark['bg-overlay'], borderRadius: 20, padding: Spacing['space-2'], paddingHorizontal: Spacing['space-3'] },
+  addBtnText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  card: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-4'], gap: Spacing['space-3'] },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
-  viewAll: { fontSize: T.sm, fontWeight: '600', color: C.green },
-  tripCard: { flexDirection: 'row', backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, overflow: 'hidden', alignItems: 'center' },
-  tripImg: { width: 80, height: 72, backgroundColor: C.bg },
-  tripRoute: { fontSize: 14, fontWeight: '700', color: C.white },
-  tripTrain: { fontSize: T.sm, color: C.text2 },
-  tripMeta: { flexDirection: 'row', gap: S.md },
-  tripMetaText: { fontSize: T.xs, color: C.text3 },
-  upcomingBadge: { backgroundColor: C.blueTint, borderRadius: 8, paddingHorizontal: S.sm, paddingVertical: 4, margin: S.md },
-  upcomingText: { fontSize: T.xs, fontWeight: '600', color: C.blue },
-  addTripRow: { alignItems: 'center', paddingVertical: S.sm },
-  addTripText: { fontSize: T.base, fontWeight: '600', color: C.green },
+  sectionTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  viewAll: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
+  tripCard: { flexDirection: 'row', backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, overflow: 'hidden', alignItems: 'center' },
+  tripImg: { width: 80, height: 72, backgroundColor: Colors.dark['bg-base'] },
+  tripRoute: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'] },
+  tripTrain: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  tripMeta: { flexDirection: 'row', gap: Spacing['space-3'] },
+  tripMetaText: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
+  upcomingBadge: { backgroundColor: Colors.dark['info-subtle'], borderRadius: 8, paddingHorizontal: Spacing['space-2'], paddingVertical: 4, margin: Spacing['space-3'] },
+  upcomingText: { ...Typography.caption, fontWeight: '600', color: Colors.dark.info },
+  addTripRow: { alignItems: 'center', paddingVertical: Spacing['space-2'] },
+  addTripText: { ...Typography.body, fontWeight: '600', color: Colors.dark.primary },
   initCircle: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  initText: { fontSize: T.sm, fontWeight: '700', color: C.bg },
-  routeCard: { width: 120, backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md, gap: 6 },
-  routeName: { fontSize: T.xs, fontWeight: '600', color: C.white },
-  routeSub: { fontSize: 8, color: C.text2 },
-  routeTrains: { fontSize: T.xs, color: C.green },
-  remRow: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingVertical: S.sm },
-  remIcon: { width: 36, height: 36, backgroundColor: C.greenTint, borderRadius: 10 },
-  remTrain: { fontSize: T.base, fontWeight: '700', color: C.white },
-  remRoute: { fontSize: T.sm, color: C.text2 },
-  remWhen: { fontSize: T.xs, fontWeight: '600', color: C.green },
-  divider: { height: 1, backgroundColor: C.border },
-  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: S.sm },
-  statCard: { width: '47.5%', borderRadius: R.md, padding: S.md, gap: 4 },
-  statVal: { fontSize: 14, fontWeight: '700', color: C.white },
-  statLabel: { fontSize: T.xs, color: C.white },
-  statSub: { fontSize: 8, color: C.text2 },
+  initText: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['bg-base'] },
+  routeCard: { width: 120, backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-3'], gap: 6 },
+  routeName: { ...Typography.caption, fontWeight: '600', color: Colors.dark['text-primary'] },
+  routeSub: { fontSize: 8, color: Colors.dark['text-secondary'] },
+  routeTrains: { ...Typography.caption, color: Colors.dark.primary },
+  remRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], paddingVertical: Spacing['space-2'] },
+  remIcon: { width: 36, height: 36, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 10 },
+  remTrain: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  remRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  remWhen: { ...Typography.caption, fontWeight: '600', color: Colors.dark.primary },
+  divider: { height: 1, backgroundColor: Colors.dark.border },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing['space-2'] },
+  statCard: { width: '47.5%', borderRadius: Radius['radius-md'], padding: Spacing['space-3'], gap: 4 },
+  statVal: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'] },
+  statLabel: { ...Typography.caption, color: Colors.dark['text-primary'] },
+  statSub: { fontSize: 8, color: Colors.dark['text-secondary'] },
 });

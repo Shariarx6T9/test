@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ArrowLeft } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { supabase } from '../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
@@ -12,7 +12,7 @@ import { useTranslation } from '../i18n';
 type Period = 'Weekly' | 'Monthly' | 'All Time';
 
 const SCORE_COLORS: Record<string, string> = {
-  Excellent: C.green, 'Very Good': C.blue, Good: C.green, Fair: C.orange,
+  Excellent: Colors.dark.primary, 'Very Good': Colors.dark.info, Good: Colors.dark.primary, Fair: Colors.dark.accent,
 };
 
 function getScoreLabel(score: number): string {
@@ -95,7 +95,7 @@ export default function LeaderboardScreen() {
   return (
     <SafeAreaView style={lb.root}>
       <View style={lb.header}>
-        <TouchableOpacity style={lb.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        <TouchableOpacity style={lb.backBtn} onPress={() => router.back()}><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
           <Text style={lb.title}>👑 {t('leaderboard.title')}</Text>
           <Text style={lb.subtitle}>{t('leaderboard.sub')}</Text>
@@ -150,7 +150,7 @@ export default function LeaderboardScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={async () => { setRefreshing(true); await refetch(); setRefreshing(false); }}
-            tintColor={C.green}
+            tintColor={Colors.dark.primary}
           />
         }
       >
@@ -164,41 +164,41 @@ export default function LeaderboardScreen() {
         <View style={lb.divider} />
 
         {isLoading ? (
-          <View style={{ paddingVertical: S.xl, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color={C.green} />
+          <View style={{ paddingVertical: Spacing['space-5'], alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={Colors.dark.primary} />
           </View>
         ) : error ? (
-          <View style={{ paddingVertical: S.xl, alignItems: 'center' }}>
-            <Text style={{ color: C.text2, fontSize: T.sm }}>Failed to load leaderboard.</Text>
-            <TouchableOpacity onPress={() => refetch()} style={{ marginTop: S.md }}>
-              <Text style={{ color: C.green, fontSize: T.sm, fontWeight: '600' }}>Retry</Text>
+          <View style={{ paddingVertical: Spacing['space-5'], alignItems: 'center' }}>
+            <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>Failed to load leaderboard.</Text>
+            <TouchableOpacity onPress={() => refetch()} style={{ marginTop: Spacing['space-3'] }}>
+              <Text style={{ color: Colors.dark.primary, ...Typography['body-sm'], fontWeight: '600' }}>Retry</Text>
             </TouchableOpacity>
           </View>
         ) : !leaderboard?.length ? (
-          <View style={{ paddingVertical: S.xl, alignItems: 'center' }}>
-            <Text style={{ color: C.text2, fontSize: T.sm }}>{t('leaderboard.no_data')}</Text>
+          <View style={{ paddingVertical: Spacing['space-5'], alignItems: 'center' }}>
+            <Text style={{ color: Colors.dark['text-secondary'], ...Typography['body-sm'] }}>{t('leaderboard.no_data')}</Text>
           </View>
         ) : (
           /* Rows */
           <View style={lb.tableCard}>
             {leaderboard.map((entry, i) => {
-              const rankColor = entry.rank === 1 ? C.gold : entry.rank === 2 ? C.text2 : entry.rank === 3 ? C.orange : undefined;
+              const rankColor = entry.rank === 1 ? Colors.dark.accent : entry.rank === 2 ? Colors.dark['text-secondary'] : entry.rank === 3 ? Colors.dark.accent : undefined;
               const isMe = entry.user_id === user?.id;
               const scoreLabel = getScoreLabel(entry.trust_score);
               return (
                 <View key={entry.user_id + entry.rank}>
                   <View style={[lb.userRow, isMe && lb.userRowMe]}>
                     <View style={[lb.rankCircle, rankColor ? { backgroundColor: rankColor } : {}]}>
-                      <Text style={[lb.rankNum, rankColor ? { color: C.bg } : {}]}>{entry.rank}</Text>
+                      <Text style={[lb.rankNum, rankColor ? { color: Colors.dark['bg-base'] } : {}]}>{entry.rank}</Text>
                     </View>
                     <View style={lb.userAvatar} />
                     <View style={{ flex: 1 }}>
-                      <Text style={[lb.userName, isMe && { color: C.green }]}>{entry.display_name}</Text>
+                      <Text style={[lb.userName, isMe && { color: Colors.dark.primary }]}>{entry.display_name}</Text>
                       <Text style={lb.userLevel}>{scoreLabel} Reporter</Text>
                     </View>
                     <View style={{ alignItems: 'center', width: 70 }}>
                       <Text style={lb.scoreNum}>{entry.trust_score}</Text>
-                      <Text style={[lb.scoreLabel, { color: SCORE_COLORS[scoreLabel] ?? C.text2 }]}>{scoreLabel}</Text>
+                      <Text style={[lb.scoreLabel, { color: SCORE_COLORS[scoreLabel] ?? Colors.dark['text-secondary'] }]}>{scoreLabel}</Text>
                     </View>
                     <View style={lb.pointsCol}>
                       <Text style={lb.pointsStar}>⭐</Text>
@@ -226,48 +226,48 @@ export default function LeaderboardScreen() {
 }
 
 const lb = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.md, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  infoBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16 },
-  periodTabs: { flexDirection: 'row', marginHorizontal: S.xl, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border },
-  periodTab: { flex: 1, paddingVertical: S.md, alignItems: 'center', borderRadius: R.md },
-  periodTabActive: { backgroundColor: C.green },
-  periodText: { fontSize: T.base, fontWeight: '500', color: C.text2 },
-  periodTextActive: { fontWeight: '700', color: C.bg },
-  myRank: { flexDirection: 'row', alignItems: 'center', gap: S.md, marginHorizontal: S.xl, marginTop: S.md, backgroundColor: C.greenTint, borderRadius: 14, borderWidth: 1, borderColor: C.greenDark, padding: S.md },
-  myRankNum: { fontSize: 20, fontWeight: '800', color: C.green, width: 36, textAlign: 'center' },
-  myRankAvatar: { width: 44, height: 44, backgroundColor: C.surface2, borderRadius: 22 },
-  myRankName: { fontSize: T.base, fontWeight: '700', color: C.white },
-  myRankLevel: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  myRankStats: { flexDirection: 'row', gap: S.lg },
-  myRankLabel: { fontSize: 9, color: C.text2 },
-  myRankScore: { fontSize: T.base, fontWeight: '700', color: C.green, marginTop: 2 },
-  myRankPoints: { fontSize: T.base, fontWeight: '700', color: C.gold, marginTop: 2 },
-  tableHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: S.md },
-  thNum: { width: 40, fontSize: T.sm, fontWeight: '700', color: C.text3 },
-  thReporter: { flex: 1, fontSize: T.sm, fontWeight: '700', color: C.text3 },
-  thScore: { width: 70, fontSize: T.sm, fontWeight: '700', color: C.text3, textAlign: 'center' },
-  thPoints: { width: 60, fontSize: T.sm, fontWeight: '700', color: C.text3, textAlign: 'right' },
-  divider: { height: 1, backgroundColor: C.border },
-  tableCard: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border },
-  userRow: { flexDirection: 'row', alignItems: 'center', gap: S.sm, padding: S.md },
-  userRowMe: { backgroundColor: C.greenTint },
-  rankCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.surface2, alignItems: 'center', justifyContent: 'center' },
-  rankNum: { fontSize: T.sm, fontWeight: '700', color: C.text2 },
-  userAvatar: { width: 36, height: 36, backgroundColor: C.surface2, borderRadius: 18 },
-  userName: { fontSize: T.base, fontWeight: '600', color: C.white },
-  userLevel: { fontSize: T.xs, color: C.text2, marginTop: 1 },
-  scoreNum: { fontSize: T.base, fontWeight: '700', color: C.white },
-  scoreLabel: { fontSize: T.xs, fontWeight: '600', marginTop: 2 },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-3'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 18, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  infoBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16 },
+  periodTabs: { flexDirection: 'row', marginHorizontal: Spacing['space-5'], backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border },
+  periodTab: { flex: 1, paddingVertical: Spacing['space-3'], alignItems: 'center', borderRadius: Radius['radius-md'] },
+  periodTabActive: { backgroundColor: Colors.dark.primary },
+  periodText: { ...Typography.body, fontWeight: '500', color: Colors.dark['text-secondary'] },
+  periodTextActive: { fontWeight: '700', color: Colors.dark['bg-base'] },
+  myRank: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], marginHorizontal: Spacing['space-5'], marginTop: Spacing['space-3'], backgroundColor: Colors.dark['primary-subtle'], borderRadius: 14, borderWidth: 1, borderColor: Colors.dark['primary-dim'], padding: Spacing['space-3'] },
+  myRankNum: { fontSize: 20, fontWeight: '800', color: Colors.dark.primary, width: 36, textAlign: 'center' },
+  myRankAvatar: { width: 44, height: 44, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 22 },
+  myRankName: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  myRankLevel: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  myRankStats: { flexDirection: 'row', gap: Spacing['space-4'] },
+  myRankLabel: { fontSize: 9, color: Colors.dark['text-secondary'] },
+  myRankScore: { ...Typography.body, fontWeight: '700', color: Colors.dark.primary, marginTop: 2 },
+  myRankPoints: { ...Typography.body, fontWeight: '700', color: Colors.dark.accent, marginTop: 2 },
+  tableHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing['space-3'] },
+  thNum: { width: 40, ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-tertiary'] },
+  thReporter: { flex: 1, ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-tertiary'] },
+  thScore: { width: 70, ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-tertiary'], textAlign: 'center' },
+  thPoints: { width: 60, ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-tertiary'], textAlign: 'right' },
+  divider: { height: 1, backgroundColor: Colors.dark.border },
+  tableCard: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], padding: Spacing['space-3'] },
+  userRowMe: { backgroundColor: Colors.dark['primary-subtle'] },
+  rankCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.dark['bg-overlay'], alignItems: 'center', justifyContent: 'center' },
+  rankNum: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-secondary'] },
+  userAvatar: { width: 36, height: 36, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 18 },
+  userName: { ...Typography.body, fontWeight: '600', color: Colors.dark['text-primary'] },
+  userLevel: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 1 },
+  scoreNum: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  scoreLabel: { ...Typography.caption, fontWeight: '600', marginTop: 2 },
   pointsCol: { flexDirection: 'row', alignItems: 'center', gap: 4, width: 60, justifyContent: 'flex-end' },
-  pointsStar: { fontSize: T.sm },
-  pointsVal: { fontSize: T.base, fontWeight: '700', color: C.white },
-  rowDivider: { height: 1, backgroundColor: C.border, marginHorizontal: S.md },
+  pointsStar: { ...Typography['body-sm'] },
+  pointsVal: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-primary'] },
+  rowDivider: { height: 1, backgroundColor: Colors.dark.border, marginHorizontal: Spacing['space-3'] },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  footerTime: { fontSize: T.xs, color: C.text3 },
-  refreshText: { fontSize: T.sm, fontWeight: '600', color: C.green },
+  footerTime: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
+  refreshText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.primary },
 });

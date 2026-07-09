@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Train as TrainIcon } from 'phosphor-react-native';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors as C, spacing as S, radius as R, typography as T } from '../theme';
+import { Colors, Radius, Spacing, Typography } from '../constants';
 import { useSubmitReport, useTrainSearch } from '../hooks/useCommunityReports';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n';
@@ -43,15 +43,15 @@ export default function SubmitReportScreen() {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={sr.root}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.lg }}>
-          <Text style={{ color: C.white, fontSize: T.md, fontWeight: '700' }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing['space-4'] }}>
+          <Text style={{ color: Colors.dark['text-primary'], ...Typography.h4, fontWeight: '700' }}>
             {t('community.sign_in_required')}
           </Text>
           <TouchableOpacity
-            style={{ backgroundColor: C.green, borderRadius: R.md, padding: S.lg }}
+            style={{ backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-md'], padding: Spacing['space-4'] }}
             onPress={() => router.push('/auth/login' as any)}
           >
-            <Text style={{ color: C.bg, fontWeight: '700' }}>{t('auth.sign_in')}</Text>
+            <Text style={{ color: Colors.dark['bg-base'], fontWeight: '700' }}>{t('auth.sign_in')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -72,11 +72,11 @@ export default function SubmitReportScreen() {
         .maybeSingle();
 
       if (checkError) {
-        console.log('[SubmitReport] user check error:', JSON.stringify(checkError, null, 2));
+        console.warn('[SubmitReport] user check error:', JSON.stringify(checkError, null, 2));
       }
 
       if (!existingUser) {
-        console.log('[SubmitReport] creating user row for:', user.id);
+        console.warn('[SubmitReport] creating user row for:', user.id);
         const { error: insertError } = await supabase
           .from('users')
           .insert({
@@ -87,12 +87,12 @@ export default function SubmitReportScreen() {
           });
 
         if (insertError) {
-          console.log('[SubmitReport] user insert error:', JSON.stringify(insertError, null, 2));
+          console.warn('[SubmitReport] user insert error:', JSON.stringify(insertError, null, 2));
         }
       }
 
       // Now submit the report
-      console.log('[SubmitReport] Submitting with data:', JSON.stringify({
+      console.warn('[SubmitReport] Submitting with data:', JSON.stringify({
         train_id: selectedTrain.id,
         train_number: selectedTrain.number,
         user_id: user.id,
@@ -112,7 +112,7 @@ export default function SubmitReportScreen() {
       });
       setSubmitted(true);
     } catch (err: any) {
-      console.log('[SubmitReport] error:', JSON.stringify(err, null, 2));
+      console.warn('[SubmitReport] error:', JSON.stringify(err, null, 2));
       const msg = (err?.message || '').toLowerCase();
       if (err?.status === 429 || msg.includes('rate limit') || msg.includes('too many')) {
         setSubmittedError('অনেক বেশি রিপোর্ট করা হয়েছে। একটু পরে আবার চেষ্টা করুন।');
@@ -133,14 +133,14 @@ export default function SubmitReportScreen() {
   if (submitted) {
     return (
       <SafeAreaView style={sr.root}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: S.lg, padding: S.xl }}>
-          <View style={{ width: 64, height: 64, backgroundColor: C.greenTint, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing['space-4'], padding: Spacing['space-5'] }}>
+          <View style={{ width: 64, height: 64, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontSize: 28 }}>✓</Text>
           </View>
-          <Text style={{ color: C.white, fontSize: T.lg, fontWeight: '800' }}>{t('community.success')}</Text>
-          <Text style={{ color: C.text2, textAlign: 'center' }}>{t('community.success_thanks')}</Text>
+          <Text style={{ color: Colors.dark['text-primary'], ...Typography.h3, fontWeight: '800' }}>{t('community.success')}</Text>
+          <Text style={{ color: Colors.dark['text-secondary'], textAlign: 'center' }}>{t('community.success_thanks')}</Text>
           <TouchableOpacity
-            style={{ backgroundColor: C.green, borderRadius: R.md, padding: S.lg, minWidth: 120, alignItems: 'center' }}
+            style={{ backgroundColor: Colors.dark.primary, borderRadius: Radius['radius-md'], padding: Spacing['space-4'], minWidth: 120, alignItems: 'center' }}
             onPress={() => {
               setSubmitted(false);
               setStep(0);
@@ -151,7 +151,7 @@ export default function SubmitReportScreen() {
               router.back();
             }}
           >
-            <Text style={{ color: C.bg, fontWeight: '700', fontSize: T.md }}>{t('community.done')}</Text>
+            <Text style={{ color: Colors.dark['bg-base'], fontWeight: '700', ...Typography.h4 }}>{t('community.done')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -164,7 +164,7 @@ export default function SubmitReportScreen() {
         <TouchableOpacity
           style={sr.backBtn}
           onPress={() => (step > 0 ? setStep(step - 1) : router.back())}
-        ><ArrowLeft size={18} color={C.white} /></TouchableOpacity>
+        ><ArrowLeft size={18} color={Colors.dark['text-primary']} /></TouchableOpacity>
         <View>
           <Text style={sr.title}>Submit Report</Text>
           <Text style={sr.subtitle}>Help fellow travelers by sharing real-time updates</Text>
@@ -175,11 +175,11 @@ export default function SubmitReportScreen() {
       <View style={sr.stepper}>
         {STEPS.map((stepLabel, i) => (
           <View key={stepLabel} style={sr.stepItem}>
-            {i > 0 && <View style={[sr.stepLine, i <= step && { backgroundColor: C.green }]} />}
+            {i > 0 && <View style={[sr.stepLine, i <= step && { backgroundColor: Colors.dark.primary }]} />}
             <View style={[sr.stepCircle, i === step ? sr.stepCircleActive : i < step ? sr.stepCircleDone : {}]}>
-              <Text style={[sr.stepNum, i <= step && { color: i === step ? C.bg : C.green }]}>{i + 1}</Text>
+              <Text style={[sr.stepNum, i <= step && { color: i === step ? Colors.dark['bg-base'] : Colors.dark.primary }]}>{i + 1}</Text>
             </View>
-            <Text style={[sr.stepLabel, i === step && { color: C.green }]}>{stepLabel}</Text>
+            <Text style={[sr.stepLabel, i === step && { color: Colors.dark.primary }]}>{stepLabel}</Text>
           </View>
         ))}
       </View>
@@ -192,7 +192,7 @@ export default function SubmitReportScreen() {
             <Text style={sr.tipTitle}>Your report makes a difference!</Text>
             <Text style={sr.tipSub}>Verified reports help thousands of travelers every day.</Text>
           </View>
-          <TouchableOpacity><Text style={{ color: C.text3, fontSize: 18 }}>×</Text></TouchableOpacity>
+          <TouchableOpacity><Text style={{ color: Colors.dark['text-tertiary'], fontSize: 18 }}>×</Text></TouchableOpacity>
         </View>
 
         {/* Step 0: Train selection */}
@@ -208,9 +208,9 @@ export default function SubmitReportScreen() {
               </View>
 
               <TextInput
-                style={[sr.searchField, { color: C.white }]}
+                style={[sr.searchField, { color: Colors.dark['text-primary'] }]}
                 placeholder={t('community.train_label')}
-                placeholderTextColor={C.text3}
+                placeholderTextColor={Colors.dark['text-tertiary']}
                 value={trainQuery}
                 onChangeText={setTrainQuery}
                 autoCapitalize="none"
@@ -224,8 +224,8 @@ export default function SubmitReportScreen() {
                     style={[sr.trainChip, selectedTrain?.id === train.id && sr.trainChipActive]}
                     onPress={() => setSelectedTrain({ id: train.id, name_en: train.name_en, number: train.number })}
                   >
-                    <TrainIcon size={16} color={selectedTrain?.id === train.id ? C.green : C.text2} />
-                    <Text style={[sr.trainChipNum, selectedTrain?.id === train.id && { color: C.green }]}>
+                    <TrainIcon size={16} color={selectedTrain?.id === train.id ? Colors.dark.primary : Colors.dark['text-secondary']} />
+                    <Text style={[sr.trainChipNum, selectedTrain?.id === train.id && { color: Colors.dark.primary }]}>
                       {train.number}
                     </Text>
                     <Text style={sr.trainChipName}>{train.name_en}</Text>
@@ -237,9 +237,9 @@ export default function SubmitReportScreen() {
               <View style={[sr.numberField, { flexDirection: 'row', alignItems: 'center' }]}>
                 <Text style={sr.numHash}>#</Text>
                 <TextInput
-                  style={{ flex: 1, color: C.white, fontSize: T.base, paddingVertical: S.sm }}
+                  style={{ flex: 1, color: Colors.dark['text-primary'], ...Typography.body, paddingVertical: Spacing['space-2'] }}
                   placeholder={t('community.train_number_placeholder')}
-                  placeholderTextColor={C.text3}
+                  placeholderTextColor={Colors.dark['text-tertiary']}
                   keyboardType="number-pad"
                   value={trainNumberQuery}
                   onChangeText={(v) => {
@@ -255,18 +255,18 @@ export default function SubmitReportScreen() {
               </View>
               {/* Show number-based search results */}
               {trainNumberQuery.length >= 2 && (trainNumberResults ?? []).length > 0 && (
-                <View style={{ gap: 4, marginTop: S.sm }}>
+                <View style={{ gap: 4, marginTop: Spacing['space-2'] }}>
                   {(trainNumberResults ?? []).slice(0, 3).map((train) => (
                     <TouchableOpacity
                       key={train.id}
-                      style={[sr.numberField, selectedTrain?.id === train.id && { borderColor: C.green, backgroundColor: C.greenTint }]}
+                      style={[sr.numberField, selectedTrain?.id === train.id && { borderColor: Colors.dark.primary, backgroundColor: Colors.dark['primary-subtle'] }]}
                       onPress={() => setSelectedTrain({ id: train.id, name_en: train.name_en, number: train.number })}
                     >
-                      <TrainIcon size={16} color={selectedTrain?.id === train.id ? C.green : C.text2} />
-                      <Text style={{ flex: 1, color: selectedTrain?.id === train.id ? C.green : C.white, fontSize: T.sm, marginLeft: S.sm }}>
+                      <TrainIcon size={16} color={selectedTrain?.id === train.id ? Colors.dark.primary : Colors.dark['text-secondary']} />
+                      <Text style={{ flex: 1, color: selectedTrain?.id === train.id ? Colors.dark.primary : Colors.dark['text-primary'], ...Typography['body-sm'], marginLeft: Spacing['space-2'] }}>
                         #{train.number} — {train.name_en}
                       </Text>
-                      {selectedTrain?.id === train.id && <Text style={{ color: C.green }}>✓</Text>}
+                      {selectedTrain?.id === train.id && <Text style={{ color: Colors.dark.primary }}>✓</Text>}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -275,7 +275,7 @@ export default function SubmitReportScreen() {
 
             {selectedTrain && (
               <View style={sr.selectedCard}>
-                <View style={sr.selectedIconWrap}><TrainIcon size={20} color={C.green} /></View>
+                <View style={sr.selectedIconWrap}><TrainIcon size={20} color={Colors.dark.primary} /></View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={sr.selectedName}>{selectedTrain.name_en} ({selectedTrain.number})</Text>
                   <View style={sr.selectedMeta}>
@@ -317,28 +317,28 @@ export default function SubmitReportScreen() {
                   <Text style={sr.stepDesc}>{t('report.step2_desc')}</Text>
                 </View>
               </View>
-              <View style={{ gap: S.sm }}>
+              <View style={{ gap: Spacing['space-2'] }}>
                 {REPORT_TYPES.map((rt) => (
                   <TouchableOpacity
                     key={rt.key}
                     style={[
                       sr.numberField,
-                      reportType === rt.key && { borderColor: C.green, backgroundColor: C.greenTint },
+                      reportType === rt.key && { borderColor: Colors.dark.primary, backgroundColor: Colors.dark['primary-subtle'] },
                     ]}
                     onPress={() => setReportType(rt.key)}
                   >
                     <Text
                       style={{
-                        fontSize: T.base,
+                        ...Typography.body,
                         fontWeight: '600',
-                        color: reportType === rt.key ? C.green : C.white,
+                        color: reportType === rt.key ? Colors.dark.primary : Colors.dark['text-primary'],
                         flex: 1,
                       }}
                     >
                       {rt.label}
                     </Text>
                     {reportType === rt.key && (
-                      <Text style={{ color: C.green, fontWeight: '700' }}>✓</Text>
+                      <Text style={{ color: Colors.dark.primary, fontWeight: '700' }}>✓</Text>
                     )}
                   </TouchableOpacity>
                 ))}
@@ -371,9 +371,9 @@ export default function SubmitReportScreen() {
                 <>
                   <Text style={sr.popularLabel}>{t('community.delay_label')}</Text>
                   <TextInput
-                    style={[sr.numberField, { color: C.white }]}
+                    style={[sr.numberField, { color: Colors.dark['text-primary'] }]}
                     placeholder="e.g. 15"
-                    placeholderTextColor={C.text3}
+                    placeholderTextColor={Colors.dark['text-tertiary']}
                     keyboardType="numeric"
                     value={delayMinutes}
                     onChangeText={setDelayMinutes}
@@ -385,10 +385,10 @@ export default function SubmitReportScreen() {
               <TextInput
                 style={[
                   sr.numberField,
-                  { color: C.white, height: 100, textAlignVertical: 'top', paddingTop: S.md },
+                  { color: Colors.dark['text-primary'], height: 100, textAlignVertical: 'top', paddingTop: Spacing['space-3'] },
                 ]}
                 placeholder={t('community.note_placeholder')}
-                placeholderTextColor={C.text3}
+                placeholderTextColor={Colors.dark['text-tertiary']}
                 multiline
                 maxLength={500}
                 value={description}
@@ -415,7 +415,7 @@ export default function SubmitReportScreen() {
               </View>
 
               <View style={sr.selectedCard}>
-                <View style={sr.selectedIconWrap}><TrainIcon size={20} color={C.green} /></View>
+                <View style={sr.selectedIconWrap}><TrainIcon size={20} color={Colors.dark.primary} /></View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={sr.selectedName}>{selectedTrain?.name_en} ({selectedTrain?.number})</Text>
                   <Text style={sr.selectedRoute}>{reportType}</Text>
@@ -432,7 +432,7 @@ export default function SubmitReportScreen() {
               </View>
 
               {submittedError ? (
-                <Text style={{ color: C.red, fontSize: T.sm, marginTop: S.sm }}>{submittedError}</Text>
+                <Text style={{ color: Colors.dark.danger, ...Typography['body-sm'], marginTop: Spacing['space-2'] }}>{submittedError}</Text>
               ) : null}
             </View>
 
@@ -453,55 +453,55 @@ export default function SubmitReportScreen() {
 }
 
 const sr = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: S.xl, gap: S.lg, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: S.md, paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '700', color: C.white },
-  subtitle: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: S.xl, paddingVertical: S.md, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  scroll: { padding: Spacing['space-5'], gap: Spacing['space-4'], paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 17, fontWeight: '700', color: Colors.dark['text-primary'] },
+  subtitle: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'], backgroundColor: Colors.dark['bg-card'], borderBottomWidth: 1, borderBottomColor: Colors.dark.border },
   stepItem: { alignItems: 'center', gap: 4 },
-  stepLine: { width: 24, height: 2, backgroundColor: C.border, position: 'absolute', right: '100%', top: 12 },
-  stepCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  stepCircleActive: { backgroundColor: C.green, borderColor: C.green },
-  stepCircleDone: { borderColor: C.green },
-  stepNum: { fontSize: T.base, fontWeight: '700', color: C.text2 },
-  stepLabel: { fontSize: T.xs, color: C.text2, textAlign: 'center' },
-  tipCard: { backgroundColor: C.greenTint, borderRadius: R.md, borderWidth: 1, borderColor: C.greenDark, padding: S.md, flexDirection: 'row', alignItems: 'center', gap: S.sm },
-  tipIcon: { width: 32, height: 32, backgroundColor: C.greenDark, borderRadius: 16 },
-  tipTitle: { fontSize: T.sm, fontWeight: '700', color: C.green },
-  tipSub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  card: { backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.border, padding: S.xl, gap: S.md },
-  stepHeader: { flexDirection: 'row', alignItems: 'center', gap: S.md },
-  stepIcon: { width: 28, height: 28, backgroundColor: C.greenTint, borderRadius: 14 },
-  stepTitle: { fontSize: T.md, fontWeight: '700', color: C.white },
-  stepDesc: { fontSize: T.sm, color: C.text2, marginTop: 2 },
-  searchField: { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: C.surface2, borderRadius: R.md, padding: S.md, borderWidth: 1, borderColor: C.border },
-  searchDot: { width: 20, height: 20, backgroundColor: C.border, borderRadius: 10 },
-  searchPlaceholder: { fontSize: T.base, color: C.text3 },
-  popularLabel: { fontSize: T.sm, fontWeight: '600', color: C.text2 },
-  popularRow: { flexDirection: 'row', gap: S.sm },
-  trainChip: { flex: 1, backgroundColor: C.surface2, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.sm, alignItems: 'center', gap: 6 },
-  trainChipActive: { backgroundColor: C.greenTint, borderColor: C.green },
-  trainChipIcon: { width: 28, height: 28, backgroundColor: C.bg, borderRadius: 14 },
-  trainChipNum: { fontSize: T.sm, fontWeight: '700', color: C.white },
-  trainChipName: { fontSize: 8, color: C.text2, textAlign: 'center' },
-  orText: { textAlign: 'center', fontSize: T.sm, color: C.text3 },
-  numberField: { flexDirection: 'row', alignItems: 'center', gap: S.sm, backgroundColor: C.surface2, borderRadius: R.md, padding: S.md, borderWidth: 1, borderColor: C.border },
-  numHash: { fontSize: 14, fontWeight: '700', color: C.text2 },
-  numPlaceholder: { fontSize: T.base, color: C.text3 },
-  selectedCard: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: C.surface, borderRadius: R.lg, borderWidth: 1, borderColor: C.green, padding: S.lg },
-  selectedIcon: { width: 48, height: 48, backgroundColor: C.greenTint, borderRadius: 24 },
-  selectedIconWrap: { width: 48, height: 48, backgroundColor: C.greenTint, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  selectedName: { fontSize: 14, fontWeight: '700', color: C.white },
-  selectedRoute: { fontSize: T.sm, color: C.text2 },
-  selectedMeta: { flexDirection: 'row', gap: S.md },
-  selectedMetaText: { fontSize: T.xs, color: C.text3 },
-  typeText: { fontSize: T.sm, fontWeight: '600', color: C.blue },
-  reportingTip: { flexDirection: 'row', alignItems: 'center', gap: S.md, backgroundColor: C.surface, borderRadius: R.md, borderWidth: 1, borderColor: C.border, padding: S.md },
-  tipIconSmall: { width: 28, height: 28, backgroundColor: C.blueTint, borderRadius: 14 },
-  reportingTipTitle: { fontSize: T.sm, fontWeight: '700', color: C.blue },
-  reportingTipSub: { fontSize: T.xs, color: C.text2, marginTop: 2 },
-  continueBtn: { backgroundColor: C.green, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  continueBtnText: { fontSize: T.md, fontWeight: '700', color: C.bg },
+  stepLine: { width: 24, height: 2, backgroundColor: Colors.dark.border, position: 'absolute', right: '100%', top: 12 },
+  stepCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.dark['bg-overlay'], borderWidth: 1, borderColor: Colors.dark.border, alignItems: 'center', justifyContent: 'center' },
+  stepCircleActive: { backgroundColor: Colors.dark.primary, borderColor: Colors.dark.primary },
+  stepCircleDone: { borderColor: Colors.dark.primary },
+  stepNum: { ...Typography.body, fontWeight: '700', color: Colors.dark['text-secondary'] },
+  stepLabel: { ...Typography.caption, color: Colors.dark['text-secondary'], textAlign: 'center' },
+  tipCard: { backgroundColor: Colors.dark['primary-subtle'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark['primary-dim'], padding: Spacing['space-3'], flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'] },
+  tipIcon: { width: 32, height: 32, backgroundColor: Colors.dark['primary-dim'], borderRadius: 16 },
+  tipTitle: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.primary },
+  tipSub: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  card: { backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-5'], gap: Spacing['space-3'] },
+  stepHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'] },
+  stepIcon: { width: 28, height: 28, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 14 },
+  stepTitle: { ...Typography.h4, fontWeight: '700', color: Colors.dark['text-primary'] },
+  stepDesc: { ...Typography['body-sm'], color: Colors.dark['text-secondary'], marginTop: 2 },
+  searchField: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], padding: Spacing['space-3'], borderWidth: 1, borderColor: Colors.dark.border },
+  searchDot: { width: 20, height: 20, backgroundColor: Colors.dark.border, borderRadius: 10 },
+  searchPlaceholder: { ...Typography.body, color: Colors.dark['text-tertiary'] },
+  popularLabel: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark['text-secondary'] },
+  popularRow: { flexDirection: 'row', gap: Spacing['space-2'] },
+  trainChip: { flex: 1, backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-2'], alignItems: 'center', gap: 6 },
+  trainChipActive: { backgroundColor: Colors.dark['primary-subtle'], borderColor: Colors.dark.primary },
+  trainChipIcon: { width: 28, height: 28, backgroundColor: Colors.dark['bg-base'], borderRadius: 14 },
+  trainChipNum: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark['text-primary'] },
+  trainChipName: { fontSize: 8, color: Colors.dark['text-secondary'], textAlign: 'center' },
+  orText: { textAlign: 'center', ...Typography['body-sm'], color: Colors.dark['text-tertiary'] },
+  numberField: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-2'], backgroundColor: Colors.dark['bg-overlay'], borderRadius: Radius['radius-md'], padding: Spacing['space-3'], borderWidth: 1, borderColor: Colors.dark.border },
+  numHash: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-secondary'] },
+  numPlaceholder: { ...Typography.body, color: Colors.dark['text-tertiary'] },
+  selectedCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-lg'], borderWidth: 1, borderColor: Colors.dark.primary, padding: Spacing['space-4'] },
+  selectedIcon: { width: 48, height: 48, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 24 },
+  selectedIconWrap: { width: 48, height: 48, backgroundColor: Colors.dark['primary-subtle'], borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  selectedName: { fontSize: 14, fontWeight: '700', color: Colors.dark['text-primary'] },
+  selectedRoute: { ...Typography['body-sm'], color: Colors.dark['text-secondary'] },
+  selectedMeta: { flexDirection: 'row', gap: Spacing['space-3'] },
+  selectedMetaText: { ...Typography.caption, color: Colors.dark['text-tertiary'] },
+  typeText: { ...Typography['body-sm'], fontWeight: '600', color: Colors.dark.info },
+  reportingTip: { flexDirection: 'row', alignItems: 'center', gap: Spacing['space-3'], backgroundColor: Colors.dark['bg-card'], borderRadius: Radius['radius-md'], borderWidth: 1, borderColor: Colors.dark.border, padding: Spacing['space-3'] },
+  tipIconSmall: { width: 28, height: 28, backgroundColor: Colors.dark['info-subtle'], borderRadius: 14 },
+  reportingTipTitle: { ...Typography['body-sm'], fontWeight: '700', color: Colors.dark.info },
+  reportingTipSub: { ...Typography.caption, color: Colors.dark['text-secondary'], marginTop: 2 },
+  continueBtn: { backgroundColor: Colors.dark.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  continueBtnText: { ...Typography.h4, fontWeight: '700', color: Colors.dark['bg-base'] },
 });

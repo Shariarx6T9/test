@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet, Pressable, Alert, Image, ImageSourcePropType, Linking,
 } from 'react-native';
-const logoImg: ImageSourcePropType = require('../../assets/images/logo.png');
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -13,6 +12,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { Colors } from '../../constants/colors';
+const logoImg: ImageSourcePropType = require('../../assets/images/logo.png');
 
 const C = Colors.dark;
 

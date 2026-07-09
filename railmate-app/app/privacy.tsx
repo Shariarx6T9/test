@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'phosphor-react-native';
-import { colors as C, spacing as S, typography as T } from '../theme';
+import { Colors, Spacing, Typography } from '../constants';
 
 const privacyPolicyContent = `# Privacy Policy for RailMate Bangladesh
 
@@ -152,7 +152,7 @@ const MarkdownViewer = ({ content }: { content: string }) => {
   };
 
   return (
-    <View style={{ paddingHorizontal: S.xl, paddingBottom: S.xxxl }}>
+    <View style={{ paddingHorizontal: Spacing['space-5'], paddingBottom: Spacing['space-8'] }}>
       {lines.map(renderLine)}
     </View>
   );
@@ -165,7 +165,7 @@ export default function PrivacyPolicyScreen() {
     <SafeAreaView style={styles.root}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={18} color={C.white} />
+          <ArrowLeft size={18} color={Colors.dark['text-primary']} />
         </TouchableOpacity>
         <View>
           <Text style={styles.title}>Privacy Policy</Text>
@@ -180,16 +180,16 @@ export default function PrivacyPolicyScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: S.xl, paddingVertical: S.md },
-  backBtn: { width: 32, height: 32, backgroundColor: C.surface2, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', color: C.white },
-  h1: { fontSize: T.xxl, fontWeight: 'bold', color: C.white, marginBottom: S.lg, marginTop: S.lg },
-  h2: { fontSize: T.xl, fontWeight: 'bold', color: C.white, marginBottom: S.md, marginTop: S.lg, borderBottomWidth: 1, borderBottomColor: C.border, paddingBottom: S.sm },
-  h3: { fontSize: T.lg, fontWeight: 'bold', color: C.white, marginBottom: S.sm, marginTop: S.md },
-  body: { fontSize: T.base, color: C.text2, lineHeight: 24, marginBottom: S.md },
-  bullet: { flexDirection: 'row', marginBottom: S.sm, paddingLeft: S.md },
-  bulletPoint: { color: C.text2, marginRight: S.sm, fontSize: T.base, lineHeight: 24 },
-  divider: { height: 1, backgroundColor: C.border, marginVertical: S.lg },
-  code: { fontFamily: 'JetBrainsMono_400Regular', backgroundColor: C.surface2, color: C.text2, paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4 },
+  root: { flex: 1, backgroundColor: Colors.dark['bg-base'] },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing['space-5'], paddingVertical: Spacing['space-3'] },
+  backBtn: { width: 32, height: 32, backgroundColor: Colors.dark['bg-overlay'], borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 18, fontWeight: '700', color: Colors.dark['text-primary'] },
+  h1: { ...Typography.h1, fontWeight: 'bold', color: Colors.dark['text-primary'], marginBottom: Spacing['space-4'], marginTop: Spacing['space-4'] },
+  h2: { ...Typography.h2, fontWeight: 'bold', color: Colors.dark['text-primary'], marginBottom: Spacing['space-3'], marginTop: Spacing['space-4'], borderBottomWidth: 1, borderBottomColor: Colors.dark.border, paddingBottom: Spacing['space-2'] },
+  h3: { ...Typography.h3, fontWeight: 'bold', color: Colors.dark['text-primary'], marginBottom: Spacing['space-2'], marginTop: Spacing['space-3'] },
+  body: { ...Typography.body, color: Colors.dark['text-secondary'], lineHeight: 24, marginBottom: Spacing['space-3'] },
+  bullet: { flexDirection: 'row', marginBottom: Spacing['space-2'], paddingLeft: Spacing['space-3'] },
+  bulletPoint: { color: Colors.dark['text-secondary'], marginRight: Spacing['space-2'], ...Typography.body, lineHeight: 24 },
+  divider: { height: 1, backgroundColor: Colors.dark.border, marginVertical: Spacing['space-4'] },
+  code: { fontFamily: 'JetBrainsMono_400Regular', backgroundColor: Colors.dark['bg-overlay'], color: Colors.dark['text-secondary'], paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4 },
 });
