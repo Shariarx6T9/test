@@ -15,7 +15,8 @@ interface Props {
 export default function SearchForm({ stations, defaultFrom, defaultTo, defaultDate }: Props) {
   const router = useRouter()
 
-  const todayISO = new Date().toISOString().split('T')[0]
+  // Dhaka local date, not server UTC date — see HeroSection.tsx for why.
+  const todayISO = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date())
 
   const [fromQuery, setFromQuery]   = useState(defaultFrom ? stationName(stations, defaultFrom) : '')
   const [toQuery,   setToQuery]     = useState(defaultTo   ? stationName(stations, defaultTo)   : '')

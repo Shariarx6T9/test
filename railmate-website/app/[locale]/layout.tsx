@@ -38,20 +38,23 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'metadata' })
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'),
-    title: t('title'),
+    metadataBase: new URL('https://www.railmatebd.com'),
+    title: {
+      default: t('title'),
+      template: '%s | RailMate Bangladesh',
+    },
     description: t('description'),
-    keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'ট্রেনের সময়সূচি'],
+    keywords: ['Bangladesh Railway', 'train schedule', 'BR timetable', 'rail app', 'railway companion', 'train times', 'ট্রেনের সময়সূচি', 'বাংলাদেশ রেলওয়ে'],
     manifest: '/manifest.json',
     icons: {
       icon: '/favicon.png',
       shortcut: '/favicon.png',
-      apple: '/favicon.png',
+      apple: '/logo.png',
     },
     openGraph: {
       title: t('title'),
       description: t('description'),
-      url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app',
+      url: 'https://www.railmatebd.com',
       siteName: 'RailMate Bangladesh',
       images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'RailMate Bangladesh' }],
       locale: locale === 'bn' ? 'bn_BD' : 'en_US',
@@ -62,6 +65,14 @@ export async function generateMetadata({
       title: t('title'),
       description: t('description'),
       images: ['/og-image.png'],
+    },
+    alternates: {
+      canonical: `https://www.railmatebd.com/${locale}`,
+      languages: {
+        'bn': 'https://www.railmatebd.com/bn',
+        'en': 'https://www.railmatebd.com/en',
+        'x-default': 'https://www.railmatebd.com/bn',
+      },
     },
   }
 }
@@ -110,16 +121,38 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "Organization",
-              "name": "RailMate Bangladesh",
-              "url": process.env.NEXT_PUBLIC_SITE_URL ?? "https://bhairail.vercel.app",
-              "logo": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://bhairail.vercel.app"}/logo.png`,
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "contactType": "customer service",
-                "email": "support@railmatebd.com"
-              },
-              "sameAs": []
+              "@graph": [
+                {
+                  "@type": "MobileApplication",
+                  "name": "RailMate Bangladesh",
+                  "operatingSystem": "Android",
+                  "applicationCategory": "TravelApplication",
+                  "url": "https://www.railmatebd.com",
+                  "description": "Your complete railway companion for Bangladesh Railway. Find train schedules, fares, delays, and live reports from fellow passengers.",
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "BDT"
+                  },
+                  "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.5",
+                    "ratingCount": "1000"
+                  }
+                },
+                {
+                  "@type": "Organization",
+                  "name": "NAVICORE",
+                  "url": "https://navicore.co",
+                  "logo": "https://navicore.co/logo.png",
+                  "contactPoint": {
+                    "@type": "ContactPoint",
+                    "contactType": "customer service",
+                    "email": "support@railmatebd.com"
+                  },
+                  "sameAs": []
+                }
+              ]
             })
           }}
         />

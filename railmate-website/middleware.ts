@@ -27,7 +27,15 @@ const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,   // 'bn'
   localePrefix,    // 'always'
-  localeDetection: true,
+  // Part 05 §5.4 requires defaulting to Bengali for BD traffic — a
+  // geographic requirement. localeDetection:true instead honors the
+  // browser's Accept-Language header, which is 'en-US' on most BD
+  // devices/browsers regardless of the user's actual location or
+  // language preference. That silently overrode defaultLocale and was
+  // why the site rendered in English. Disabling it lets defaultLocale
+  // ('bn') win on first visit; users who explicitly switch still get
+  // their choice persisted via the NEXT_LOCALE cookie on return visits.
+  localeDetection: false,
   alternateLinks:  true,
 })
 

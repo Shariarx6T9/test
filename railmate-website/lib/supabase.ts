@@ -15,12 +15,12 @@ export function getSupabaseClient(): SupabaseClient {
   if (_client) return _client
 
   const url  = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
   if (!url || !anon) {
     throw new Error(
       '[RailMate] Supabase env vars not set.\n' +
-      'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY ' +
+      'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ' +
       'to your Vercel project environment variables.'
     )
   }

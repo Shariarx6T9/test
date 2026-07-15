@@ -48,7 +48,7 @@ export async function generateMetadata({
 
   const from = route.from.name_en
   const to   = route.to.name_en
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'
+  const siteUrl = 'https://www.railmatebd.com'
 
   return {
     title:       `${from} to ${to} Train Schedule | RailMate Bangladesh`,
@@ -136,7 +136,7 @@ export default async function TrainRoutePage({
     console.error('[TrainRoutePage] searchTrains failed — showing zero results:', err)
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app'
+  const siteUrl = 'https://www.railmatebd.com'
   // NOTE: The outbound ticket URL is set inside TrainResultCard.
   // It is https://eticket.railway.gov.bd (official BR e-ticketing portal).
   // ⚠️  HUMAN REVIEW: verify this URL is current before production launch.
@@ -213,29 +213,10 @@ export default async function TrainRoutePage({
             </p>
           </div>
 
-          {/* Inline search — lets user change date without navigating away */}
-          <div className="mb-8">
-            <SearchForm
-              stations={stations}
-              defaultFrom={parsed.fromCode}
-              defaultTo={parsed.toCode}
-              defaultDate={journeyDate}
-            />
-          </div>
-
-          {/* Results */}
-          {results.length === 0 ? (
-            <NoDirectTrainGuidance
-              locale={locale}
-              fromCode={parsed.fromCode}
-              toCode={parsed.toCode}
-              fromLabel={route.from.name_en}
-              toLabel={route.to.name_en}
-              fromDivision={route.from.division}
-              toDivision={route.to.division}
-            />
-          ) : (
-            <div className="space-y-4">
+          {/* Results and no-results guidance — both shown ABOVE the search form
+              so the user's answer is the first thing they see. */}
+          {results.length > 0 ? (
+            <div className="space-y-4 mb-8">
               {results.map((train) => (
                 <TrainResultCard
                   key={train.train_id}
@@ -245,7 +226,29 @@ export default async function TrainRoutePage({
                 />
               ))}
             </div>
+          ) : (
+            <div className="mb-8">
+              <NoDirectTrainGuidance
+                locale={locale}
+                fromCode={parsed.fromCode}
+                toCode={parsed.toCode}
+                fromLabel={route.from.name_en}
+                toLabel={route.to.name_en}
+                fromDivision={route.from.division}
+                toDivision={route.to.division}
+              />
+            </div>
           )}
+
+          {/* Inline search — change route or date without leaving the page */}
+          <div className="mb-8">
+            <SearchForm
+              stations={stations}
+              defaultFrom={parsed.fromCode}
+              defaultTo={parsed.toCode}
+              defaultDate={journeyDate}
+            />
+          </div>
 
           {/* App upsell CTA — required by spec */}
           <div className="mt-10 p-6 rounded-xl bg-primary/5 border border-primary/20">

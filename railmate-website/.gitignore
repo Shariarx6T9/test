@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Environment variables — never commit
+.env
+.env.local
+.env.*.local
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Binary / large assets that belong in GitHub Releases, not git
+public/downloads/
+
+# Vercel deployment metadata
+.vercel/
+
+# Dev tooling scripts not part of the app
+audit-sitemap-redirects.mjs
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

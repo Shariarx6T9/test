@@ -99,7 +99,7 @@ export default function DownloadPageClient({ translations }: { translations: any
               <DownloadButton
                 platform="apk"
                 className="w-full"
-                href={process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL!}
+                href="https://github.com/najmulcodes/railmateapp/releases/download/v1.0.0/railmate-v1.0.0.apk"
               />
             </div>
           </div>

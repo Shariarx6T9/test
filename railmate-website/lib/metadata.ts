@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://railmatebd.com";
+const BASE_URL = "https://www.railmatebd.com";
 
 export function buildMetadata({
   title,

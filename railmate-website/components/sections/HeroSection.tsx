@@ -29,7 +29,11 @@ export default function HeroSection({ stations }: Props) {
   const badges  = [t.hero.badge1, t.hero.badge2, t.hero.badge3]
 
   // ── Search state ──────────────────────────────────────────────────────────
-  const today = new Date().toISOString().split('T')[0]
+  // Bangladesh is UTC+6. `new Date().toISOString()` reads the UTC calendar
+  // date, which lags one day behind Dhaka's date from 00:00–05:59 Dhaka
+  // time (server clocks run UTC on Vercel). Format explicitly in Asia/Dhaka
+  // instead — 'en-CA' locale gives YYYY-MM-DD, matching <input type="date">.
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date())
 
   const [fromQuery,    setFromQuery]    = useState('')
   const [toQuery,      setToQuery]      = useState('')

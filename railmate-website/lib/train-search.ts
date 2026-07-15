@@ -125,6 +125,7 @@ export async function getAllStations(): Promise<StationOption[]> {
       .from('stations')
       .select('id, code, name_en, name_bn, division, zone, is_major')
       .eq('is_active', true)
+      .order('is_major', { ascending: false })
       .order('name_en', { ascending: true })
     if (error) throw new Error(error.message)
     return (data ?? []).map((s: any) => ({ ...s, is_intercity_hub: s.is_major })) as StationOption[]
@@ -303,7 +304,7 @@ export async function searchTrains(
         train_type:         row.train_type,
         departure_time:     row.departure_time!.slice(0, 5),
         arrival_time:       row.arrival_time!.slice(0, 5),
-        duration_minutes:   row.duration_minutes!,
+        duration_minutes:   calculateDuration(row.departure_time!.slice(0, 5), row.arrival_time!.slice(0, 5)),
         available_classes:  row.available_classes ?? [],
         avg_delay_minutes:  delay.avg_delay_minutes,
         delay_report_count: delay.delay_report_count,
@@ -349,6 +350,15 @@ export async function searchTrains(
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+export function calculateDuration(departure: string, arrival: string): number {
+  const [depHour, depMin] = departure.split(':').map(Number)
+  const [arrHour, arrMin] = arrival.split(':').map(Number)
+  let depMinutes = depHour * 60 + depMin
+  let arrMinutes = arrHour * 60 + arrMin
+  if (arrMinutes <= depMinutes) arrMinutes += 24 * 60
+  return arrMinutes - depMinutes
+}
 
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)

@@ -1,21 +1,34 @@
-import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getAllStations } from '@/lib/train-search'
 import SearchForm from '@/components/search/SearchForm'
 
-export const metadata: Metadata = {
-  title: 'Search Train Schedules | RailMate Bangladesh',
-  description:
-    'Search Bangladesh Railway train schedules by route and date. Find departure times, journey duration, and available classes across 50+ stations.',
-}
+export const metadata = buildMetadata({
+  title: 'Search Train Schedules',
+  description: 'Search Bangladesh Railway train schedules by route and date. Find departure times, journey duration, and available classes across 50+ stations.',
+  path: '/search',
+})
 
-export const revalidate = 3600
+// Prevent ISR caching of this page — it redirects when params are present,
+// and the redirect target (train route page) handles its own caching.
+export const dynamic = 'force-dynamic'
 
 export default async function SearchPage({
+  params: paramsPromise,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>
   searchParams: Promise<{ from?: string; to?: string; date?: string }>
 }) {
-  const params = await searchParams
+  const { locale } = await paramsPromise
+  const sp = await searchParams
+
+  // Auto-navigate to results when all three params are present — skip the
+  // extra "click Search again" step the user would otherwise face.
+  if (sp.from && sp.to && sp.date) {
+    redirect(`/${locale}/train/${sp.from.toLowerCase()}-to-${sp.to.toLowerCase()}?date=${sp.date}`)
+  }
+
   let stations: Awaited<ReturnType<typeof getAllStations>> = []
   try {
     stations = await getAllStations()
@@ -45,9 +58,9 @@ export default async function SearchPage({
         {/* Pre-fill from ?from=CODE&to=CODE&date=YYYY-MM-DD */}
         <SearchForm
           stations={stations}
-          defaultFrom={params.from?.toUpperCase()}
-          defaultTo={params.to?.toUpperCase()}
-          defaultDate={params.date}
+          defaultFrom={sp.from?.toUpperCase()}
+          defaultTo={sp.to?.toUpperCase()}
+          defaultDate={sp.date}
         />
 
         <div className="mt-8 p-5 rounded-xl border border-border-subtle bg-bg-elevated flex flex-col sm:flex-row items-start sm:items-center gap-4">

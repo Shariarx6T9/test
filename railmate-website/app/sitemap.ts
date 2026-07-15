@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { TOP_ROUTES }    from '@/lib/train-search'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhairail.vercel.app').replace(/\/$/, '')
+  const siteUrl = 'https://www.railmatebd.com'
 
   const staticPaths = [
     '',
@@ -23,14 +23,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push({
       url:             `${siteUrl}/bn${path}`,
       lastModified:    new Date(),
-      changeFrequency: path === '' ? 'weekly' : 'monthly',
-      priority:        path === '' ? 1.0 : 0.7,
+      changeFrequency: path === '' ? 'daily' : 'weekly',
+      priority:        path === '' ? 1.0 : 0.8,
     })
     entries.push({
       url:             `${siteUrl}/en${path}`,
       lastModified:    new Date(),
-      changeFrequency: path === '' ? 'weekly' : 'monthly',
-      priority:        path === '' ? 0.8 : 0.6,
+      changeFrequency: path === '' ? 'daily' : 'weekly',
+      priority:        path === '' ? 0.9 : 0.8,
     })
   }
 
