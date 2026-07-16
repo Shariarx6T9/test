@@ -29,10 +29,6 @@ export default function HeroSection({ stations }: Props) {
   const badges  = [t.hero.badge1, t.hero.badge2, t.hero.badge3]
 
   // ── Search state ──────────────────────────────────────────────────────────
-  // Bangladesh is UTC+6. `new Date().toISOString()` reads the UTC calendar
-  // date, which lags one day behind Dhaka's date from 00:00–05:59 Dhaka
-  // time (server clocks run UTC on Vercel). Format explicitly in Asia/Dhaka
-  // instead — 'en-CA' locale gives YYYY-MM-DD, matching <input type="date">.
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date())
 
   const [fromQuery,    setFromQuery]    = useState('')
@@ -60,7 +56,11 @@ export default function HeroSection({ stations }: Props) {
   function filterStations(query: string, exclude?: string): StationOption[] {
     const candidates = stations.filter((s) => s.code !== exclude)
     if (!query.trim()) {
-      return [...candidates].sort((a, b) => Number(b.is_major) - Number(a.is_major)).slice(0, 8)
+      // Show hubs first when no query, then alphabetically
+      return [...candidates].sort((a, b) => {
+        if (a.is_major !== b.is_major) return Number(b.is_major) - Number(a.is_major)
+        return a.name_en.localeCompare(b.name_en)
+      }).slice(0, 8)
     }
     const q = query.toLowerCase()
     return candidates.filter(
@@ -99,7 +99,7 @@ export default function HeroSection({ stations }: Props) {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <section
-      className="relative flex items-center pt-20 pb-12 md:pt-24 md:pb-16 lg:min-h-[88vh]"
+      className="relative flex items-start pt-20 pb-12 md:pt-24 md:pb-16"
       id="hero"
     >
       {/* Ambient background glow */}
@@ -310,7 +310,7 @@ export default function HeroSection({ stations }: Props) {
 
               {/* Subtle footer note */}
               <p className="text-center text-white/25 text-xs font-inter">
-                Free · No signup required · 130+ trains
+                Free · No signup required · 139+ trains
               </p>
             </form>
           </div>

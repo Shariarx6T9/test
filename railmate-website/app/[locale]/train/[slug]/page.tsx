@@ -127,7 +127,7 @@ export default async function TrainRoutePage({
 
   const journeyDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date)
     ? date
-    : new Date().toISOString().split('T')[0]
+    : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka' }).format(new Date())
 
   let results: Awaited<ReturnType<typeof searchTrains>> = []
   try {
